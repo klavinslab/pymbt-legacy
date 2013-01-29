@@ -8,14 +8,15 @@
 # To increase size, need to optimize search method and take steps to reduce
 # memory usage (write to files and iterate/queue)
     
-from pymbt.nupack import nupack
 import random,os,time,multiprocessing,socket
 from datetime import datetime
 from string import maketrans,translate
 from itertools import combinations
 from math import factorial
-
+#TODO: shouldn't pickle bound methods - use hidden functions (_function)
 import copy_reg, types # necessary to pickle bound methods
+
+from pymbt.nupack import nupack
 
 # To do:
 # 1. Implement signal handler so it exits cleanly on ctrl-c

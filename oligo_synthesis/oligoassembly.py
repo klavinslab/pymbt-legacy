@@ -7,7 +7,7 @@
 import csv
 from math import ceil
 
-from pymbt.CalcTm import calc_tm
+from pymbt.calc_tm import calc_tm
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import IUPAC

@@ -2,7 +2,6 @@
 
 from string import maketrans,translate
 
-
 # Simple reverse complement function
 def reverse_complement(sequence):
     submat = maketrans('ATGCatgc','TACGtacg')

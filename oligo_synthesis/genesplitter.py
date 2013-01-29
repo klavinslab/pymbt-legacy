@@ -5,7 +5,7 @@ import multiprocessing
 import csv
 
 from pymbt.nupack import nupack
-from structure_windows import context_walk
+from pymbt.oligo_synthesis.structure_windows import context_walk
 
 
 def split_gene(seq,

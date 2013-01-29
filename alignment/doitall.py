@@ -1,7 +1,7 @@
 import sys
 from Bio import SeqIO
 from donw import donw as donw
-from alignanalyze import align_analyze as analyze
+from pymbt.alignment.alignanalyze import align_analyze as analyze
 
 def alignreport(path1,path2):
 	ref = SeqIO.read(path1,'fasta').seq.tostring()
