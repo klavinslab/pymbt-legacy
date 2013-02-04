@@ -16,7 +16,7 @@ from math import factorial
 #TODO: shouldn't pickle bound methods - use hidden functions (_function)
 import copy_reg, types # necessary to pickle bound methods
 
-from pymbt.nupack import nupack
+from pymbt.nupack import Nupack
 
 # To do:
 # 1. Implement signal handler so it exits cleanly on ctrl-c
@@ -200,7 +200,7 @@ class OrthoSeq:
         return(oligo_list)
    
     def n_pool_nupack(self,sequence_list):
-        n_np = nupack(sequence_list,'dna')
+        n_np = Nupack(sequence_list,'dna')
         n_concs = n_np.concentrations(2)['concentration'][0:len(sequence_list)]
         return(n_concs)
     
@@ -312,7 +312,7 @@ class OrthoSeq:
         
             # Check oligo self-self binding
             oligo_monomer = self.monomers_concentration([new_oligo for x in range(2)])
-            oligo_np = nupack([new_oligo],'dna')
+            oligo_np = Nupack([new_oligo],'dna')
             oligo_mfe = oligo_np.mfe(0)
             oligo_np._cleanup()
             if oligo_monomer >= min_free and oligo_mfe == 0.0:
@@ -322,7 +322,7 @@ class OrthoSeq:
     
     def monomers_concentration(self,sequence_list,mfe=True):
         # Run nupack's 'concentrations'
-        np = nupack(sequence_list,'dna') 
+        np = Nupack(sequence_list,'dna') 
         nc = np.concentrations(2,conc=self.conc,mfe=mfe) # nupack concentrations
  
         # Isolate the unbound monomer concentrations

@@ -2,11 +2,11 @@ import pymbt.orthoseq.OrthoSeq
 import random
 import multiprocessing
 import copy_reg,types
-import pymbt.nupack as np
+from pymbt.nupack import Nupack
 
 def monomers_concentration(sequence_list,mfe=True):
     # Run nupack's 'concentrations'
-    nps = np.nupack(sequence_list,'dna') 
+    nps = Nupack(sequence_list,'dna') 
     nc = nps.concentrations(2,conc=5e-7,mfe=mfe) # nupack concentrations
         
     # Isolate the unbound monomer concentrations

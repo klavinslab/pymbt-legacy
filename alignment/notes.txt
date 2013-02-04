@@ -1,0 +1,30 @@
+overall goal:
+    Supply function with reference sequence and sequencing results, get back:
+        1. Alignment (FASTA ando otherwise) (for possible re-evaluation)
+        2. Report function / printout
+        3. Graphical output - at least something comparable to R version 
+
+Additional function:
+    1. Read in ab1 files, allow list of ab1 objects as results argument
+    2. When ab1 files used, option to view discrepancies w/ traces, make executive decision - interactive UI workflow
+
+So, current ideal manual workflow:
+    1. ref = Read in reference sequence (genbank/ape format)
+    2. res = Read in results (ab1 files)
+    3. aligned = sanger_align(ref,res)
+    4. aligned.report() = print summary
+    5. aligned.write(path,format)
+    6. aligned.plot() = visualization
+    7. aligned.writeplot(path,format)
+    8. aligned.mismatches()[0] - lists mismatches, e.g. the first
+    9. aligned.fixmismatch(0,'A') - sets first mismatch to be an 'A'.
+
+Ideal automaed workflow: have a bunch of results and a bunch of references,
+want reports written out fast and in batch fashion. But still need some level of interaction
+sometimes....
+
+    1. list of refs, list of results dirs, let it go to town.
+    2. In terms of feedback, has to be manual until we can make the basecaller better.
+
+
+

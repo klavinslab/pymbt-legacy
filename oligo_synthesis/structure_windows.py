@@ -2,7 +2,7 @@ import time
 import multiprocessing
 
 from pymbt.dna_manipulation import reverse_complement
-from pymbt.nupack import nupack 
+from pymbt.nupack import Nupack 
 
 def context_walk(seq,core_len,context_len,step,report=False):
     # split into sections. not sophisticated
@@ -56,7 +56,7 @@ def context_walk(seq,core_len,context_len,step,report=False):
 # Put nupack calculation in a function to enable
 # parallel processing
 def run_pairs(seq):
-    np_run = nupack(seq,'dna')
+    np_run = Nupack(seq,'dna')
     pairs = np_run.pairs(0)
     np_run._cleanup()
     return(pairs)

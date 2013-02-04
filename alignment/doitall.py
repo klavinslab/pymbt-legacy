@@ -1,6 +1,6 @@
 import sys
 from Bio import SeqIO
-from donw import donw as donw
+from needle import needle 
 from pymbt.alignment.alignanalyze import align_analyze as analyze
 
 def alignreport(path1,path2):
@@ -10,7 +10,7 @@ def alignreport(path1,path2):
 	# Trim out Ns, keep largest non-N contiguous region
 	newref = max(ref.split("N"),key=len)
 	newres = max(res.split("N"),key=len)
-	aligned = donw(newref,newres)
+	aligned = needle(newref,newres)
 	return(aligned)
 	aligned0 = aligned[0,:].seq.tostring()
 	aligned1 = aligned[1,:].seq.tostring()

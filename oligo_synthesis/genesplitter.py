@@ -4,7 +4,7 @@ from string import maketrans,translate
 import multiprocessing
 import csv
 
-from pymbt.nupack import nupack
+from pymbt.nupack import Nupack
 from pymbt.oligo_synthesis.structure_windows import context_walk
 
 
@@ -71,7 +71,7 @@ def split_gene(seq,
 '''
 # could compare to mfe 
 def run_mfe(sequence):
-    mfe_np = nupack(sequence,material='dna')
+    mfe_np = Nupack(sequence,material='dna')
     mfe = mfe_np.mfe(0)
     mfe_np._cleanup()
     return(mfe)

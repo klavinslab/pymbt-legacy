@@ -24,15 +24,18 @@ from os.path import isdir
 from os import environ
 from os.path import exists
 
-class nupack:
-    """nupack python wrapper class"""
+if 'NUPACKHOME' in environ: 
+    nupack_home = environ['NUPACKHOME']
+else:
+    raise EnvironmentError('NUPACKHOME environment variable must be set') 
+
+
+
+class Nupack:
+    '''NUPACK master class'''
     def __init__(self,sequence_list,material):
         # Set up nupack environment variable
-        if 'NUPACKHOME' in environ: 
-            self.nupackdir = environ['NUPACKHOME']
-        else:
-            raise EnvironmentError('NUPACKHOME environment variable must be set') 
-
+        self.nupack_home = nupack_home
         # Store reused information
         if type(sequence_list) is not list:
             if type(sequence_list) is str:
@@ -241,8 +244,8 @@ class nupack:
         if command not in accepted_commands:
             raise ValueError('Command must be one of the following:' + accepted_commands)
 
-        env_line = "export NUPACKHOME="+self.nupackdir+' && '
-        command_line = 'cd ' + self.outdir + ' && ' + self.nupackdir + '/bin/' + command + ' '
+        env_line = "export NUPACKHOME="+self.nupack_home+' && '
+        command_line = 'cd ' + self.outdir + ' && ' + self.nupack_home + '/bin/' + command + ' '
         arguments_line = arguments + ' ' + self.outdir + '/nupack'
 
         run_command = env_line+command_line+arguments_line
