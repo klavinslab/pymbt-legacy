@@ -16,8 +16,8 @@ def design_primer(s,
     source_tm = calc_tm(s)
 
     if source_tm < tm - tm_errorminus:
-        return("Tm of full length sequence is already lower
-                than desired Tm and error parameters allow.")
+        return('Tm of full length sequence is already lower \
+                than desired Tm and error parameters allow.')
 
     primer_tm = 0
     bases = minstart
@@ -45,6 +45,7 @@ def design_primer(s,
 
     primerlist = zip(primers, tms)
 
+
     gc_list = []
     if endGC:
         for i, x in enumerate(primerlist):
@@ -60,10 +61,9 @@ def design_primer(s,
         primerlist = gc_list
 
     # which primer(s) are closest to the desired tm?
-    # TODO: fix this - it's erring on the high side
     diffs = []
     for i in range(len(primerlist)):
-        diffs.append(abs(72 - primerlist[i][1]))
+        diffs.append(abs(tm - primerlist[i][1]))
 
     min_ind = [i for i, x in enumerate(diffs) if x == min(diffs)]
     best_primer = primerlist[min_ind[0]]

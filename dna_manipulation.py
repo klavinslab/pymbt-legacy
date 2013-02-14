@@ -1,4 +1,6 @@
-# Functions to do basic DNA manipulations
+# Functions to do basic DNA manipulations:
+#   Reverse Complement
+#   TODO: put more things here?
 from string import maketrans, translate
 
 

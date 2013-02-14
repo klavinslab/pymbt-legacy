@@ -1,3 +1,3 @@
 Make cytometry module - no more R reliance
 Plotting module - make plotting the data we generate easier
-Alignments module - batch processing of Sanger sequencing files
+In Progress: Alignment module - batch processing of Sanger sequencing files
