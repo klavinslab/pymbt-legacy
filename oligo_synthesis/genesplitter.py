@@ -1,119 +1,116 @@
 import math
-import time
-from string import maketrans, translate
-import multiprocessing
-import csv
+import itertools
 
-from pymbt.nupack import Nupack
 from pymbt.oligo_synthesis.structure_windows import context_walk
+
+# TODO: circular (e.g. plasmid) version.
+#   idea: find several good places to set as the origin around the plasmid,
+#   then run split_gene using 'linearized' plasmid with that
+#   60-base origin flanking either side. keep the best one.
+#   this will probably take ~3-4 times as long as a linear fragment
+# TODO: 200 minimum window of potential overlap was chosen arbitrarily
+#   should get a sense of how good/bad the score is, *then* decide
 
 
 def split_gene(seq,
-               max_length=1100,
+               max_len=1100,
+               min_context=200,
                core=60,
                context=90,
                step=10):
 
     eval_len = core + context
     # Trim down sequence to the necessary overlaps
-    num_pieces = math.ceil(len(seq) / float(max_length))
-    #TODO: 200 minimum window was chosen arbitrarily
-    #       - how much wiggle room do we need?
-    #      Should get a sense of how good/bad the score is, *then* decide
-    #TODO: Should handle arbitrary number of overlaps, not just 2...
-    if num_pieces * max_length - len(seq) < 200:
-        num_pieces += 1
-    if num_pieces == 1:
-        seq_start_end = [(0, len(seq))]
-    elif num_pieces == 2:
-    #    seq_start_end = [(max_length,len(seq)-max_length)]
-        seq_start_end = [(len(seq) - max_length, max_length)]
-    elif num_pieces == 3:
-        seq_start_end1 = (len(seq) - (2 * max_length - core), max_length)
-        seq_start_end2 = (len(seq) - max_length, 2 * max_length - core)
-        seq_start_end = [seq_start_end1, seq_start_end2]
+    n = int(math.ceil(len(seq) / float(max_len)))
+
+    # calculate potential overlap regions
+    if n == 1:
+        # doesn't need fancy calculations - no overlaps
+        return(seq)
+    elif n > 1:
+        # ensure at least min_context bp in each potential overlap region
+        while max_len - (len(seq) - (n - 1) * max_len) < min_context:
+            n += 1
+        starts = [len(seq) - (x + 1) * max_len for x in range(n - 1)][::-1]
+        stops = [(x + 1) * max_len for x in range(n - 1)]
+        olaps = [seq[starts[i]:x] for i, x in enumerate(stops)]
     else:
-        raise ValueError(
-            'Sequences requiring greater than 3 pieces not yet implemented')
+        raise ValueError('Number of pieces is somehow zero.\
+                         That shouldn\'t happen.')
 
-    seqs = [seq[x[0]:x[1]] for x in seq_start_end]
-    walked = [context_walk(x, core, context, step, report=True) for x in seqs]
+    walked_raw = []
+    for i, x in enumerate(olaps):
+        print('Analyzing %i of %i overlap(s).' % (i + 1, len(olaps)))
+        walked_raw.append(context_walk(x, core, context, step, report=True))
 
+    walked = []
+    for i, x in enumerate(walked_raw):
+        temp_list = []
+        for y in x:
+            y0 = y[0] + starts[i]
+            y1 = y[1] + starts[i]
+            y2 = y[2]
+            temp_list.append((y0, y1, y2))
+        walked.append(temp_list)
+
+    score_start = [[starts[i] + y[0] for y in x] for i, x in enumerate(walked)]
+    score_stop = [[stops[i] + y[1] for y in x] for i, x in enumerate(walked)]
     scores = [[y[2] for y in x] for x in walked]
-    maxscores = [x.index(max(x)) for x in scores]
 
-    # TODO: fix redundant operations below - 'summary' is constructed twice
-    max_summary = [walked[i][x] for i, x in enumerate(maxscores)]
-    starts = [x[0] for x in seq_start_end]
-    s_starts = [x[0] + starts[i] for i, x in enumerate(max_summary)]
-    s_ends = [x[1] + starts[i] for i, x in enumerate(max_summary)]
-    seq_scores = [x[2] for i, x in enumerate(max_summary)]
-    seq_final = [seq[s_starts[i]:s_ends[i]] for i, x in enumerate(s_starts)]
-    s1 = [seq[0:s_ends[i]] for i, x in enumerate(seqs)]
-    s2 = [seq[s_starts[i]:] for i, x in enumerate(seqs)]
+    summary = {'starts': score_start,
+               'stops': score_stop,
+               'scores': scores}
 
-    #max_summary = [(seq_final[i], seq1[i], seq2[i], s_starts[i],
-    #s_ends[i], seq_scores[i]) for i, x in enumerate(s_starts)]
-    max_summary = []
-    for i, x in enumerate(s_starts):
-        a = (seq_final[i], s1[i], s2[i], s_starts[i], s_ends[i], seq_scores[i])
-        max_summary.append(a)
+    best_overlaps = find_best(walked, max_len, len(seq))
 
-    return(max_summary)
+    best_starts = [0] + [x[0] for x in best_overlaps]
+    best_stops = [x[1] for x in best_overlaps] + [len(seq)]
+    b1 = best_starts
+    b2 = best_stops
+    final_seqs = [seq[b1[i]:b2[i]] for i in range(len(b1))]
 
-#TODO:
-# want to ideally find global optimum configuration,
-# but this becomes intractable w/ e.g. 100 scores+positions
-# at 4 overlaps (5 pieces - future work).
-# solution: cut it down to 50 right off the bat by throwing out half of the
-# worst-scoring regions. Then, if we had 4 overlaps, we'd need
-# to get 50^4 sums rather than 100^4, which is 16 times fewer
-# (may need to employ more tricks than this as well
-#   - trim by distance possibilities,e.g.)
-# this trimming is a good idea - follows this general rule:
-# 2 connections = sum_i_n a_i where a_i is just the ith integer e.g. 1,2,3,
-# 3 connections = sum_i_n (a_i) + (a_i-1)
+    return(final_seqs)
 
 
-'''
-# could compare to mfe
-def run_mfe(sequence):
-    mfe_np = Nupack(sequence,material='dna')
-    mfe = mfe_np.mfe(0)
-    mfe_np._close()
-    return(mfe)
+def find_best(walked, max_distance, seq_len):
+    # Input is output of 'walked' adjusted for absolute sequence position
+    # Output is indices of overlaps + score
+    # (same format as entry of walked list)
 
-def mfe_score(seq):
-    core_s = range(context-1,len(seq)-context-core,step)
-    core_e = [ x+core for x in core_s ]
-    cores = [seq[core_s[i]:core_e[i]] for i, x in enumerate(core_s)]
-    total = len(cores)
-    nupack_pool = multiprocessing.Pool()
-    try:
-        nupack_iterator = nupack_pool.imap(run_mfe,cores)
-        # Watch progress
-        while (True):
-            completed = nupack_iterator._index
-            if (completed == total):
-                break
-            else:
-                print('(%s/%s) completed.') %(completed,total)
-                time.sleep(4)
-        mfes = [ x for x in nupack_iterator ]
-        nupack_pool.close()
-        nupack_pool.join()
-    except KeyboardInterrupt:
-        print("Caught KeyboardInterrupt, terminating workers")
-        nupack_pool.terminate()
-        nupack_pool.close()
-    return(mfes)
-#mfes = mfe_score(seq)
-#mfe_file = open('output_mfes.csv','wb')
-#mfe_csv_writer = csv.writer(mfe_file,
-                             delimiter=',',
-                             quotechar="'",
-                             quoting=csv.QUOTE_MINIMAL)
-#mfe_csv_writer.writerow(['site','score'])
-#for i in range(len(mfes)):
-#    mfe_csv_writer.writerow([i+1,mfes[i]])
-'''
+    # Find the best combination of scores overlap positions given constraint:
+    #   Synthesized pieces to be combined in Gibson must be < max_distance
+
+    # strategy:
+    # pick top score from each list, find all combinations (starts with 1)
+    # see whether combination(s) have less than max_distance between positions
+    # if not, add the next top score to the possibilites, and repeat last step
+
+    # sort results by score
+    def sort_tuple(tuple_in):
+        return(sorted(tuple_in, key=lambda score: score[2], reverse=True))
+
+    sorted_walked = [sort_tuple(x) for i, x in enumerate(walked)]
+
+    def check_useable(tuple_in):
+        starts_i = [0] + [y[0] for y in tuple_in]
+        stops_i = [y[1] for y in tuple_in] + [seq_len]
+        for j, y in enumerate(starts_i):
+            if stops_i[j] - y > max_distance:
+                return(False)
+        return(True)
+
+    m = 1
+    combo_found = False
+    while not combo_found:
+        current = [x[0:m] for x in sorted_walked]
+        combos = list(itertools.product(*current))
+
+        useable = [check_useable(x) for x in combos]
+
+        combo_found = any(useable)
+        m += 1
+    # Trim to those that span the gene with max_distance condition
+    combos = [x for i, x in enumerate(combos) if useable[i]]
+    sums = [sum([y[2] for y in x]) for x in combos]
+    best = sums.index(max(sums))
+    return(combos[best])

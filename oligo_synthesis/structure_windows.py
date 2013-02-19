@@ -22,6 +22,7 @@ def context_walk(seq, core_len, context_len, step, report=False):
 
     total = len(allseqs)
     nupack_pool = multiprocessing.Pool()
+    msg = 'pair probabilities completed.'
     try:
         nupack_iterator = nupack_pool.imap(run_pairs, allseqs)
         # Watch progress
@@ -32,7 +33,7 @@ def context_walk(seq, core_len, context_len, step, report=False):
                 break
             else:
                 if t >= 4:
-                    print('(%s/%s) completed.') % (completed, total)
+                    print('(%s/%s) ' % (completed, total) + msg)
                     t = 0
                 t += 1
                 time.sleep(1)
@@ -54,6 +55,9 @@ def context_walk(seq, core_len, context_len, step, report=False):
     summary = []
     for i, x in enumerate(lseqs):
         summary.append((core_starts[i], core_ends[i], scores[i]))
+        #print(seq[core_starts[i]:core_ends[i]])
+        #print(lseqs[i])
+        #print(rseqs[i])
 
     return(summary)
 

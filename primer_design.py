@@ -45,7 +45,6 @@ def design_primer(s,
 
     primerlist = zip(primers, tms)
 
-
     gc_list = []
     if endGC:
         for i, x in enumerate(primerlist):

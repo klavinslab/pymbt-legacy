@@ -254,7 +254,7 @@ class Nupack:
 
     def _run_nupack(self, cmd, arguments):
         known = ['complexes', 'concentrations', 'mfe', 'pairs']
-        if cmd not in accepted_commands:
+        if cmd not in known:
             raise ValueError('Command must be one of the following:' + known)
 
         env_line = "export NUPACKHOME=" + self.nupack_home + ' && '
