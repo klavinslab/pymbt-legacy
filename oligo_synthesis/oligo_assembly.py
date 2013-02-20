@@ -21,7 +21,7 @@ from pymbt.tm_calc import calc_tm
 class OligoAssembly(object):
     def __init__(self,
                  seq,
-                 tm=65,
+                 tm=72,
                  oligo_size=120,
                  require_even=False,
                  start_5=True,
