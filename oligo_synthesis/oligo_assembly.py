@@ -16,12 +16,14 @@ from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import IUPAC
 
 from pymbt.tm_calc import calc_tm
+from pymbt.primer_design import design_primer_gene
 
 
 class OligoAssembly(object):
     def __init__(self,
                  seq,
-                 include_primers=False,
+                 primers=False,
+                 primer_tm=60,
                  **kwargs):
 
         assembly_dict = oligo_calc(seq=seq,
@@ -29,6 +31,10 @@ class OligoAssembly(object):
         self.oligos = assembly_dict['oligos']
         self.overlaps = assembly_dict['overlaps']
         self.overlap_tms = assembly_dict['olap_tms']
+        if primers:
+            primers = design_primer_gene(seq, tm=primer_tm)
+            self.primers = [x[0].upper() for x in primers] 
+            self.primer_tms = [x[1] for x in primers] 
 
     def __repr__(self):
         str1 = "An OligoAssembly consisting of "
@@ -51,6 +57,15 @@ class OligoAssembly(object):
             oligo_writer.writerow([name,
                                    oligo,
                                    notes])
+        primers = len(self.primers) is not 0
+        if primers:
+            oligo_writer.writerow(['primer 1',
+                                  self.primers[0],
+                                  'Tm: %.2f' % self.primer_tms[0]])
+            oligo_writer.writerow(['primer 2',
+                                  self.primers[1],
+                                  'Tm: %.2f' % self.primer_tms[1]])
+           
 
 
 def oligo_calc(seq,
