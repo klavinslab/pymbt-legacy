@@ -57,14 +57,15 @@ class OligoAssembly(object):
             oligo_writer.writerow([name,
                                    oligo,
                                    notes])
-        primers = len(self.primers) is not 0
-        if primers:
+        try:
             oligo_writer.writerow(['primer 1',
                                   self.primers[0],
                                   'Tm: %.2f' % self.primer_tms[0]])
             oligo_writer.writerow(['primer 2',
                                   self.primers[1],
                                   'Tm: %.2f' % self.primer_tms[1]])
+        except AttributeError:
+            pass
            
 
 
