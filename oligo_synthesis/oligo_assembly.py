@@ -23,7 +23,7 @@ class OligoAssembly(object):
                  seq,
                  tm=72,
                  oligo_size=120,
-                 require_even=False,
+                 require_even=True,
                  start_5=True,
                  max_size=False,
                  keep_even=True):
@@ -42,7 +42,7 @@ class OligoAssembly(object):
     def __repr__(self):
         str1 = "An OligoAssembly consisting of "
         str2 = str(len(self.oligos)) + ' oligos.'
-        return(str1 + str2)
+        return str1 + str2
 
     def write(self, outpath):
         oligo_writer = csv.writer(open(outpath, 'wb'),
@@ -168,4 +168,4 @@ def oligo_calc(seq,
     oligos = [x.upper() for x in oligos]
 
     assembly_dict = dict(oligos=oligos, overlaps=overlaps, olap_tms=olap_tms)
-    return(assembly_dict)
+    return assembly_dict

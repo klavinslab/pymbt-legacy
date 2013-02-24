@@ -59,7 +59,7 @@ def context_walk(seq, core_len, context_len, step, report=False):
         #print(lseqs[i])
         #print(rseqs[i])
 
-    return(summary)
+    return summary
 
 
 # Put nupack calculation in a function to enable
@@ -67,5 +67,5 @@ def context_walk(seq, core_len, context_len, step, report=False):
 def run_pairs(seq):
     np_run = Nupack(seq, 'dna')
     pairs = np_run.pairs(0)
-    np_run._close()
-    return(pairs)
+    np_run.close()
+    return pairs

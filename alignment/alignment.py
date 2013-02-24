@@ -10,7 +10,7 @@ from pymbt.dna_manipulation import reverse_complement
 def readref(filepath, ftype='genbank'):
     '''Helper function for reading reference genbank file'''
     sequence = SeqIO.read(filepath, ftype)
-    return(sequence)
+    return sequence
 
 
 #TODO: make this read ab1 files, and prefer them or something
@@ -18,14 +18,14 @@ def readres(dirpath):
     '''Helper function for reading .seq results files'''
     paths = [x for x in os.listdir(dirpath) if x.endswith('.seq')]
     sequences = [SeqIO.read(dirpath + x, 'fasta') for x in paths]
-    return(sequences)
+    return sequences
 
 
 def findgap(list_in):
     for x in list_in:
         if x != '-':
-            return('X')
-    return('-')
+            return 'X'
+    return '-'
 
 
 def _disjoint_bins(range_tuple_list):
@@ -56,7 +56,7 @@ def _disjoint_bins(range_tuple_list):
             remaining = nextbin
             n += 1
 
-    return(binned)
+    return binned
     #take first range, then next closest that doesn't overlap, etc until done
     #put remainder in next bin
     #repeat until done

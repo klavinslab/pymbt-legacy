@@ -228,12 +228,12 @@ class OrthoSeq:
             if stop == loop_count:
                 break
             """
-        return(oligo_list)
+        return oligo_list
 
     def n_p_nupack(self, sequence_list):
         n_np = Nupack(sequence_list, 'dna')
         n_concs = n_np.concentrations(2)['concentration'][0:len(sequence_list)]
-        return(n_concs)
+        return n_concs
 
     def gen_oligo(self, min_free, min_freq=0.3, weighted=False):
         # Dict of dicts to hold codon usage information.
@@ -336,7 +336,7 @@ class OrthoSeq:
                     cumsum = 0
                     for x, v in simp:
                         if cumsum + v > rn:
-                            return(x)
+                            return x
                         else:
                             cumsum += v
                 n_list = [weightedchoice(x) for x in self.prot_seq]
@@ -350,11 +350,11 @@ class OrthoSeq:
             oligo_monomer = self.monomers_concentration(n_oligo)
             oligo_np = Nupack([new_oligo], 'dna')
             oligo_mfe = oligo_np.mfe(0)
-            oligo_np._close()
+            oligo_np.close()
             if oligo_monomer >= min_free and oligo_mfe == 0.0:
                 oligo_meets_free_conc = True
 
-        return(new_oligo)
+        return new_oligo
 
     def monomers_concentration(self, sequence_list, mfe=True):
         # Run nupack's 'concentrations'
@@ -366,9 +366,9 @@ class OrthoSeq:
         # Isolate the unbound monomer concentrations
         free_conc = sum([concs[i] for i, x in enumerate(types) if sum(x) == 1])
         free_fraction = free_conc / (2 * self.conc)
-        np._close()  # Delete temp dir
+        np.close()  # Delete temp dir
 
-        return(free_fraction)
+        return free_fraction
 
     def pairwise_monomer_concs(self, seq_list, reverse=False):
         # Generate upper triangular matrix of sequence pairs.
@@ -422,7 +422,7 @@ class OrthoSeq:
             for j, y in enumerate(x):
                 cm[j][i] = y
 
-        return(cm)
+        return cm
 
     def _multiprocessing_progress(self, mp_iterator, total_jobs, interval=1):
         time_start = time.time()
@@ -446,12 +446,12 @@ class OrthoSeq:
     def _score_by_mean_free(self, mat):
         mat_flat = [x for v in mat for x in v if type(x) is not list]
         mat_mean = sum(mat_flat) / len(mat_flat)
-        return(mat_mean)
+        return mat_mean
 
     def _score_by_min_free(self, mat):
         mat_flat = [x for v in mat for x in v]
         mat_min = min(mat_flat)
-        return(mat_min)
+        return mat_min
 
 
 # Simple reverse complement function
@@ -459,7 +459,7 @@ def _revcomp(sequence):
     submat = maketrans('ATGCatgc', 'TACGtacg')
     sub_sequence = translate(sequence, submat)
     rev_sequence = sub_sequence[::-1]
-    return(rev_sequence)
+    return rev_sequence
 
 
 # The following code enables pickling bound methods:
@@ -468,11 +468,11 @@ def _pickle_method(method):
     name = method.__name__
     im_self = method.im_self
     im_class = method.im_class
-    return(_unpickle_method, (name, im_self, im_class))
+    return _unpickle_method, (name, im_self, im_class)
 
 
 def _unpickle_method(func, im_self, im_class):
-    return(getattr(im_self, func))
+    return getattr(im_self, func)
 
 
 copy_reg.pickle(types.MethodType, _pickle_method, _unpickle_method)

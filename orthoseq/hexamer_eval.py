@@ -18,9 +18,9 @@ def monomers_concentration(sequence_list, mfe=True):
     # Isolate the unbound monomer concentrations
     free_conc = sum([concs[i] for i, x in enumerate(types) if sum(x) == 1])
     free_fraction = free_conc / (2 * 5e-7)
-    nps._close()  # Delete temp dir
+    nps.close()  # Delete temp dir
 
-    return(free_fraction)
+    return free_fraction
 
 
 def main(oligo_list, n=6, score_thresh=0.7):
@@ -63,7 +63,7 @@ def main(oligo_list, n=6, score_thresh=0.7):
         f.writelines('\n'.join(j))
         f.writelines('\n\n')
     f.close()
-    return(mp)
+    return mp
 
 
 def _progress(mp_iterator, total_jobs, interval=1):
@@ -94,10 +94,10 @@ def _pickle_method(method):
     name = method.__name__
     im_self = method.im_self
     im_class = method.im_class
-    return(_unpickle_method, (name, im_self, im_class))
+    return _unpickle_method, (name, im_self, im_class)
 
 
 def _unpickle_method(func, im_self, im_class):
-    return(getattr(im_self, func))
+    return getattr(im_self, func)
 
 copy_reg.pickle(types.MethodType, _pickle_method, _unpickle_method)

@@ -50,7 +50,7 @@ def calc_tm(s, dnac=50, saltc=50, method='finnzymes'):
     sc = 16.6 * log(saltc) / log(10.0)
     tm = -dh / (R * log(dnac / 16) - ds) + sc - 273.15
 
-    return (tm)
+    return tm
 
 finnzymes_par = {
     'deltaH': {

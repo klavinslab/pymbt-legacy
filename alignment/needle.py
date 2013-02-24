@@ -34,7 +34,7 @@ def needle(seq1, seq2):
     score = float(score[0].strip()[9:])
 
     rmtree(workdir)
-    return((align, score))
+    return align, score
 
 
 def needleall(seq1, seq2s):
@@ -76,4 +76,4 @@ def needleall(seq1, seq2s):
     to_return = [(align[i], score[i]) for i, x in enumerate(align)]
 
     rmtree(workdir)
-    return(to_return)
+    return to_return

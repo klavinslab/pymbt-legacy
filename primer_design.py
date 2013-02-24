@@ -16,8 +16,8 @@ def design_primer(s,
     source_tm = calc_tm(s)
 
     if source_tm < tm - tm_errorminus:
-        return('Tm of full length sequence is already lower \
-                than desired Tm and error parameters allow.')
+        return 'Tm of full length sequence is already lower \
+                than desired Tm and error parameters allow.'
 
     primer_tm = 0
     bases = minstart
@@ -37,7 +37,7 @@ def design_primer(s,
 
         bases += 1
     if primer_tm <= tm + tm_errorplus:
-        return("Could not generate an oligo with high enough Tm")
+        return "Could not generate an oligo with high enough Tm"
     # Trim to primers matching minimum tm
     tm_ind = narray(tms) >= tm - tm_errorminus
     primers = narray(primers)[tm_ind].tolist()
@@ -56,7 +56,7 @@ def design_primer(s,
             if primer_current.upper().endswith('C'):
                 gc_list.append(x)
         if len(gc_list) == 0:
-            return("No primers ending in G or C could be generated")
+            return "No primers ending in G or C could be generated"
         primerlist = gc_list
 
     # which primer(s) are closest to the desired tm?
@@ -70,7 +70,7 @@ def design_primer(s,
     #TODO: verify that tail is DNA
     best_primer = (tail + best_primer[0], best_primer[1])
 
-    return(best_primer)
+    return best_primer
 
 
 def design_primer_gene(seq,
@@ -95,7 +95,7 @@ def design_primer_gene(seq,
                                endGC=endGC,
                                tail=tails[1])
 
-    return([fwd_primer, rev_primer])
+    return [fwd_primer, rev_primer]
 
 
 if __name__ == "__main__":

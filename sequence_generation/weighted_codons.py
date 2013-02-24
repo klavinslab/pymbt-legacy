@@ -19,7 +19,7 @@ class WeightedCodons:
         # cumulative sums of amino acids - useful for weights
 
     def __repr__(self):
-        return('RandomCodons generator for %s') % (self.sequence)
+        return 'RandomCodons generator for %s' % self.sequence
 
     def weighted(self, aa):
         # Takes an amino acid and selects one at random, weighted by frequency
@@ -34,7 +34,7 @@ class WeightedCodons:
         random_num = random.uniform(0, max(cumsum))
         for i, v in enumerate(cumsum):
             if v > random_num:
-                return(cur_codons[i])
+                return cur_codons[i]
 
     def generate(self):
         if self.material is not 'dna' and self.material is not 'aa':
@@ -42,4 +42,4 @@ class WeightedCodons:
         coding_sequence = []
         coding_sequence = [self.weighted(x) for x in self.sequence]
         coding_sequence = ''.join(coding_sequence)
-        return(coding_sequence)
+        return coding_sequence

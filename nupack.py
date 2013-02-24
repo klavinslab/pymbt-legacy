@@ -44,7 +44,7 @@ class Nupack:
                 raise ValueError('Did not supply a sequence string or list')
         self.sequence_list = sequence_list
         # Note - the input/output files are not cleaned up by default
-        # Use the '_close' method to delete the entire temp dir
+        # Use the 'close' method to delete the entire temp dir
         self.outdir = mkdtemp()
 
         # Set material and check alphabet
@@ -117,8 +117,8 @@ class Nupack:
         eq_results_en = [float(x.pop(0)) for x in eq_results]
 
         self.complexes_run = max_complexes
-        return({'complexes': eq_results_cx,
-                'complex_energy': eq_results_en})
+        return {'complexes': eq_results_cx,
+                'complex_energy': eq_results_en}
 
     def concentrations(self, max_complexes, conc=0.5e-6, mfe=True, rmdir=True):
         """
@@ -175,9 +175,9 @@ class Nupack:
         eq_results_en = [x.pop(0) for x in eq_results]
         eq_results_conc = [float(x[0]) for x in eq_results]
 
-        return({'types': eq_results_cx,
+        return {'types': eq_results_cx,
                'concentration': eq_results_conc,
-               'energy': eq_results_en})
+               'energy': eq_results_en}
 
     def mfe(self, strand, T=50):
         """
@@ -208,7 +208,7 @@ class Nupack:
         mfe = float(mfe_raw.strip())
 
         # Return the mfe of the designated strand
-        return(mfe)
+        return mfe
 
     def pairs(self, strand, T=50):
         """
@@ -242,14 +242,14 @@ class Nupack:
         pp = [float(v.split()[2]) for v in pairs]
 
         # Return the pair probabilities
-        return({'type': types, 'probabilities': pp})
+        return {'type': types, 'probabilities': pp}
 
     def _open(self):
         # Create the input data file in a temp dir if it doesn't exist
             if not isdir(self.outdir):
                 self.outdir = mkdtemp()
 
-    def _close(self):
+    def close(self):
         rmtree(self.outdir)
 
     def _run_nupack(self, cmd, arguments):

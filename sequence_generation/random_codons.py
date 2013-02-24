@@ -23,7 +23,7 @@ class RandomCodons:
         self.codon_freqs = codon_data.codon_freq[self.organism]
 
     def __repr__(self):
-        return('RandomCodons generator for %s') % (self.sequence)
+        return 'RandomCodons generator for %s' % self.sequence
 
     def generate(self):
         if self.material is not 'dna' and self.material is not 'aa':
@@ -40,4 +40,4 @@ class RandomCodons:
                                   excludes all codons of a given amino acid.')
         coding_sequence = [random.choice(mod_codons[x]) for x in self.sequence]
         coding_sequence = ''.join(coding_sequence)
-        return(coding_sequence)
+        return coding_sequence

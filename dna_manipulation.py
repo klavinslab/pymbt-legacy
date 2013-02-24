@@ -10,4 +10,4 @@ def reverse_complement(sequence):
     submat = maketrans('ATGCNatgcn', 'TACGNtacgn')
     sub_sequence = translate(sequence, submat)
     rev_sequence = sub_sequence[::-1]
-    return(rev_sequence)
+    return rev_sequence

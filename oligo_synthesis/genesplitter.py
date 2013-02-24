@@ -26,7 +26,7 @@ def split_gene(seq,
     # calculate potential overlap regions
     if n == 1:
         # doesn't need fancy calculations - no overlaps
-        return(seq)
+        return seq
     elif n > 1:
         # ensure at least min_context bp in each potential overlap region
         while max_len - (len(seq) - (n - 1) * max_len) < min_context:
@@ -69,7 +69,7 @@ def split_gene(seq,
     b2 = best_stops
     final_seqs = [seq[b1[i]:b2[i]] for i in range(len(b1))]
 
-    return(final_seqs)
+    return final_seqs
 
 
 def find_best(walked, max_distance, seq_len):
@@ -87,7 +87,7 @@ def find_best(walked, max_distance, seq_len):
 
     # sort results by score
     def sort_tuple(tuple_in):
-        return(sorted(tuple_in, key=lambda score: score[2], reverse=True))
+        return sorted(tuple_in, key=lambda score: score[2], reverse=True)
 
     sorted_walked = [sort_tuple(x) for i, x in enumerate(walked)]
 
@@ -96,8 +96,8 @@ def find_best(walked, max_distance, seq_len):
         stops_i = [y[1] for y in tuple_in] + [seq_len]
         for j, y in enumerate(starts_i):
             if stops_i[j] - y > max_distance:
-                return(False)
-        return(True)
+                return False
+        return True
 
     m = 1
     combo_found = False
@@ -113,4 +113,4 @@ def find_best(walked, max_distance, seq_len):
     combos = [x for i, x in enumerate(combos) if useable[i]]
     sums = [sum([y[2] for y in x]) for x in combos]
     best = sums.index(max(sums))
-    return(combos[best])
+    return combos[best]
