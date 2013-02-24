@@ -33,8 +33,8 @@ class OligoAssembly(object):
         self.overlap_tms = assembly_dict['olap_tms']
         if primers:
             primers = design_primer_gene(seq, tm=primer_tm)
-            self.primers = [x[0].upper() for x in primers] 
-            self.primer_tms = [x[1] for x in primers] 
+            self.primers = [x[0].upper() for x in primers]
+            self.primer_tms = [x[1] for x in primers]
 
     def __repr__(self):
         str1 = "An OligoAssembly consisting of "
@@ -51,7 +51,8 @@ class OligoAssembly(object):
             oligo = self.oligos[i]
             if i is not len(self.oligos) - 1:
                 o_tm = self.overlap_tms[i]
-                notes = 'oligo length: %d, overlap Tm: %.2f' % (len(oligo), o_tm)
+                len_tm = (len(oligo), o_tm)
+                notes = 'oligo length: %d, overlap Tm: %.2f' % len_tm
             else:
                 notes = 'oligo length: %d' % len(oligo)
             oligo_writer.writerow([name,
@@ -66,7 +67,6 @@ class OligoAssembly(object):
                                   'Tm: %.2f' % self.primer_tms[1]])
         except AttributeError:
             pass
-           
 
 
 def oligo_calc(seq,

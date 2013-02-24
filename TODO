@@ -1,3 +1,5 @@
+Create unit tests
 Make cytometry module - no more R reliance
 Plotting module - make plotting the data we generate easier
 In Progress: Alignment module - batch processing of Sanger sequencing files
+    Will probably put in a web frontend, so separate out backend and frontend stuff
