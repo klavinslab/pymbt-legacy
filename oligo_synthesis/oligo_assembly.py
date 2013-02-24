@@ -21,20 +21,11 @@ from pymbt.tm_calc import calc_tm
 class OligoAssembly(object):
     def __init__(self,
                  seq,
-                 tm=72,
-                 oligo_size=120,
-                 require_even=True,
-                 start_5=True,
-                 max_size=False,
-                 keep_even=True):
+                 include_primers=False,
+                 **kwargs):
 
         assembly_dict = oligo_calc(seq=seq,
-                                   tm=tm,
-                                   oligo_size=oligo_size,
-                                   require_even=require_even,
-                                   start_5=start_5,
-                                   max_size=max_size,
-                                   keep_even=keep_even)
+                                   **kwargs)
         self.oligos = assembly_dict['oligos']
         self.overlaps = assembly_dict['overlaps']
         self.overlap_tms = assembly_dict['olap_tms']
@@ -60,15 +51,12 @@ class OligoAssembly(object):
             oligo_writer.writerow([name,
                                    oligo,
                                    notes])
-#            oligo_writer.writerow([self.oligos[i],
-#                                   self.overlaps[i],
-#                                   self.overlap_tms[i]])
 
 
 def oligo_calc(seq,
-               tm=65,
+               tm=72,
                oligo_size=120,
-               require_even=False,
+               require_even=True,
                start_5=True,
                max_size=False,
                keep_even=True):
@@ -116,13 +104,10 @@ def oligo_calc(seq,
             olap_tms[lowest_index] = calc_tm(overlaps[lowest_index])
             remain_tm = [j for i, j in enumerate(olap_tms) if i in remain_olap]
             lowest_tm = min(remain_tm)
-            # Note: if two tms are identical
-            # This goes with the first one (biased to left side)
             lowest_index = remaining_index[remain_tm.index(lowest_tm)]
             relative_index = remain_tm.index(lowest_tm)
             oligo_l = len(oligos[lowest_index])
             oligo_r = len(oligos[lowest_index + 1])
-            # Now decide which oligo (left or right) to increase
             if oligo_l == oligo_size & oligo_r == oligo_size:
                 remain_olap.pop(relative_index)
                 remaining_index.pop(relative_index)
@@ -155,17 +140,14 @@ def oligo_calc(seq,
         oligo_n += oligo_increment
 
     if start_5:
-        # Reverse complement every even oligo
         for i in [x for x in range(len(oligos)) if x % 2 == 1]:
             r_oligo = Seq(oligos[i]).reverse_complement().tostring()
             oligos[i] = r_oligo
     else:
-        # Reverse complement every odd oligo
         for i in [x for x in range(len(oligos)) if x % 2 == 0]:
             r_oligo = Seq(oligos[i]).reverse_complement().tostring()
             oligos[i] = r_oligo
 
     oligos = [x.upper() for x in oligos]
-
     assembly_dict = dict(oligos=oligos, overlaps=overlaps, olap_tms=olap_tms)
     return assembly_dict
