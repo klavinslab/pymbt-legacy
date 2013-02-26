@@ -1,4 +1,5 @@
 Create unit tests
+Put multiprocessing progress helper in a class / function for reuse, clean code
 Make cytometry module - no more R reliance
 Plotting module - make plotting the data we generate easier
 In Progress: Alignment module - batch processing of Sanger sequencing files
