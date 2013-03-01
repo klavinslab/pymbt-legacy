@@ -24,6 +24,7 @@ import copy_reg
 import types  # necessary to pickle bound methods
 
 from pymbt.nupack import Nupack
+from pymbt.dna_manipulation import reverse_complement
 
 # To do:
 # 1. Implement signal handler so it exits cleanly on ctrl-c
@@ -115,7 +116,7 @@ class OrthoSeq:
             full_combos = [[] for i, x in enumerate(combos)]
             for i, v in enumerate(combos):
                 for j in v:
-                    newlist = [j] + [_revcomp(x) for x in v if x is not j]
+                    newlist = [j] + [reverse_complement(x) for x in v if x is not j]
                     full_combos[i].append(newlist)
 
             # The list generated is of length n+1 containing lists of length n
@@ -382,8 +383,8 @@ class OrthoSeq:
             for i, x in enumerate(sl):
                 for j in range(i, len(sl)):
                     if i is not j:
-                        seq_pairs.append([sl[i], _revcomp(sl[j])])
-        # seq_pairs = [[sl[i], _revcomp(sl[j])] for i, x
+                        seq_pairs.append([sl[i], reverse_complement(sl[j])])
+        # seq_pairs = [[sl[i], reverse_complement(sl[j])] for i, x
         # in enumerate(sl) for j in range(i, len(sl)) if i is not j]
         else:
             for i, x in enumerate(sl):
@@ -452,14 +453,6 @@ class OrthoSeq:
         mat_flat = [x for v in mat for x in v]
         mat_min = min(mat_flat)
         return mat_min
-
-
-# Simple reverse complement function
-def _revcomp(sequence):
-    submat = maketrans('ATGCatgc', 'TACGtacg')
-    sub_sequence = translate(sequence, submat)
-    rev_sequence = sub_sequence[::-1]
-    return rev_sequence
 
 
 # The following code enables pickling bound methods:
