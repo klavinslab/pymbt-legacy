@@ -4,8 +4,7 @@ import time
 
 from pymbt.oligo_synthesis.structure_windows import context_walk
 
-# BIG PROBLEM:
-# context_walk results at some point are different than calling it directly
+# TODO: fold into a class, give it a .write() method
 # TODO: circular (e.g. plasmid) version.
 #   idea: find several good places to set as the origin around the plasmid,
 #   then run split_gene using 'linearized' plasmid with that
@@ -23,13 +22,13 @@ def split_gene(seq,
                step=10,
                force_exhaustive=False):
 
+    seq_len = len(seq)
     n = 1
     while True:
-        if len(seq) < n * max_len - (n - 1) * core:
+        if seq_len < n * max_len - (n - 1) * core:
             break
         else:
             n += 1
-#    n = int(math.ceil(len(seq) / float(max_len)))
 
     # calculate potential overlap regions
     if n == 1:
@@ -45,24 +44,26 @@ def split_gene(seq,
             stops = []
             for i in range(n - 1):
                 stops.append((i + 1) * max_len - i * core)
-            stops = [x if x < len(seq) else len(seq) for x in stops]
-            starts = [len(seq) - x for x in stops]
+            stops = [x if x < seq_len else seq_len for x in stops]
+            starts = [seq_len - x for x in stops]
             starts = [x if x > 0 else 0 for x in starts]
             starts.reverse()
-            olap_start_stop = [[starts[i], stops[i]] for i in range(len(stops))]
+            olap_start_stop = [[starts[i], x] for i, x in enumerate(stops)]
             olaps = [seq[x[0]:x[1]] for x in olap_start_stop]
-            olap_w_context_start_stop = [[max(x[0]-context,0), min(x[1]+context,len(seq))] for x in olap_start_stop]
-            olaps_w_context = [seq[x[0]:x[1]] for x in olap_w_context_start_stop]
-            olap_w_context_lens = [x[1]-x[0] for x in olap_w_context_start_stop]
+            with_context = []
+            for x in olap_start_stop:
+                start_i = max(x[0] - context, 0)
+                stop_i = min(x[1] + context, seq_len)
+                with_context.append([start_i, stop_i, seq_len])
+            olaps_w_context = [seq[x[0]:x[1]] for x in with_context]
+            olap_w_context_lens = [x[1] - x[0] for x in with_context]
             if not any([x < min_context for x in olap_w_context_lens]):
-                break 
+                break
             n += 1
     else:
         raise ValueError('Number of pieces is somehow zero.\
                          That shouldn\'t happen.')
 
-    # TODO: see whether 'context' is screwing things up here - 
-    # it doesn't need to be potential overlap
     walked_raw = []
     for i, x in enumerate(olaps_w_context):
         print('Analyzing %i of %i overlap(s).' % (i + 1, len(olaps)))
@@ -72,8 +73,8 @@ def split_gene(seq,
     for i, x in enumerate(walked_raw):
         temp_list = []
         for y in x:
-            y0 = y[0] + olap_w_context_start_stop[i][0]
-            y1 = y[1] + olap_w_context_start_stop[i][0]
+            y0 = y[0] + with_context[i][0]
+            y1 = y[1] + with_context[i][0]
             y2 = y[2]
             temp_list.append((y0, y1, y2))
         walked.append(temp_list)
@@ -86,80 +87,31 @@ def split_gene(seq,
                'stops': score_stop,
                'scores': scores}
 
-    best_overlaps = find_best(walked, max_len, len(seq))
+    best_overlaps = find_best(walked, max_len, seq_len)
     olap_starts = [x[0] for x in best_overlaps]
     olap_stops = [x[1] for x in best_overlaps]
     scores = [x[2] for x in best_overlaps]
     olap_start_stop = [(x, olap_stops[i]) for i, x in enumerate(olap_starts)]
 
     best_starts = [0] + [x[0] for x in best_overlaps]
-    best_stops = [x[1] for x in best_overlaps] + [len(seq)]
+    best_stops = [x[1] for x in best_overlaps] + [seq_len]
     b1 = best_starts
     b2 = best_stops
     final_seqs = [seq[b1[i]:b2[i]] for i in range(len(b1))]
 
-    # TODO: return more than just sequences - at least start/stop of overlaps
-
-    return {'sequences':final_seqs, 'overlaps':olap_start_stop, 'scores':scores}
+    return {'sequences': final_seqs,
+            'overlaps': olap_start_stop,
+            'scores': scores}
 
 
 def find_best(walked, max_distance, seq_len, force_exhaustive=False):
-    # TODO BREAKTHROUGH:
-    # new strategy:
-    #   1. Similar strategy to before - increase possible sites number until
-    #   sequence is spannable.
-    #   2. Reduce the space:
-    #       a. iterate through possibilities - exclude ones that will strictly
-    #       never span. On edge this is simplest to understand - if a site in
-    #       overlap 1 can't reach any of the sites in overlap 2, remove it.
-    #       Still possible in the middle - can it span left-right?
-    #       b. Use information acquired in last iteration?
-    #       It wasn't possible to span before, but is by using
-    #       at least one of the new sites. Is one more responsible for this than the others?
-    #       c. Maybe go back a step, just add one at a time and see if it spans
+    '''Input to find_best is output of 'walked' adjusted for absolute sequence
+    position.
+    Output is indices of overlaps + score (the same format as entry of walked
+    list)
+    '''
 
-    # TODO: when adding more positions to check for spanning,
-    # add them intelligently instead of all across the board
-    # alternatively, store all spanning options during a pass,
-    # then pick the best one (probably a better idea)
-    # For now, it goes with the first one it finds (not quite arbitrary)
-    # For large fragments, this is especially important - 
-    # e.g. Rob's 10kb fragment (20130225) would take ~3.5 hours
-    # with 8 cores
-    # to analyze using all combinations that have the potential
-    # to minimally span the region
-
-    # Use output of spannable() to add new entry at non-spannable site 
-    # rather than increasing m incrementer
-    # That way, a region without a connection gets more entries more quickly
-    # and fewer combinations need to be calculated
-    # Make it deterministic, though
-
-    # Need to decide how to choose the one to which to add entries
-    # Ideally, should perhaps be the one with the most room to work with
-    # - the one with the least distance between it and its other, spannable
-    # neighbor. If its neighbor isn't spannable, then increment it (bias to the left at first)
-
-    # TODO:
-    # should use exhaustive search when number of combinations is low,
-    # above method when high.
-    # 10 million cutoff?
-
-    # TODO:
-    # enable multiprocessing
-
-    # Input is output of 'walked' adjusted for absolute sequence position
-    # Output is indices of overlaps + score
-    # (same format as entry of walked list)
-
-    # Find the best combination of scores overlap positions given constraint:
-    #   Synthesized pieces to be combined in Gibson must be < max_distance
-
-    # strategy:
-    # pick top score from each list, find all combinations (starts with 1)
-    # see whether combination(s) have less than max_distance between positions
-    # if not, add the next top score to the possibilites, and repeat last step
-
+    # TODO: multiprocessing
     # sort results by score
     def sort_tuple(tuple_in):
         return sorted(tuple_in, key=lambda score: score[2], reverse=True)
@@ -170,12 +122,18 @@ def find_best(walked, max_distance, seq_len, force_exhaustive=False):
         for x in stops:
             x.sort()
         for x in starts:
-            x.sort() 
+            x.sort()
 
         current_start = starts[0][-1]
-        for i in range(len(starts)-1):
-            working_stops = [x for x in stops[i] if ((x - current_start) <= max_distance)]
-            next_starts = [starts[i][j] for j, x in enumerate(stops[i]) if ((x - current_start) <= max_distance)]
+        for i in range(len(starts) - 1):
+            working_stops = []
+            for x in stops[i]:
+                if (x - current_start) <= max_distance:
+                    working_stops.append(x)
+            next_starts = []
+            for j, x in enumerate(stops[i]):
+                if (x - current_start) <= max_distance:
+                    next_starts.append(starts[i][j])
             if not working_stops:
                 return False
             else:
@@ -192,9 +150,6 @@ def find_best(walked, max_distance, seq_len, force_exhaustive=False):
 
     exhaustive = True
     m = 1
-    for i in range(3):
-        pass
-        #print([x[0:(i+1)] for x in sorted_walked])
     while exhaustive:
         current = [x[0:m] for x in sorted_walked]
         if not spannable(current):
@@ -227,23 +182,18 @@ def find_best(walked, max_distance, seq_len, force_exhaustive=False):
             m += 1
 
     if not exhaustive:
+        # TODO: either print error message or use different optimization
         current = [[x[0]] for x in sorted_walked]
         n_combos = 1
         for x in current:
             n_combos *= len(x)
-        if not spannable (current):
-            # find first non-spanned position
-            # try from the other side as well
-            # if there is only one non-spanned position, add another entry for the one closest to its spanned neighbor
-            # else, add another entry to the first non-spanned position
-            # TODO: the above strategy is not guaranteed to work
-            # alternative: alternate between above strategy and adding an entry to the right of the shortest-distance
-            # spanner
+        if not spannable current:
             raise Exception('Couldn\'t do exhaustive search')
 
     sums = [sum([y[2] for y in x]) for x in useable]
     best = sums.index(max(sums))
     return useable[best]
+
 
 def remove_from_left(pre_combo_list, max_len):
     '''Traverses list of lists of (start, end, score) tuples of the type
@@ -286,6 +236,7 @@ def remove_from_right(pre_combo_list, max_len):
                 return True
     return False
 
+
 def remove_nonspanning(pre_combo_list, max_len):
     '''Trims list of lists of (start, end, score) tuples to those
     that actually have a chance of spanning the sequence'''
@@ -295,7 +246,8 @@ def remove_nonspanning(pre_combo_list, max_len):
         # these functions edit lists in place
         # lists are not copied on assignment in python, can be
         # painful to copy.
-        left = remove_from_left(pre_combo_list, max_len=max_len) # edits list in-place
-        right = remove_from_right(pre_combo_list, max_len=max_len) # edits list in-place
+        # both functions edit the list in-place (no return values)
+        left = remove_from_left(pre_combo_list, max_len=max_len)
+        right = remove_from_right(pre_combo_list, max_len=max_len)
         if not left and not right:
             both_false = True

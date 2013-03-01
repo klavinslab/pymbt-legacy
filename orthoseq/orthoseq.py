@@ -24,7 +24,7 @@ import copy_reg
 import types  # necessary to pickle bound methods
 
 from pymbt.nupack import Nupack
-from pymbt.dna_manipulation import reverse_complement
+from pymbt.dna_manipulation import rc as r_c
 
 # To do:
 # 1. Implement signal handler so it exits cleanly on ctrl-c
@@ -116,7 +116,8 @@ class OrthoSeq:
             full_combos = [[] for i, x in enumerate(combos)]
             for i, v in enumerate(combos):
                 for j in v:
-                    newlist = [j] + [reverse_complement(x) for x in v if x is not j]
+                    newlist = [j]
+                    newlist.append([rc(x) for x in v if x is not j])
                     full_combos[i].append(newlist)
 
             # The list generated is of length n+1 containing lists of length n
@@ -383,8 +384,8 @@ class OrthoSeq:
             for i, x in enumerate(sl):
                 for j in range(i, len(sl)):
                     if i is not j:
-                        seq_pairs.append([sl[i], reverse_complement(sl[j])])
-        # seq_pairs = [[sl[i], reverse_complement(sl[j])] for i, x
+                        seq_pairs.append([sl[i], rc(sl[j])])
+        # seq_pairs = [[sl[i], rc(sl[j])] for i, x
         # in enumerate(sl) for j in range(i, len(sl)) if i is not j]
         else:
             for i, x in enumerate(sl):
