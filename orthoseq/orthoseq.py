@@ -24,7 +24,7 @@ import copy_reg
 import types  # necessary to pickle bound methods
 
 from pymbt.nupack import Nupack
-from pymbt.dna_manipulation import rc as r_c
+from pymbt.dna_manipulation import reverse_complement as r_c
 
 # To do:
 # 1. Implement signal handler so it exits cleanly on ctrl-c
@@ -475,7 +475,7 @@ copy_reg.pickle(types.MethodType, _pickle_method, _unpickle_method)
 if __name__ == "__main__":
     import ConfigParser
 
-    # Read in config and run OrthoSeq.orthogonal_sequences
+    # Parse config 
     config = ConfigParser.RawConfigParser()
     configpath = os.path.abspath(os.path.dirname(__file__)) + '/orthoseq.cfg'
     config.read(configpath)

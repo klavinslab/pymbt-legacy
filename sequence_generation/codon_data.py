@@ -1,8 +1,3 @@
-
-# TODO
-# There's a lot that can be done to organize this better -
-# name it better, include access methods, etc
-
 '''Defines shared data / parameters that should be centralized'''
 
 # The standard codon table

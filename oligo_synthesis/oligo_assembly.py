@@ -3,18 +3,12 @@
 # Input should be: a validated DNA sequence
 # Output should: contain the set of oligos, the overlaps, and the overlap tms
 
-#TODO:
-# Clean up redundancies
-# oligo_calc has terrible variable names
-# may need to synchronize oligo calc class and function
+#TODO: Find way to avoid nested loops in oligo_calc
 
 import csv
 from math import floor
-
-from Bio.Seq import Seq
-from Bio.SeqRecord import SeqRecord
-from Bio.Alphabet import IUPAC
-
+from pymbt.dna_manipulation import check_alphabet
+from pymbt.dna_manipulation import reverse_complement
 from pymbt.tm_calc import calc_tm
 from pymbt.primer_design import design_primer_gene
 
@@ -30,7 +24,7 @@ class OligoAssembly(object):
                                    **kwargs)
         self.oligos = assembly_dict['oligos']
         self.overlaps = assembly_dict['overlaps']
-        self.overlap_tms = assembly_dict['olap_tms']
+        self.overlap_tms = assembly_dict['overlap_tms']
         if primers:
             primers = design_primer_gene(seq, tm=primer_tm)
             self.primers = [x[0].upper() for x in primers]
@@ -73,97 +67,97 @@ def oligo_calc(seq,
                tm=72,
                oligo_size=120,
                require_even=True,
-               start_5=True,
-               max_size=False,
-               keep_even=True):
-
+               start_5=True):
     if len(seq) < oligo_size:
         raise ValueError('Oligo size must be smaller than input sequence')
-    # Ensures input type is valid
-    seq = SeqRecord(Seq(seq, IUPAC.IUPACUnambiguousDNA)).seq.tostring()
-    # Number of oligos to try first
+    check_alphabet(seq)
     oligo_n = int(floor(float(len(seq)) / oligo_size) + 1)
+
     if require_even:
         oligo_increment = 2
         if oligo_n % 2 == 1:
             oligo_n += 1
     else:
         oligo_increment = 1
-    lowest_tm = calc_tm('')
-    olap_tms = [lowest_tm] * (oligo_n - 1)
 
+    lowest_tm_overlap = -40000 # Arbitrary super negative number
+    overlap_tms = [lowest_tm_overlap] * (oligo_n - 1)
     # Loop until all overlaps meet minimum Tm
-    # (overlaps extended to full oligo_size)
-    while(any([x <= tm for x in olap_tms])):
-        # initial overlap locations
+    while(any([x <= tm for x in overlap_tms])):
+        # Calculate:
+        # initial number of overlaps
+        # overlap locations
+        overlap_n = oligo_n - 1
+        overlap_iter = range(overlap_n)
         init = float(len(seq)) / oligo_n
-        o_l = [int(floor((x + 1) * init)) for x in range(oligo_n - 1)]
-        o_start = [0] + o_l
-        o_end = [x + 1 for x in o_l] + [len(seq)]
+        overlap_starts = [int(floor((x + 1) * init)) for x in overlap_iter]
+        overlap_ends = [x + 1 for x in overlap_starts]
+        overlaps = [seq[overlap_starts[i]:overlap_ends[i]] for i in overlap_iter]
+        oligo_start = [0] + overlap_starts
+        oligo_end = overlap_ends + [len(seq)]
+        oligos = [seq[oligo_start[i]:oligo_end[i]] for i in overlap_iter]
 
-        # Initial data
-        overlaps = [seq[o_start[i + 1]:o_end[i]] for i in range(oligo_n - 1)]
-        olap_tms = [calc_tm(x) for x in overlaps]
-        oligos = [seq[o_start[i]:o_end[i]] for i in range(oligo_n)]
-        remain_olap = range(oligo_n - 1)
-        remain_tm = [calc_tm(x) for x in overlaps]
-        remaining_index = [i for i, x in enumerate(remain_tm)]
-        lowest_tm = min(remain_tm)
-        lowest_index = remain_tm.index(lowest_tm)
+        # Get initial overlap tms (1 base?)
+        overlap_tms = [calc_tm(x) for x in overlaps]
+
+        # Initializations for next while loop
+
+        # nonmaxed overlaps
+        overlap_tms = [calc_tm(x) for x in overlaps]
+        lowest_tm_overlap = min(overlap_tms)
+        lowest_index = overlap_tms.index(lowest_tm_overlap)
         maxed = [False for i in range(oligo_n)]
         threshold_unmet = True
-        anymaxed = False
 
-        while not all(maxed) and threshold_unmet and not anymaxed:
-            o_iter = range(oligo_n - 1)
-            overlaps = [seq[o_start[x + 1]:o_end[x]] for x in o_iter]
-            olap_tms[lowest_index] = calc_tm(overlaps[lowest_index])
-            remain_tm = [j for i, j in enumerate(olap_tms) if i in remain_olap]
-            lowest_tm = min(remain_tm)
-            lowest_index = remaining_index[remain_tm.index(lowest_tm)]
-            relative_index = remain_tm.index(lowest_tm)
-            oligo_l = len(oligos[lowest_index])
-            oligo_r = len(oligos[lowest_index + 1])
-            if oligo_l == oligo_size & oligo_r == oligo_size:
-                remain_olap.pop(relative_index)
-                remaining_index.pop(relative_index)
-                changed = False
-            elif oligo_r == oligo_size:
-                changed = lowest_index
-                o_end[changed] += 1
-            elif oligo_l == oligo_size:
-                changed = lowest_index + 1
-                o_start[changed] -= 1
+
+        while not all(maxed) and threshold_unmet and not any(maxed):
+            overlaps = [seq[oligo_start[x + 1]:oligo_end[x]] for x in overlap_iter]
+            # Calculate Tm of newly-increased overlap
+            overlap_tms[lowest_index] = calc_tm(overlaps[lowest_index])
+            # Identify overlap with the lowest Tm
+            lowest_tm_overlap = min(overlap_tms)
+            # Index of overlap with the lowest Tm
+            lowest_index = overlap_tms.index(lowest_tm_overlap)
+            # Oligos to the left and right of the lowest Tm overlap
+            lowest_tm_overlap_left = len(oligos[lowest_index])
+            lowest_tm_overlap_right = len(oligos[lowest_index + 1])
+
+            def increase_right_oligo():
+                oligo_end[lowest_index] += 1
+            def increase_left_oligo():
+                oligo_start[lowest_index + 1] -= 1
+               
+            # If one of the oligos is max size, increase the other one
+            if lowest_tm_overlap_right == oligo_size:
+                increase_right_oligo()
+            elif lowest_tm_overlap_left == oligo_size:
+                increase_left_oligo()
             else:
-                # Increase smaller oligo or, if same size, the left one
-                # Note: this also biases construction towards the left
-                if oligo_l > oligo_r:
-                    changed = lowest_index + 1
-                    o_start[changed] -= 1
+                # Increase the smaller of the two oligos or,
+                # if the same size, increase the one on the left
+                # This biases the result but ensures it is deterministic
+                if lowest_tm_overlap_left > lowest_tm_overlap_right:
+                    increase_left_oligo()
                 else:
-                    changed = lowest_index
-                    o_end[changed] += 1
+                    increase_right_oligo()
 
-            oligos = [seq[o_start[x]:o_end[x]] for x in range(oligo_n)]
+            # Recalculate oligos from start and end indices
+            oligos = [seq[oligo_start[x]:oligo_end[x]] for x in range(oligo_n)]
             maxed = [len(x) == oligo_size for x in oligos]
-
-            if not max_size:
-                threshold_unmet = any([x <= tm for x in olap_tms])
-
-            if keep_even:
-                anymaxed = any(maxed)
+            threshold_unmet = any([x <= tm for x in overlap_tms])
 
         oligo_n += oligo_increment
 
+
     if start_5:
         for i in [x for x in range(len(oligos)) if x % 2 == 1]:
-            r_oligo = Seq(oligos[i]).reverse_complement().tostring()
+            r_oligo = reverse_complement(oligos[i])
             oligos[i] = r_oligo
     else:
         for i in [x for x in range(len(oligos)) if x % 2 == 0]:
-            r_oligo = Seq(oligos[i]).reverse_complement().tostring()
+            r_oligo = reverse_complement(oligos[i])
             oligos[i] = r_oligo
 
     oligos = [x.upper() for x in oligos]
-    assembly_dict = dict(oligos=oligos, overlaps=overlaps, olap_tms=olap_tms)
+    assembly_dict = dict(oligos=oligos, overlaps=overlaps, overlap_tms=overlap_tms)
     return assembly_dict

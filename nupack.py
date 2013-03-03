@@ -23,6 +23,8 @@ from shutil import rmtree
 from os.path import isdir
 from os import environ
 from os.path import exists
+from pymbt.dna_manipulation import check_alphabet
+
 
 if 'NUPACKHOME' in environ:
     nupack_home = environ['NUPACKHOME']
@@ -43,25 +45,21 @@ class Nupack:
             else:
                 raise ValueError('Did not supply a sequence string or list')
         self.sequence_list = sequence_list
-        # Note - the input/output files are not cleaned up by default
-        # Use the 'close' method to delete the entire temp dir
         self.outdir = mkdtemp()
 
-        # Set material and check alphabet
         self.material = material
-        if material == 'rna' or material == 'rna1999':
+        if self.material == 'rna' or self.material == 'rna1999':
+            mat = 'rna'
             alphabet = 'AUGCaugc'
         elif material == 'dna':
+            mat = 'dna'
             alphabet = 'ATGCatgc'
         else:
             raise ValueError("material must be 'dna', 'rna', or 'rna1999'.")
 
-        for i in sequence_list:
-            for j, char in enumerate(i):
-                if char not in alphabet:
-                    raise ValueError('Sequenced has non-ATGCU character')
+        for x in self.sequence_list:
+            check_alphabet(x, material=mat)
 
-        # Keeping track of what commands have been run
         self.complexes_run = False
 
     def complexes(self, max_complexes, mfe=True, rmdir=True, T=50):

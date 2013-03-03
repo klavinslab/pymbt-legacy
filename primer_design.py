@@ -1,106 +1,69 @@
-from numpy import array as narray
-
 from pymbt.tm_calc import calc_tm
+from pymbt.dna_manipulation import check_alphabet
 from pymbt.dna_manipulation import reverse_complement
 
 
-def design_primer(s,
-                  tm=70,
+def design_primer(seq,
+                  tm=72,
                   minstart=10,
                   tm_errorminus=1,
                   tm_errorplus=3,
                   endGC=False,
                   tail=''):
+    # Check Tm of input sequence to see if it's already too low 
+    seq_tm = calc_tm(seq)
+    if seq_tm < tm - tm_errorminus:
+        err = 'Input sequence Tm is lower than primer Tm setting'
+        raise Exception(err)
 
-    # Check Tm to see if it's already too low
-    source_tm = calc_tm(s)
-
-    if source_tm < tm - tm_errorminus:
-        return 'Tm of full length sequence is already lower \
-                than desired Tm and error parameters allow.'
-
-    primer_tm = 0
+    max_tm = tm + tm_errorplus
+    min_tm = tm - tm_errorminus
     bases = minstart
-    s = s[0:70]  # Trim down max length to increase efficiency
+    # Trim down max length to increase efficiency
+    # Pretty much impossible for an annealing sequence to need more than 90bp
+    seq = seq[0:90]
+
+    # First, generate a range of primers and Tms:
+    #     range: from minstart to 'tm' + tm_errorplus
     primers = []
     tms = []
-
-    # Storing primer sequence separate from Tm may increase efficiency
-    # First, generate all primers up to Set Tm + Allowed Error.
-    # Even though it's iterating, it's faster than generating
-    # all reasonably-sized oligos and finding their tms
-    while primer_tm <= (tm + tm_errorplus) and bases <= len(s):
-        # Increase oligo length
-        primers.append(s[0:bases])
-        tms.append(calc_tm(primers[-1]))
+    primer_tm = 0
+    while primer_tm <= max_tm:
+        new_primer = seq[0:bases]
+        new_tm = calc_tm(new_primer)
+        primers.append(new_primer)
+        tms.append(new_tm)
+        bases += 1
         primer_tm = tms[-1]
 
-        bases += 1
-    if primer_tm <= tm + tm_errorplus:
-        return "Could not generate an oligo with high enough Tm"
-    # Trim to primers matching minimum tm
-    tm_ind = narray(tms) >= tm - tm_errorminus
-    primers = narray(primers)[tm_ind].tolist()
-    tms = narray(tms)[tm_ind].tolist()
-
-    primerlist = zip(primers, tms)
-
-    gc_list = []
+    # Trim primer list based on tm_errorminus and endGC
+    primers = [primers[i] for i,x in enumerate(tms) if x >= tm - tm_errorminus]
+    tms = [x for i,x in enumerate(tms) if x >= tm - tm_errorminus]
     if endGC:
-        for i, x in enumerate(primerlist):
-            primer_current = x[0]
-            # TODO:
-            # Fix this '.upper()' hack - use REs to check end of primer
-            if primer_current.upper().endswith('G'):
-                gc_list.append(x)
-            if primer_current.upper().endswith('C'):
-                gc_list.append(x)
-        if len(gc_list) == 0:
-            return "No primers ending in G or C could be generated"
-        primerlist = gc_list
+        primers = [x for x in primers if x.endswith(('C','G'))]
+        tms = [tms[i] for i, x in enumerate(primers) if x.endswith(('C','G'))]
+    if not primers:
+        raise Exception('No primers could be generated using these settings')
 
-    # which primer(s) are closest to the desired tm?
-    diffs = []
-    for i in range(len(primerlist)):
-        diffs.append(abs(tm - primerlist[i][1]))
+    # Find the primer closest to the set Tm
+    tm_diffs = [abs(x - tm) for x in tms]
+    best_index = tm_diffs.index(min(tm_diffs))
+    best_primer = (primers[best_index], tms[best_index])
 
-    min_ind = [i for i, x in enumerate(diffs) if x == min(diffs)]
-    best_primer = primerlist[min_ind[0]]
-
-    #TODO: verify that tail is DNA
+    if tail:
+        check_alphabet(tail)
     best_primer = (tail + best_primer[0], best_primer[1])
 
     return best_primer
 
 
 def design_primer_gene(seq,
-                       tm=72,
-                       minstart=10,
-                       tm_errorminus=1,
-                       tm_errorplus=3,
-                       endGC=True,
-                       tails=['', '']):
-    fwd = seq
-    rev = reverse_complement(seq)
-    fwd_primer = design_primer(fwd,
-                                tm=tm,
-                                minstart=minstart,
-                                tm_errorminus=tm_errorminus,
-                                endGC=endGC,
-                                tail=tails[0])
-    rev_primer = design_primer(rev,
-                               tm=tm,
-                               minstart=minstart,
-                               tm_errorminus=tm_errorminus,
-                               endGC=endGC,
-                               tail=tails[1])
-
+                       tails=['', ''],
+                       **kwargs):
+    fwd_primer = design_primer(seq,
+                               tail=tails[0],
+                               **kwargs)
+    rev_primer = design_primer(reverse_complement(seq),
+                               tail=tails[1],
+                               **kwargs)
     return [fwd_primer, rev_primer]
-
-
-if __name__ == "__main__":
-    s = raw_input('Input Sequence:')
-    print "Your primer:"
-    print ""
-    out = design_primer(s)
-#    assert Tm_staluc('CAGTCAGTACGTACGTGTACTGCCGTA') == 59.865612727457972

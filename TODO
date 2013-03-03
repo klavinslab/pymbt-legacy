@@ -1,9 +1,9 @@
 Create unit tests
-Put multiprocessing progress helper in a class / function for reuse, clean code
+Put multiprocessing progress reporter in a class / function for reuse, clean code
 Make cytometry module - no more R reliance
-Decide whether there should or should not be a Biopython dependency
+Decide whether to use Biopython to handle all sequences 
     Pros: automatically handle alphabet checking, reverse complementations, etc
-    Cons: another dependency to package, somewhat obfuscated API for sequence (Seq objects)
+    Cons: somewhat obfuscated API for sequence (Seq objects)
 Plotting module - make plotting the data we generate easier
 In Progress: Alignment module - batch processing of Sanger sequencing files
     Will probably put in a web frontend, so separate out backend and frontend stuff

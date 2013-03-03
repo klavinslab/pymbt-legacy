@@ -1,10 +1,10 @@
-import math
+import csv
 import itertools
+import math
 import time
 
 from pymbt.oligo_synthesis.structure_windows import context_walk
 
-# TODO: fold into a class, give it a .write() method
 # TODO: circular (e.g. plasmid) version.
 #   idea: find several good places to set as the origin around the plasmid,
 #   then run split_gene using 'linearized' plasmid with that
@@ -12,6 +12,40 @@ from pymbt.oligo_synthesis.structure_windows import context_walk
 #   this will probably take ~3-4 times as long as a linear fragment
 # TODO: 200 minimum window of potential overlap was chosen arbitrarily
 #   should get a sense of how good/bad the score is, *then* decide
+
+
+class GeneSplitter:
+    '''A class that splits a large (~<10kb) sequence into smaller
+    ones that are easier to clone, either via oligo assembly or PCR'''
+
+    def __init__(self,
+                 seq,
+                 max_len=1100,
+                 min_context=200,
+                 core=60,
+                 context=90,
+                 step=10,
+                 force_exhaustive=False):
+
+        split = split_gene(seq,
+                           max_len=max_len,
+                           min_context=min_context,
+                           core=core,
+                           context=context,
+                           step=step,
+                           force_exhaustive=force_exhaustive)
+        self.sequences = split['sequences']
+        self.scores = split['scores']
+        self.overlaps = split['overlaps']
+
+    def write(self, path):
+        f = open(path, 'w')
+        cr = csv.writer(f, quoting=csv.QUOTE_MINIMAL)
+        cr.writerow(['sequence', 'olap_start', 'olap_stop', 'olap_score'])
+        sta = [x[0] for x in self.overlaps] + ['NA']
+        sto = [x[1] for x in self.overlaps] + ['NA']
+        for i, x in enumerate(self.sequences):
+                cr.writerow([x, sta[i], sto[i], self.scores[i]])
 
 
 def split_gene(seq,
@@ -187,7 +221,7 @@ def find_best(walked, max_distance, seq_len, force_exhaustive=False):
         n_combos = 1
         for x in current:
             n_combos *= len(x)
-        if not spannable current:
+        if not spannable(current):
             raise Exception('Couldn\'t do exhaustive search')
 
     sums = [sum([y[2] for y in x]) for x in useable]

@@ -1,8 +1,4 @@
-#TODO:
-# sources: http://web.nmsu.edu/~snsm/classes/chem435/Lab4/
-#   1. 'AT init' and 'GC init' terms - what is proper way to implement?
-#   2. symmetry - factor it in? Most don't seem to.
-#   3. Add the following methods - SantaLucia96, Sugimoto
+# TODO: Add Breslauer, SantaLucia96, and Sugimoto methods
 
 '''Calculate the thermodynamic melting temperatures of nucleotide sequences
 using the Finnzymes modified Breslauer 1986 parameters.'''
