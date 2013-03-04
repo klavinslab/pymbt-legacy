@@ -6,12 +6,14 @@ import time
 from pymbt.oligo_synthesis.structure_windows import context_walk
 
 # TODO: circular (e.g. plasmid) version.
-#   idea: find several good places to set as the origin around the plasmid,
-#   then run split_gene using 'linearized' plasmid with that
-#   60-base origin flanking either side. keep the best one.
-#   this will probably take ~3-4 times as long as a linear fragment
-# TODO: 200 minimum window of potential overlap was chosen arbitrarily
-#   should get a sense of how good/bad the score is, *then* decide
+#   1. Convert plasmid to 'linear' version - add 60bp from front to end
+#   2. Evaluate as if linear
+#   3. Rotate sequence by the window size and repeat until whole plasmid
+#   has been analyzed
+#   4. Pick the best one
+#   Alternative:
+#       Since we'd be analyzing the whole sequences anyways, just do that
+#       right off the bat, store it, and try making spanning combinations
 
 
 class GeneSplitter:
@@ -145,7 +147,6 @@ def find_best(walked, max_distance, seq_len, force_exhaustive=False):
     list)
     '''
 
-    # TODO: multiprocessing
     # sort results by score
     def sort_tuple(tuple_in):
         return sorted(tuple_in, key=lambda score: score[2], reverse=True)
@@ -189,13 +190,10 @@ def find_best(walked, max_distance, seq_len, force_exhaustive=False):
         if not spannable(current):
             m += 1
         else:
-            print([len(x) for x in current])
             remove_nonspanning(current, max_distance)
-            print([len(x) for x in current])
             n_combos = 1
             for x in current:
                 n_combos *= len(x)
-            print(n_combos)
             if n_combos > 10000000 and not force_exhaustive:
                 exhaustive = False
                 break
@@ -216,7 +214,6 @@ def find_best(walked, max_distance, seq_len, force_exhaustive=False):
             m += 1
 
     if not exhaustive:
-        # TODO: either print error message or use different optimization
         current = [[x[0]] for x in sorted_walked]
         n_combos = 1
         for x in current:

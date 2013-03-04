@@ -4,7 +4,7 @@ from matplotlib import pyplot  # plotting
 from Bio import SeqIO  # readref, readres
 
 from pymbt.alignment.needle import needle
-from pymbt.dna_manipulation import reverse_complement
+from pymbt.sequence_manipulation import reverse_complement
 
 
 def readref(filepath, ftype='genbank'):

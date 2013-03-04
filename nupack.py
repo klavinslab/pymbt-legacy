@@ -23,7 +23,7 @@ from shutil import rmtree
 from os.path import isdir
 from os import environ
 from os.path import exists
-from pymbt.dna_manipulation import check_alphabet
+from pymbt.sequence_manipulation import check_alphabet
 
 
 if 'NUPACKHOME' in environ:
@@ -50,10 +50,8 @@ class Nupack:
         self.material = material
         if self.material == 'rna' or self.material == 'rna1999':
             mat = 'rna'
-            alphabet = 'AUGCaugc'
         elif material == 'dna':
             mat = 'dna'
-            alphabet = 'ATGCatgc'
         else:
             raise ValueError("material must be 'dna', 'rna', or 'rna1999'.")
 
@@ -90,7 +88,7 @@ class Nupack:
             mfe = ''
 
         # Calculate complexes
-        complexes_args = ' -T %f -material %i %s' % (T, self.material, mfe)
+        complexes_args = ' -T %f -material %s %s' % (T, self.material, mfe)
         self._run_nupack('complexes', complexes_args)
 
         # Parse the output

@@ -1,7 +1,7 @@
 import time
 import multiprocessing
 
-from pymbt.dna_manipulation import reverse_complement
+from pymbt.sequence_manipulation import reverse_complement
 from pymbt.nupack import Nupack
 
 

@@ -7,8 +7,8 @@
 
 import csv
 from math import floor
-from pymbt.dna_manipulation import check_alphabet
-from pymbt.dna_manipulation import reverse_complement
+from pymbt.sequence_manipulation import check_alphabet
+from pymbt.sequence_manipulation import reverse_complement
 from pymbt.tm_calc import calc_tm
 from pymbt.primer_design import design_primer_gene
 
@@ -70,7 +70,7 @@ def oligo_calc(seq,
                start_5=True):
     if len(seq) < oligo_size:
         raise ValueError('Oligo size must be smaller than input sequence')
-    check_alphabet(seq)
+    check_alphabet(seq, material='dna')
     oligo_n = int(floor(float(len(seq)) / oligo_size) + 1)
 
     if require_even:

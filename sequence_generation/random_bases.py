@@ -1,6 +1,3 @@
-# TODO
-# Handle error when input is bad
-
 import random
 
 

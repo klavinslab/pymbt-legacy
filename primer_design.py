@@ -1,6 +1,6 @@
 from pymbt.tm_calc import calc_tm
-from pymbt.dna_manipulation import check_alphabet
-from pymbt.dna_manipulation import reverse_complement
+from pymbt.sequence_manipulation import check_alphabet
+from pymbt.sequence_manipulation import reverse_complement
 
 
 def design_primer(seq,
