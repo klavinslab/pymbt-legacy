@@ -287,7 +287,7 @@ def nupack_multiprocessing(inputs, material, cmd, arguments, report=True):
                 break
             else:
                 if t >= 4:
-                    print('(%s/%s) ' % (completed, total) + msg)
+                    print '(%s/%s) ' % (completed, total) + msg
                     t = 0
                 t += 1
                 time.sleep(1)
@@ -295,7 +295,7 @@ def nupack_multiprocessing(inputs, material, cmd, arguments, report=True):
         nupack_pool.close()
         nupack_pool.join()
     except KeyboardInterrupt:
-        print("Caught KeyboardInterrupt, terminating workers")
+        print "Caught KeyboardInterrupt, terminating workers"
         nupack_pool.terminate()
         nupack_pool.close()
     return multi_output

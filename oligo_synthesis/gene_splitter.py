@@ -102,7 +102,7 @@ def split_gene(seq,
 
     walked_raw = []
     for i, x in enumerate(olaps_w_context):
-        print('Analyzing %i of %i overlap(s).' % (i + 1, len(olaps)))
+        print 'Analyzing %i of %i overlap(s).' % (i + 1, len(olaps))
         walked_raw.append(context_walk(x, core, context, step, report=True))
 
     walked = []
@@ -197,14 +197,14 @@ def find_best(walked, max_distance, seq_len, force_exhaustive=False):
             if n_combos > 10000000 and not force_exhaustive:
                 exhaustive = False
                 break
-            print('Trying %s combinations of top-scoring sites') % n_combos
+            print 'Trying %s combinations of top-scoring sites' % n_combos
             combos = itertools.product(*current)
 
             useable = []
             time_init = time.time()
             for i, combo in enumerate(combos):
                 if (time.time() - time_init) > 10:
-                    print('%.3f percent complete' % (float(i) / n_combos))
+                    print '%.3f percent complete' % (float(i) / n_combos)
                     time_init = time.time()
                 if check_useable(combo):
                     useable.append(combo)

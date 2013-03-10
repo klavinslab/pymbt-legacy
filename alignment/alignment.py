@@ -169,42 +169,42 @@ class Sanger:
             self.deletions[key] = newlist
 
     def report(self):
-        print('mismatches: ' + str(self.mismatches))
-        print('insertions: ' + str(self.insertions))
-        print('deletions: ' + str(self.deletions))
+        print 'mismatches: ' + str(self.mismatches)
+        print 'insertions: ' + str(self.insertions)
+        print 'deletions: ' + str(self.deletions)
         if len(self.mismatches) > 0:
-            print('----------------------')
-            print('----- MISMATCHES -----')
-            print('----------------------')
+            print '----------------------'
+            print '----- MISMATCHES -----'
+            print '----------------------'
             for key, value in self.mismatches.iteritems():
                 index = int(key)
-                print(self.resnames[index])
+                print self.resnames[index]
                 for i, x in enumerate(value):
-                    print('')
+                    print ''
                     sequences_display([self.ref[index], self.res[index]], x)
-                    print('')
+                    print ''
         if len(self.insertions) > 0:
-            print('----------------------')
-            print('----- INSERTIONS -----')
-            print('----------------------')
+            print '----------------------'
+            print '----- INSERTIONS -----'
+            print '----------------------'
             for key, value in self.insertions.iteritems():
                 index = int(key)
-                print(self.resnames[index])
+                print self.resnames[index]
                 for i, x in enumerate(value):
-                    print('')
+                    print ''
                     sequences_display([self.ref[index], self.res[index]], x)
-                    print('')
+                    print ''
         if len(self.deletions) > 0:
-            print('---------------------')
-            print('----- DELETIONS -----')
-            print('---------------------')
+            print '---------------------'
+            print '----- DELETIONS -----'
+            printj'---------------------'
             for key, value in self.deletions.iteritems():
                 index = int(key)
-                print(self.resnames[index])
+                print self.resnames[index]
                 for i, x in enumerate(value):
-                    print('')
+                    print ''
                     sequences_display([self.ref[index], self.res[index]], x)
-                    print('')
+                    print ''
 
     def plot(self):
         # Step 1: turn results into ranges, bin those ranges for displaying
@@ -276,9 +276,9 @@ def sequences_display(seqs, start_stop, context=10, indent=10):
     bottom_row = ''.join(seq_list_2)
     indent = ''.join([' ' for x in range(indent)])
     if start != stop:
-        print(indent + 'Positions %i to %i:' % (start, stop))
+        print indent + 'Positions %i to %i:' % (start, stop)
     else:
-        print(indent + 'Position %i:' % start)
-    print(indent + top_row)
-    print(indent + middle_row)
-    print(indent + bottom_row)
+        print indent + 'Position %i:' % start
+    print indent + top_row
+    print indent + middle_row
+    print indent + bottom_row

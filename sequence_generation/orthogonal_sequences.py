@@ -369,7 +369,7 @@ class OrthoSeq:
                 time_remaining = remaining / rate_current
                 m = int(time_remaining) / 60  # minutes
                 s = time_remaining - 60 * m  # seconds
-                print("Remaining: %s:%.2f min(s)\r" % (m, s))
+                print "Remaining: %s:%.2f min(s)\r" % (m, s)
                 time.sleep(interval)
             else:
                 time.sleep(.1)
