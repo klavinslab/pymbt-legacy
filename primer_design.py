@@ -10,7 +10,7 @@ def design_primer(seq,
                   tm_errorplus=3,
                   endGC=False,
                   tail=''):
-    # Check Tm of input sequence to see if it's already too low 
+    # Check Tm of input sequence to see if it's already too low
     seq_tm = calc_tm(seq)
     if seq_tm < tm - tm_errorminus:
         err = 'Input sequence Tm is lower than primer Tm setting'
@@ -37,11 +37,12 @@ def design_primer(seq,
         primer_tm = tms[-1]
 
     # Trim primer list based on tm_errorminus and endGC
-    primers = [primers[i] for i,x in enumerate(tms) if x >= tm - tm_errorminus]
-    tms = [x for i,x in enumerate(tms) if x >= tm - tm_errorminus]
+    terr = tm - tm_errorminus
+    primers = [primers[i] for i, x in enumerate(tms) if x >= terr]
+    tms = [x for i, x in enumerate(tms) if x >= terr]
     if endGC:
-        primers = [x for x in primers if x.endswith(('C','G'))]
-        tms = [tms[i] for i, x in enumerate(primers) if x.endswith(('C','G'))]
+        primers = [x for x in primers if x.endswith(('C', 'G'))]
+        tms = [tms[i] for i, x in enumerate(primers) if x.endswith(('C', 'G'))]
     if not primers:
         raise Exception('No primers could be generated using these settings')
 

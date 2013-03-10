@@ -1,21 +1,48 @@
-# TODO: Add Breslauer, SantaLucia96, and Sugimoto methods
+# TODO: Add Breslauer, SantaLucia98, and Sugimoto methods
+# TODO: Note: santalucia98 is broken
+# TODO: Redo santalucia NN parameters. Find a standard against which to compare
+# TODO: review unit corrections, see which apply for finnzymes vs. others
+# See doi: 10.1093/bioinformatics/bti066 for good comparison
+#   "Comparison of different melting temperature calculation
+#    methods for short DNA sequences"
 
 '''Calculate the thermodynamic melting temperatures of nucleotide sequences
 using the Finnzymes modified Breslauer 1986 parameters.'''
 
 from math import log
+from pymbt.sequence_manipulation import reverse_complement
 
 
-def calc_tm(s, dnac=50, saltc=50, method='finnzymes'):
+def calc_tm(s,
+            dnac=50,
+            saltc=50,
+            method='finnzymes'):
     '''Returns DNA/DNA tm using nearest neighbor thermodynamics.
 
     dnac is DNA concentration in nM
     saltc is salt concentration in mM.
     par is the parameter set to use (finnzymes, santaluciai, sugimoto)'''
-    R = 1.9872  # universal gas constant.
-    s = s.upper()
+
+    # Universal gas constant
+    R = 1.9872
+    # Unit corrections for input paramters
+    saltc = saltc / 1e3
+    sc = 16.6 * log(saltc) / log(10.0)
+    dnac = dnac / 1e9
+
+    if method == 'finnzymes':
+        params = finnzymes_par
+    elif method == 'santalucia98':
+        params = santalucia98_par
+    else:
+        '\'finnzymes\' is the only method that is currently supported'
+    delta_H_par = params['delta_H']
+    delta_S_par = params['delta_S']
+    delta_H_par_err = params['delta_H_err']
+    delta_S_par_err = params['delta_S_err']
 
     def collect_pairs(seq, pat):
+    # This is faster than Biopython's overcount
         count = 0
         start = 0
         while True:
@@ -25,31 +52,50 @@ def calc_tm(s, dnac=50, saltc=50, method='finnzymes'):
             else:
                 return count
 
-    if method == 'finnzymes':
-        deltaH_par = finnzymes_par['deltaH']
-        deltaS_par = finnzymes_par['deltaS']
-    else:
-        '\'finnzymes\' is the only currently supported method'
-
+    s = s.upper()
     # Sum up the nearest-neighbor enthalpy and entropy counts*par
-    dh = sum([collect_pairs(s, x) * deltaH_par[x] for x in deltaH_par.keys()])
-    ds = sum([collect_pairs(s, x) * deltaS_par[x] for x in deltaS_par.keys()])
+    H_keys = delta_H_par.keys()
+    S_keys = delta_S_par.keys()
+    dh = sum([collect_pairs(s, x) * delta_H_par[x] for x in H_keys])
+    ds = sum([collect_pairs(s, x) * delta_S_par[x] for x in S_keys])
 
-    # unit corrections
+    # Error corrections
+    # Initiation for seqs with a G-C pair vs only A-T
+    if 'G' in s or 'C' in s:
+        dh += delta_H_par_err['initGC']
+        ds += delta_S_par_err['initGC']
+    at_count = [x for x in s if x is 'A' or x is 'T']
+    if len(at_count) is len(s):
+        dh += delta_H_par_err['initAT']
+        ds += delta_S_par_err['initAT']
+    # 5' terminal T-A
+    if s.startswith('T'):
+        dh += delta_H_par_err['5termT']
+        ds += delta_S_par_err['5termT']
+    # Correction for self-complementary sequences
+    # The meaning of 'self-complementary' is not well-defined...
+    if s is reverse_complement(s):
+        dh += delta_H_par_err['symm']
+        ds += delta_S_par_err['symm']
+
+    # Unit corrections
     dh = dh * 1e3
-    dh += 3400
-    ds += 12.4
-    saltc = saltc / 1e3
-    dnac = dnac / 1e9
 
-    # calculate salt contribution and Tm
-    sc = 16.6 * log(saltc) / log(10.0)
-    tm = -dh / (R * log(dnac / 16) - ds) + sc - 273.15
+    # These corrections are unaccounted for but are required
+    # for the 'finnzymes' method to be accurate.
+    if method is 'finnzymes':
+        dh += 3400
+        ds += 12.4
+        tm = -dh / (R * log(dnac / 16) - ds) + sc - 273.15
+    if method is 'santalucia98':
+        k = dnac / 4.0
+        ds = ds - 0.368 * (len(s) - 1) * log(saltc)
+        tm = -dh / ((R * log(k)) - ds) - 273.15
 
     return tm
 
 finnzymes_par = {
-    'deltaH': {
+    'delta_H': {
         'AA': 9.1,
         'TT': 9.1,
         'AT': 8.6,
@@ -65,11 +111,13 @@ finnzymes_par = {
         'CG': 11.9,
         'GC': 11.1,
         'GG': 11.0,
-        'CC': 11.0,
-        'termAT': 0,
-        'termGC': 0
-        },
-    'deltaS': {
+        'CC': 11.0},
+    'delta_H_err': {
+        'initAT': 0.0,
+        'initGC': 0.0,
+        'symm': 0.0,
+        '5termT': 0.0},
+    'delta_S': {
         'AA': 24.0,
         'TT': 24.0,
         'AT': 23.9,
@@ -85,14 +133,16 @@ finnzymes_par = {
         'CG': 27.8,
         'GC': 26.7,
         'GG': 26.6,
-        'CC': 26.6,
-        'termAT': 0,
-        'termGC': 0
-        },
+        'CC': 26.6},
+    'delta_S_err': {
+        'initAT': 0.0,
+        'initGC': 0.0,
+        'symm': 0.0,
+        '5termT': 0.0}
     }
 
-santalucia_par = {
-    'deltaHParams': {
+santalucia98_par = {
+    'delta_H': {
         'AA': 7.9,
         'TT': 7.9,
         'AT': 7.2,
@@ -107,29 +157,33 @@ santalucia_par = {
         'TC': 8.2,
         'CG': 10.6,
         'GC': 9.8,
-        'GG': 8,
-        'CC': 8,
-        'termAT': 2.3,
-        'termGC': 0.1
-        },
-    'deltaSParams': {
-        'AA': 22.2,
-        'TT': 22.2,
-        'AT': 20.4,
-        'TA': 21.3,
-        'CA': 22.7,
-        'TG': 22.7,
-        'GT': 22.4,
-        'AC': 22.4,
-        'CT': 21.0,
-        'AG': 21.0,
-        'GA': 22.2,
-        'TC': 22.2,
-        'CG': 27.2,
-        'GC': 24.4,
-        'GG': 19.9,
-        'CC': 19.9,
-        'termAT': 4.1,
-        'termGC': -2.8
-        }
+        'GG': 8.0,
+        'CC': 8.0},
+    'delta_H_err': {
+        'initAT': 0.0,
+        'initGC': 0.0,
+        'symm': 0.0,
+        '5termT': -0.4},
+    'delta_S': {
+        'AA': 23.6,
+        'TT': 23.6,
+        'AT': 18.8,
+        'TA': 18.5,
+        'CA': 19.3,
+        'TG': 19.3,
+        'GT': 23.0,
+        'AC': 23.0,
+        'CT': 16.1,
+        'AG': 16.1,
+        'GA': 20.3,
+        'TC': 20.3,
+        'CG': 25.5,
+        'GC': 28.4,
+        'GG': 15.6,
+        'CC': 15.6},
+    'delta_S_err': {
+        'initAT': 9.0,
+        'initGC': 5.9,
+        'symm': 1.4,
+        '5termT': 0.0}
     }

@@ -1,9 +1,9 @@
 Create unit tests
-Put multiprocessing progress reporter in a class / function for reuse, clean code
-Make cytometry module - no more R reliance
-Decide whether to use Biopython to handle all sequences 
-    Pros: automatically handle alphabet checking, reverse complementations, etc
-    Cons: somewhat obfuscated API for sequence (Seq objects)
-Plotting module - make plotting the data we generate easier
+Repeat detector - 4-mer, 5-mer, 6-mer detection in coding sequences
 In Progress: Alignment module - batch processing of Sanger sequencing files
     Will probably put in a web frontend, so separate out backend and frontend stuff
+Make cytometry module - no more R reliance
+Decide whether to use Biopython to handle all sequences 
+    Pros: Automatically handle alphabet checking, reverse complementations, etc
+    Cons: Using Seq objects can be a pain for users (and me)
+Plotting module - make plotting the data we generate easier

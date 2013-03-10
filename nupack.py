@@ -17,6 +17,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,USA.
 
+import multiprocessing
+import time
 from subprocess import call
 from tempfile import mkdtemp
 from shutil import rmtree
@@ -260,3 +262,52 @@ class Nupack:
 
         run_command = env_line + command_line + arguments_line
         call(run_command + ' > /dev/null', shell=True)
+
+
+def nupack_multiprocessing(inputs, material, cmd, arguments, report=True):
+    '''Provides access to NUPACK commands with multiprocessing support.
+       Inputs: list of sequences
+       material: 'dna' or 'rna'
+       cmd: string of command - 'mfe', 'pairs', 'complexes', 'concentrations'
+       arguments: keyword list of arguments
+    '''
+    nupack_pool = multiprocessing.Pool()
+    try:
+        args = [{'seq': x,
+                 'cmd': cmd,
+                 'material': material,
+                 'arguments': arguments} for x in inputs]
+        nupack_iterator = nupack_pool.imap(run_nupack, args)
+        total = len(inputs)
+        msg = ' calculations complete.'
+        t = 4
+        while report:
+            completed = nupack_iterator._index
+            if (completed == total):
+                break
+            else:
+                if t >= 4:
+                    print('(%s/%s) ' % (completed, total) + msg)
+                    t = 0
+                t += 1
+                time.sleep(1)
+        multi_output = [x for x in nupack_iterator]
+        nupack_pool.close()
+        nupack_pool.join()
+    except KeyboardInterrupt:
+        print("Caught KeyboardInterrupt, terminating workers")
+        nupack_pool.terminate()
+        nupack_pool.close()
+    return multi_output
+    ran = []
+    for x in arguments:
+        run = getattr(np_obj, cmd)(x)
+        ran.append(run)
+    return ran
+
+
+def run_nupack(kwargs):
+    run = Nupack(kwargs['seq'], material=kwargs['material'])
+    output = getattr(run, kwargs['cmd'])(**kwargs['arguments'])
+    run.close()
+    return output

@@ -2,10 +2,11 @@ from string import maketrans
 from string import translate
 
 from pymbt.common_data import alphabets
-from pymbt.common_data import codons 
+from pymbt.common_data import codons
 
-# Simple reverse complement function
+
 def reverse_complement(sequence):
+    '''Simple reverse complement function'''
     check_alphabet(sequence, material='dna')
     submat = maketrans('ATGCNatgcn', 'TACGNtacgn')
     sub_sequence = translate(sequence, submat)
@@ -14,12 +15,11 @@ def reverse_complement(sequence):
 
 
 def check_alphabet(sequence, material='dna'):
-    errs = {'dna': 'DNA', 'rna': 'RNA', 'pep': 'peptide'}
-
     '''Verifies that a given sequence is made only of DNA, RNA, or peptides'''
+    errs = {'dna': 'DNA', 'rna': 'RNA', 'pep': 'peptide'}
     if material is 'dna' or material is 'rna' or material is 'pep':
         alphabet = alphabets[material]
-        err_msg = errs[material] 
+        err_msg = errs[material]
     else:
         msg = 'Input material must be \'dna\', \'rna\', or \'pep\'.'
         raise ValueError(msg)
@@ -27,6 +27,7 @@ def check_alphabet(sequence, material='dna'):
         if char not in alphabet:
             raise ValueError('Sequence has a non-%s character' % err_msg)
     return sequence
+
 
 def translate_seq(sequence):
     '''Input is DNA, output is peptide.

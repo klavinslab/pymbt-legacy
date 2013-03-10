@@ -30,12 +30,14 @@ import socket
 from string import maketrans, translate
 import time
 
+from pymbt.nupack import nupack_multiprocessing
 from pymbt.nupack import Nupack
 from pymbt.sequence_generation import random_codons
 from pymbt.sequence_generation import weighted_codons
 from pymbt.sequence_manipulation import reverse_complement as r_c
-from pymbt.sequence_manipulation import check_alphabet 
+from pymbt.sequence_manipulation import check_alphabet
 from pymbt.common_data import codon_freq_sc_nested
+
 
 class OrthoSeq:
     def __init__(self,
@@ -45,7 +47,7 @@ class OrthoSeq:
                  conc=5e-7,
                  nullinc_max=1e5):
         # Make sure sequence only includes amino acids
-        check_alphabet(prot_seq, material='pep') 
+        check_alphabet(prot_seq, material='pep')
 
         self.T = T
         self.prot_seq = prot_seq
@@ -66,12 +68,12 @@ class OrthoSeq:
         # TODO: 'stop' and 'report_nupack' may be deprecated
         '''n: is the final number of orthogonal sequences to output.
            m: is the number of new sequences to try out on each iteration
-           resume: specifies a path to a dir from a previous run, and will cause
-           orthogonal_sequences to pick up where it left off.
+           resume: specifies a path to a dir from a previous run, and will
+           cause orthogonal_sequences to pick up where it left off.
            wholemat: if True, m worst oligos are thrown out on each iteration
                      if False, single best is kept. There is a difference
                      but it should be better documented.
-           stop: 
+           stop:
            report_nupack:
         '''
         self.weighted = weighted
@@ -123,7 +125,7 @@ class OrthoSeq:
 
             oligo_list += new_oligos
 
-            # Generate combinations - (m+n) choose n 
+            # Generate combinations - (m+n) choose n
             combos = [list(x) for x in combinations(oligo_list, n)]
 
             # For each combination of length n,
@@ -138,8 +140,25 @@ class OrthoSeq:
                     newlist += [r_c(x) for x in v if x is not j]
                     full_combos[i].append(newlist)
 
+            def flatten(input_list):
+                return [y for x in input_list for y in x]
 
-            # Run that list through nupack
+            def unflatten(input_list, n):
+                unflattened = []
+                for i in range(len(input_list) / n):
+                    temp_list = []
+                    for j in range(n):
+                        temp_list.append(input_list.pop(0))
+                    unflattened.append(temp_list)
+
+            full_flat = flatten(full_combos)
+            mon_concentrations = nupack_multiprocessing(full_flat,
+                                                        'dna',
+                                                        'concentrations',
+                                                        {'max_complexes': 2})
+            mon_concs2 = [x['concentration'] for x in mon_concentrations]
+            mon_concs3 = unflatten(mon_concs2, n)
+
             o_pool = multiprocessing.Pool()
             o_pool_iter = o_pool.imap(self.n_p_nupack, full_combos)
             # Report progress
@@ -163,8 +182,10 @@ class OrthoSeq:
             mean_free = (sum(mon_concs_left) / len(mon_concs_left)) / self.conc
             min_free = min(mon_concs_left) / self.conc
             best_concs = mon_concs[best_combo]
-            met = [1 for x in best_concs if min(x) / self.conc >= self.min_free]
-            met = sum(met)
+            met = 0
+            for x in best_concs:
+                if min(x) / self.conc >= self.min_free:
+                    met += 1
 
             # Did the score improve? If not, increment counter
             if min_free == last_min_free:
@@ -196,7 +217,13 @@ class OrthoSeq:
                 # Set up data log file
                 datafile = open(fileprefix + 'data.txt', 'w')
                 data_csv = csv.writer(datafile, quoting=csv.QUOTE_MINIMAL)
-                data_csv.writerow(['loop', 'nullinc', 'mean_free', 'min_free', 'met', 'time'])
+                cols = ['loop',
+                        'nullinc',
+                        'mean_free',
+                        'min_free',
+                        'met',
+                        'time']
+                data_csv.writerow(cols)
                 datafile.close()
 
             # Write the current set of oligos to file (enables resuming)
@@ -239,7 +266,7 @@ class OrthoSeq:
     def gen_oligo(self, min_free):
         # Generate oligos until one has a self-self interaction below
         # the threshold.
-        threshold_met = False 
+        threshold_met = False
 
         while not threshold_met:
             # Generate a randomly or weighted-randomly
@@ -251,7 +278,8 @@ class OrthoSeq:
                                                         material='pep')
                 new_oligo = choice.generate()
             else:
-                choice = random_codons.RandomCodons(self.prot_seq, threshold=self.freq_threshold)
+                choice = random_codons.RandomCodons(self.prot_seq,
+                                                threshold=self.freq_threshold)
                 new_oligo = choice.generate()
 
             # Check oligo for self-self binding and mfe
@@ -284,7 +312,7 @@ class OrthoSeq:
         # If calculating forward-reverse concentrations, ignore
         # self-self as it will always interact strongly
 
-        sl = seq_list 
+        sl = seq_list
 
         seq_pairs = []
         if reverse:
@@ -346,6 +374,7 @@ class OrthoSeq:
             else:
                 time.sleep(.1)
 
+
 # The following code enables pickling bound methods:
 # Required for multiprocessing to function
 def _pickle_method(method):
@@ -365,7 +394,7 @@ copy_reg.pickle(types.MethodType, _pickle_method, _unpickle_method)
 if __name__ == "__main__":
     import ConfigParser
 
-    # Read config 
+    # Read config
     current_path = os.path.abspath(os.path.dirname(__file__))
     config_path = current_path + '/orthogonal_sequences.cfg'
     config = ConfigParser.RawConfigParser()

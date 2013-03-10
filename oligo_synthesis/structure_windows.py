@@ -3,6 +3,7 @@ import multiprocessing
 
 from pymbt.sequence_manipulation import reverse_complement
 from pymbt.nupack import Nupack
+from pymbt.nupack import nupack_multiprocessing
 
 
 def context_walk(seq, core_len, context_len, step, report=False):
@@ -20,31 +21,7 @@ def context_walk(seq, core_len, context_len, step, report=False):
     rseqs = [reverse_complement(x) for x in rseqs]
     allseqs = lseqs + rseqs
 
-    total = len(allseqs)
-    nupack_pool = multiprocessing.Pool()
-    msg = 'pair probabilities completed.'
-    try:
-        nupack_iterator = nupack_pool.imap(run_pairs, allseqs)
-        # Watch progress
-        t = 4
-        while report:
-            completed = nupack_iterator._index
-            if (completed == total):
-                break
-            else:
-                if t >= 4:
-                    print('(%s/%s) ' % (completed, total) + msg)
-                    t = 0
-                t += 1
-                time.sleep(1)
-        all_pairs = [x for x in nupack_iterator]
-        nupack_pool.close()
-        nupack_pool.join()
-    except KeyboardInterrupt:
-        print("Caught KeyboardInterrupt, terminating workers")
-        nupack_pool.terminate()
-        nupack_pool.close()
-
+    all_pairs = nupack_multiprocessing(allseqs, 'dna', 'pairs', {'strand': 0})
     allprobs = [x['probabilities'][-core_len:] for x in all_pairs]
     allscores = [sum(x) / len(x) for x in allprobs]
 
@@ -55,17 +32,5 @@ def context_walk(seq, core_len, context_len, step, report=False):
     summary = []
     for i, x in enumerate(lseqs):
         summary.append((core_starts[i], core_ends[i], scores[i]))
-        #print(seq[core_starts[i]:core_ends[i]])
-        #print(lseqs[i])
-        #print(rseqs[i])
 
     return summary
-
-
-# Put nupack calculation in a function to enable
-# parallel processing
-def run_pairs(seq):
-    np_run = Nupack(seq, 'dna')
-    pairs = np_run.pairs(0)
-    np_run.close()
-    return pairs

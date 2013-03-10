@@ -80,7 +80,7 @@ def oligo_calc(seq,
     else:
         oligo_increment = 1
 
-    lowest_tm_overlap = -40000 # Arbitrary super negative number
+    lowest_tm_overlap = -40000  # Arbitrary super negative number
     overlap_tms = [lowest_tm_overlap] * (oligo_n - 1)
     # Loop until all overlaps meet minimum Tm
     while(any([x <= tm for x in overlap_tms])):
@@ -126,7 +126,7 @@ def oligo_calc(seq,
                 oligo_end[lowest_index] += 1
             def increase_left_oligo():
                 oligo_start[lowest_index + 1] -= 1
-               
+
             # If one of the oligos is max size, increase the other one
             if lowest_tm_overlap_right == oligo_size:
                 increase_right_oligo()

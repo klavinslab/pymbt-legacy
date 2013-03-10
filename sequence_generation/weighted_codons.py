@@ -5,6 +5,7 @@ from pymbt.common_data import codons
 from pymbt.sequence_manipulation import check_alphabet
 from pymbt.sequence_manipulation import translate_seq
 
+
 class WeightedCodons:
     '''Provides a generator class for random DNA or RNA sequence.
          sequence: sequence for which to generate randomized codons.
