@@ -1,0 +1,6 @@
+argparse==1.2.1
+biopython==1.61
+distribute==0.6.24
+matplotlib==1.2.0
+numpy==1.7.0
+wsgiref==0.1.2
