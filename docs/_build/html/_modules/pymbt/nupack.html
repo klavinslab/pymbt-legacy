@@ -1,0 +1,409 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pymbt.nupack &mdash; pymbt 0.1a documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1a',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="pymbt 0.1a documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">pymbt 0.1a documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pymbt.nupack</h1><div class="highlight"><pre>
+<span class="sd">&#39;&#39;&#39;Wrapper for NUPACK 3.0.&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">multiprocessing</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">subprocess</span> <span class="kn">import</span> <span class="n">call</span>
+<span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">mkdtemp</span>
+<span class="kn">from</span> <span class="nn">shutil</span> <span class="kn">import</span> <span class="n">rmtree</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">isdir</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">environ</span>
+<span class="kn">from</span> <span class="nn">pymbt.sequence_manipulation</span> <span class="kn">import</span> <span class="n">check_alphabet</span>
+
+
+<span class="k">if</span> <span class="s">&#39;NUPACKHOME&#39;</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">:</span>
+    <span class="n">NUPACKHOME</span> <span class="o">=</span> <span class="n">environ</span><span class="p">[</span><span class="s">&#39;NUPACKHOME&#39;</span><span class="p">]</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">EnvironmentError</span><span class="p">(</span><span class="s">&#39;NUPACKHOME environment variable must be set&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Nupack"><a class="viewcode-back" href="../../pymbt.html#pymbt.nupack.Nupack">[docs]</a><span class="k">class</span> <span class="nc">Nupack</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;Contain sequence inputs and use NUPACK computation methods.&#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence_list</span><span class="p">,</span> <span class="n">material</span><span class="p">):</span>
+        <span class="c"># Set up nupack environment variable</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nupack_home</span> <span class="o">=</span> <span class="n">NUPACKHOME</span>
+        <span class="c"># Store reused information</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">sequence_list</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">sequence_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+                <span class="c"># if user input a string, make it a list for processing later</span>
+                <span class="n">sequence_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">sequence_list</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Did not supply a sequence string or list&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sequence_list</span> <span class="o">=</span> <span class="n">sequence_list</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">=</span> <span class="n">mkdtemp</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">material</span> <span class="o">=</span> <span class="n">material</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">material</span> <span class="o">==</span> <span class="s">&#39;rna&#39;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">material</span> <span class="o">==</span> <span class="s">&#39;rna1999&#39;</span><span class="p">:</span>
+            <span class="n">mat</span> <span class="o">=</span> <span class="s">&#39;rna&#39;</span>
+        <span class="k">elif</span> <span class="n">material</span> <span class="o">==</span> <span class="s">&#39;dna&#39;</span><span class="p">:</span>
+            <span class="n">mat</span> <span class="o">=</span> <span class="s">&#39;dna&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;material must be &#39;dna&#39;, &#39;rna&#39;, or &#39;rna1999&#39;.&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">sequence</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequence_list</span><span class="p">:</span>
+            <span class="n">check_alphabet</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="n">mat</span><span class="p">)</span>
+
+        <span class="c"># Track whether complexes has been run</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">complexes_run</span> <span class="o">=</span> <span class="bp">False</span>
+
+<div class="viewcode-block" id="Nupack.complexes"><a class="viewcode-back" href="../../pymbt.html#pymbt.nupack.Nupack.complexes">[docs]</a>    <span class="k">def</span> <span class="nf">complexes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_complexes</span><span class="p">,</span> <span class="n">mfe</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Run &#39;complexes&#39;.</span>
+
+<span class="sd">        :param max_complexes: maximum complex size (integer).</span>
+<span class="sd">        :type max_complexes: int.</span>
+<span class="sd">        :param mfe: include mfe calculations (boolean, defaults to True).</span>
+<span class="sd">        :type mfe: bool.</span>
+<span class="sd">        :param T: sets the temperature.</span>
+<span class="sd">        :type T: float.</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_open</span><span class="p">()</span>  <span class="c"># Recreate temp dir if it was removed</span>
+
+        <span class="c"># Prepare input file</span>
+        <span class="n">complexes_input</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sequence_list</span><span class="p">)),</span>
+                                     <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sequence_list</span><span class="p">),</span>
+                                     <span class="nb">str</span><span class="p">(</span><span class="n">max_complexes</span><span class="p">)])</span>
+
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="s">&#39;/nupack.in&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">complexes_input</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="c"># Prepare arguments</span>
+        <span class="k">if</span> <span class="n">mfe</span><span class="p">:</span>
+            <span class="n">mfe</span> <span class="o">=</span> <span class="s">&#39; -mfe &#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mfe</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+
+        <span class="c"># Run &#39;complexes&#39;</span>
+        <span class="n">complexes_args</span> <span class="o">=</span> <span class="s">&#39; -T </span><span class="si">%f</span><span class="s"> -material </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">material</span><span class="p">,</span> <span class="n">mfe</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_run_nupack</span><span class="p">(</span><span class="s">&#39;complexes&#39;</span><span class="p">,</span> <span class="n">complexes_args</span><span class="p">)</span>
+
+        <span class="c"># Parse the output</span>
+        <span class="n">f_out</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="s">&#39;/nupack.cx&#39;</span><span class="p">,</span> <span class="s">&#39;r+&#39;</span><span class="p">)</span>
+        <span class="n">eq_results</span> <span class="o">=</span> <span class="n">f_out</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+
+        <span class="n">eq_results</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">eq_results</span> <span class="k">if</span> <span class="s">&#39;%&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>
+        <span class="n">eq_results</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">split</span><span class="p">()</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">eq_results</span><span class="p">]</span>
+
+        <span class="c"># Remove rank entry</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">eq_results</span><span class="p">:</span>
+            <span class="n">i</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c"># Extract complexes</span>
+        <span class="n">eq_results_cx</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">eq_results</span><span class="p">:</span>
+            <span class="n">cx_i</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sequence_list</span><span class="p">)):</span>
+                <span class="n">cx_i</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">))))</span>
+            <span class="n">eq_results_cx</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cx_i</span><span class="p">)</span>
+
+        <span class="c"># Extract energies</span>
+        <span class="n">eq_results_en</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">eq_results</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">complexes_run</span> <span class="o">=</span> <span class="n">max_complexes</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="s">&#39;complexes&#39;</span><span class="p">:</span> <span class="n">eq_results_cx</span><span class="p">,</span>
+                <span class="s">&#39;complex_energy&#39;</span><span class="p">:</span> <span class="n">eq_results_en</span><span class="p">}</span>
+</div>
+<div class="viewcode-block" id="Nupack.concentrations"><a class="viewcode-back" href="../../pymbt.html#pymbt.nupack.Nupack.concentrations">[docs]</a>    <span class="k">def</span> <span class="nf">concentrations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_complexes</span><span class="p">,</span> <span class="n">conc</span><span class="o">=</span><span class="mf">0.5e-6</span><span class="p">,</span> <span class="n">mfe</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Run &#39;concentrations&#39;.</span>
+
+<span class="sd">        :param conc: the concentration of each species. Defaults to 0.5e-6.</span>
+<span class="sd">        :type conc: float or list.</span>
+<span class="sd">        :param max_complexes: maximum complex size.</span>
+<span class="sd">        :type int.</span>
+<span class="sd">        :param mfe: include mfe calculations.</span>
+<span class="sd">        :type bool.</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">complexes_run</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">complexes_run</span> <span class="o">==</span> <span class="n">max_complexes</span><span class="p">:</span>
+            <span class="k">pass</span>  <span class="c"># complexes has already been run</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_open</span><span class="p">()</span>  <span class="c"># Recreate temp dir if it was removed</span>
+            <span class="c"># Run complexes in order to get input file</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">complexes</span><span class="p">(</span><span class="n">max_complexes</span><span class="o">=</span><span class="n">max_complexes</span><span class="p">,</span>
+                           <span class="n">mfe</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="c"># Prepare input file</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">conc</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">conc</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sequence_list</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;len(conc) must be len(sequences)&quot;</span><span class="p">)</span>
+            <span class="n">concstring</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">conc</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">concstring</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">conc</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequence_list</span><span class="p">])</span>
+
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="s">&#39;/nupack.con&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">concstring</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="c"># Run &#39;complexes&#39;</span>
+        <span class="n">concentrations_args</span> <span class="o">=</span> <span class="s">&#39;-sort 3 &#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_run_nupack</span><span class="p">(</span><span class="s">&#39;concentrations&#39;</span><span class="p">,</span> <span class="n">concentrations_args</span><span class="p">)</span>
+
+        <span class="c"># Parse the output of &#39;complexes&#39;</span>
+        <span class="n">f_out</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="s">&#39;/nupack.eq&#39;</span><span class="p">,</span> <span class="s">&#39;r+&#39;</span><span class="p">)</span>
+        <span class="n">eq_results</span> <span class="o">=</span> <span class="n">f_out</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="n">eq_results</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">eq_results</span> <span class="k">if</span> <span class="s">&#39;%&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>
+        <span class="n">eq_results</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">split</span><span class="p">()</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">eq_results</span><span class="p">]</span>
+
+        <span class="c"># Format results: complex type, concentration, and energy</span>
+        <span class="c"># Remove rank information</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">eq_results</span><span class="p">:</span>
+            <span class="n">i</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">eq_results_cx</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">eq_results</span><span class="p">:</span>
+            <span class="n">eq_cx_i</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sequence_list</span><span class="p">):</span>
+                <span class="n">eq_cx_i</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">))))</span>
+            <span class="n">eq_results_cx</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">eq_cx_i</span><span class="p">)</span>
+
+        <span class="n">eq_results_en</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">eq_results</span><span class="p">]</span>
+        <span class="n">eq_results_conc</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">eq_results</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="s">&#39;types&#39;</span><span class="p">:</span> <span class="n">eq_results_cx</span><span class="p">,</span>
+                <span class="s">&#39;concentration&#39;</span><span class="p">:</span> <span class="n">eq_results_conc</span><span class="p">,</span>
+                <span class="s">&#39;energy&#39;</span><span class="p">:</span> <span class="n">eq_results_en</span><span class="p">}</span>
+</div>
+<div class="viewcode-block" id="Nupack.mfe"><a class="viewcode-back" href="../../pymbt.html#pymbt.nupack.Nupack.mfe">[docs]</a>    <span class="k">def</span> <span class="nf">mfe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strand</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Run &#39;mfe&#39;.</span>
+
+<span class="sd">        :param T: temperature.</span>
+<span class="sd">        :type T: float.</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_open</span><span class="p">()</span>  <span class="c"># Recreate temp dir if it was removed</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">strand</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&#39;strand value must be integer&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">strand</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sequence_list</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;strand value exceeds the number of sequences&#39;</span><span class="p">)</span>
+
+        <span class="n">sequence</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequence_list</span><span class="p">[</span><span class="n">strand</span><span class="p">]</span>
+        <span class="c"># Prepare input file</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="s">&#39;/nupack.in&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="c"># Run &#39;mfe&#39;</span>
+        <span class="n">mfe_args</span> <span class="o">=</span> <span class="s">&#39; -T &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; -material &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">material</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_run_nupack</span><span class="p">(</span><span class="s">&#39;mfe&#39;</span><span class="p">,</span> <span class="n">mfe_args</span><span class="p">)</span>
+
+        <span class="c"># Parse the output of &#39;mfe&#39;</span>
+        <span class="n">mfe_raw</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="s">&#39;/nupack.mfe&#39;</span><span class="p">,</span> <span class="s">&#39;r+&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">readlines</span><span class="p">()[</span><span class="mi">14</span><span class="p">]</span>
+        <span class="n">mfe</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">mfe_raw</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+
+        <span class="c"># Return the mfe of the designated strand</span>
+        <span class="k">return</span> <span class="n">mfe</span>
+</div>
+<div class="viewcode-block" id="Nupack.pairs"><a class="viewcode-back" href="../../pymbt.html#pymbt.nupack.Nupack.pairs">[docs]</a>    <span class="k">def</span> <span class="nf">pairs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strand</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Run &#39;pairs&#39;.</span>
+
+<span class="sd">        :param T: sets the temperature.</span>
+<span class="sd">        :type T: float.</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_open</span><span class="p">()</span>  <span class="c"># Recreate temp dir if it was removed</span>
+
+        <span class="n">sequence</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequence_list</span><span class="p">[</span><span class="n">strand</span><span class="p">]</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="s">&#39;/nupack.in&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="c"># Calculate pair probabilities with &#39;pairs&#39;</span>
+        <span class="n">pairs_args</span> <span class="o">=</span> <span class="s">&#39;-T &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; -material &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">material</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_run_nupack</span><span class="p">(</span><span class="s">&#39;pairs&#39;</span><span class="p">,</span> <span class="n">pairs_args</span><span class="p">)</span>
+
+        <span class="c"># Parse the &#39;pairs&#39; output</span>
+        <span class="c"># Only look at the last n rows - unbound probabilities</span>
+        <span class="n">pairs</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="s">&#39;/nupack.ppairs&#39;</span><span class="p">,</span> <span class="s">&#39;r+&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="n">pairs</span> <span class="o">=</span> <span class="n">pairs</span><span class="p">[</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">sequence</span><span class="p">):]</span>
+        <span class="n">pairs</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">pairs</span> <span class="k">if</span> <span class="s">&#39;%&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>
+        <span class="c">#########################</span>
+        <span class="c"># Why was this code here?</span>
+        <span class="c">#pairs.pop(0) # Remove gap</span>
+        <span class="c">#pair_n = pairs.pop(0)</span>
+        <span class="c">#########################</span>
+        <span class="n">types</span> <span class="o">=</span> <span class="p">[(</span><span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">]))</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">pairs</span><span class="p">]</span>
+        <span class="n">pp</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">2</span><span class="p">])</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">pairs</span><span class="p">]</span>
+
+        <span class="c"># Return the pair probabilities</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s">&#39;type&#39;</span><span class="p">:</span> <span class="n">types</span><span class="p">,</span> <span class="s">&#39;probabilities&#39;</span><span class="p">:</span> <span class="n">pp</span><span class="p">}</span>
+</div>
+    <span class="k">def</span> <span class="nf">_open</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Check for temp dir. If it doesn&#39;t exist, create it.&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">isdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">=</span> <span class="n">mkdtemp</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Nupack.close"><a class="viewcode-back" href="../../pymbt.html#pymbt.nupack.Nupack.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Delete the temp dir. This prevents filling up /tmp.&#39;&#39;&#39;</span>
+        <span class="n">rmtree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">_run_nupack</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">arguments</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Wrapper for running NUPACK commands.&#39;&#39;&#39;</span>
+        <span class="n">known</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;complexes&#39;</span><span class="p">,</span> <span class="s">&#39;concentrations&#39;</span><span class="p">,</span> <span class="s">&#39;mfe&#39;</span><span class="p">,</span> <span class="s">&#39;pairs&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">cmd</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">known</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Command must be one of the following:&#39;</span> <span class="o">+</span> <span class="n">known</span><span class="p">)</span>
+
+        <span class="n">env_line</span> <span class="o">=</span> <span class="s">&quot;export NUPACKHOME=&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">nupack_home</span> <span class="o">+</span> <span class="s">&#39; &amp;&amp; &#39;</span>
+        <span class="n">command_prefix</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">/bin/</span><span class="si">%s</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nupack_home</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)</span>
+        <span class="n">command_line</span> <span class="o">=</span> <span class="s">&#39;cd </span><span class="si">%s</span><span class="s"> &amp;&amp; &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">)</span> <span class="o">+</span> <span class="n">command_prefix</span>
+        <span class="n">arguments_line</span> <span class="o">=</span> <span class="n">arguments</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="s">&#39;/nupack&#39;</span>
+
+        <span class="n">run_command</span> <span class="o">=</span> <span class="n">env_line</span> <span class="o">+</span> <span class="n">command_line</span> <span class="o">+</span> <span class="n">arguments_line</span>
+        <span class="n">call</span><span class="p">(</span><span class="n">run_command</span> <span class="o">+</span> <span class="s">&#39; &gt; /dev/null&#39;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="nupack_multiprocessing"><a class="viewcode-back" href="../../pymbt.html#pymbt.nupack.nupack_multiprocessing">[docs]</a><span class="k">def</span> <span class="nf">nupack_multiprocessing</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">material</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">arguments</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Provides access to NUPACK commands with multiprocessing support.</span>
+
+<span class="sd">    :param inputs: list of sequences.</span>
+<span class="sd">    :type inpus: list.</span>
+<span class="sd">    :param material: &#39;dna&#39; or &#39;rna&#39;.</span>
+<span class="sd">    :type material: str.</span>
+<span class="sd">    :param cmd: command: &#39;mfe&#39;, &#39;pairs&#39;, &#39;complexes&#39;, or &#39;concentrations&#39;.</span>
+<span class="sd">    :type cmd: str.</span>
+<span class="sd">    :param arguments: arguments for the command.</span>
+<span class="sd">    :type arguments: str.</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">nupack_pool</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Pool</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[{</span><span class="s">&#39;seq&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span>
+                 <span class="s">&#39;cmd&#39;</span><span class="p">:</span> <span class="n">cmd</span><span class="p">,</span>
+                 <span class="s">&#39;material&#39;</span><span class="p">:</span> <span class="n">material</span><span class="p">,</span>
+                 <span class="s">&#39;arguments&#39;</span><span class="p">:</span> <span class="n">arguments</span><span class="p">}</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">inputs</span><span class="p">]</span>
+        <span class="n">nupack_iterator</span> <span class="o">=</span> <span class="n">nupack_pool</span><span class="o">.</span><span class="n">imap</span><span class="p">(</span><span class="n">run_nupack</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39; calculations complete.&#39;</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="k">while</span> <span class="n">report</span><span class="p">:</span>
+            <span class="n">completed</span> <span class="o">=</span> <span class="n">nupack_iterator</span><span class="o">.</span><span class="n">_index</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">completed</span> <span class="o">==</span> <span class="n">total</span><span class="p">):</span>
+                <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">t</span> <span class="o">&gt;=</span> <span class="mi">4</span><span class="p">:</span>
+                    <span class="k">print</span> <span class="s">&#39;(</span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s">) &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">completed</span><span class="p">,</span> <span class="n">total</span><span class="p">)</span> <span class="o">+</span> <span class="n">msg</span>
+                    <span class="n">t</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">t</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">multi_output</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">nupack_iterator</span><span class="p">]</span>
+        <span class="n">nupack_pool</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">nupack_pool</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&quot;Caught KeyboardInterrupt, terminating workers&quot;</span>
+        <span class="n">nupack_pool</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+        <span class="n">nupack_pool</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">multi_output</span>
+
+</div>
+<div class="viewcode-block" id="run_nupack"><a class="viewcode-back" href="../../pymbt.html#pymbt.nupack.run_nupack">[docs]</a><span class="k">def</span> <span class="nf">run_nupack</span><span class="p">(</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Create Nupack instance, run command with arguments.&#39;&#39;&#39;</span>
+
+    <span class="n">run</span> <span class="o">=</span> <span class="n">Nupack</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;seq&#39;</span><span class="p">],</span> <span class="n">material</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;material&#39;</span><span class="p">])</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">run</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;cmd&#39;</span><span class="p">])(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;arguments&#39;</span><span class="p">])</span>
+    <span class="n">run</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">output</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">pymbt 0.1a documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Nick Bolten.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

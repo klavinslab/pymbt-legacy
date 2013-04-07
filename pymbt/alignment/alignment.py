@@ -1,65 +1,12 @@
-import os  # readres
+import os
+import math
 
-from matplotlib import pyplot  # plotting
-from Bio import SeqIO  # readref, readres
+from matplotlib import pyplot
+from matplotlib import cm
+from Bio import SeqIO
 
 from pymbt.alignment.needle import needle
 from pymbt.sequence_manipulation import reverse_complement
-
-
-def readref(filepath, ftype='genbank'):
-    '''Helper function for reading reference genbank file'''
-    sequence = SeqIO.read(filepath, ftype)
-    return sequence
-
-
-#TODO: make this read ab1 files, and prefer them or something
-def readres(dirpath):
-    '''Helper function for reading .seq results files'''
-    paths = [x for x in os.listdir(dirpath) if x.endswith('.seq')]
-    sequences = [SeqIO.read(dirpath + x, 'fasta') for x in paths]
-    return sequences
-
-
-def findgap(list_in):
-    for x in list_in:
-        if x != '-':
-            return 'X'
-    return '-'
-
-
-def _disjoint_bins(range_tuple_list):
-    '''Construct disjoint bins given a list of range tuples'''
-    rtl = range_tuple_list
-    # number the ranges (third value in tuple)
-    rtl = [(x[0], x[1], i) for i, x in enumerate(rtl)]
-
-    # sort by range start
-    rtl = sorted(rtl, key=lambda starts: starts[0])
-    remaining = rtl
-
-    done_binning = False
-    n = 1
-    binned = []
-    while not done_binning:
-        current_bin = []
-        nextbin = []
-        while len(remaining) > 0:
-            last = remaining.pop(0)
-            current_bin.append(last)
-            nextbin += [x for x in remaining if x[0] <= last[1]]
-            remaining = [x for x in remaining if x[0] > last[1]]
-        binned.append(current_bin)
-        if len(remaining) == 0 and len(nextbin) == 0:
-            done_binning = True
-        else:
-            remaining = nextbin
-            n += 1
-
-    return binned
-    #take first range, then next closest that doesn't overlap, etc until done
-    #put remainder in next bin
-    #repeat until done
 
 
 class Sanger:
@@ -68,7 +15,9 @@ class Sanger:
         # make results a list if there's just one
         if type(res) == str:
             res = [res]
-        self.resnames = [x.description for x in res]
+        self.ref_raw = ref
+        self.resnames = [x.name for x in res]
+        #self.resnames = [x.description for x in res]
         ref = ref.seq.tostring()
         res = [x.seq.tostring() for x in res]
         # Reduce results to largest unambiguous segment and align
@@ -123,7 +72,7 @@ class Sanger:
         # degapping
         self.gaps = []
         for i, x in enumerate(a_res):
-            self.gaps.append(''.join([findgap([z]) for j, z in enumerate(x)]))
+            self.gaps.append(''.join([_findgap([z]) for j, z in enumerate(x)]))
         self.ranges = []
         for x in self.gaps:
             first = x.find('X')
@@ -178,10 +127,10 @@ class Sanger:
             print '----------------------'
             for key, value in self.mismatches.iteritems():
                 index = int(key)
-                print self.resnames[index]
+                print '  ' + self.resnames[index]
                 for i, x in enumerate(value):
                     print ''
-                    sequences_display([self.ref[index], self.res[index]], x)
+                    _sequences_display([self.ref[index], self.res[index]], x)
                     print ''
         if len(self.insertions) > 0:
             print '----------------------'
@@ -189,10 +138,10 @@ class Sanger:
             print '----------------------'
             for key, value in self.insertions.iteritems():
                 index = int(key)
-                print self.resnames[index]
+                print '  ' + self.resnames[index]
                 for i, x in enumerate(value):
                     print ''
-                    sequences_display([self.ref[index], self.res[index]], x)
+                    _sequences_display([self.ref[index], self.res[index]], x)
                     print ''
         if len(self.deletions) > 0:
             print '---------------------'
@@ -200,10 +149,10 @@ class Sanger:
             print '---------------------'
             for key, value in self.deletions.iteritems():
                 index = int(key)
-                print self.resnames[index]
+                print '  ' + self.resnames[index]
                 for i, x in enumerate(value):
                     print ''
-                    sequences_display([self.ref[index], self.res[index]], x)
+                    _sequences_display([self.ref[index], self.res[index]], x)
                     print ''
 
     def plot(self):
@@ -215,7 +164,53 @@ class Sanger:
         fig = pyplot.figure()
         ax = fig.add_subplot(111)
         gr0 = (0, len(self.aligned[0][0]))
-        ax.broken_barh([gr0], (10, 9), facecolors='blue', edgecolors='none')
+        ax.broken_barh([gr0],
+                       (13, 3),
+                       facecolors='black',
+                       edgecolors='none')
+
+        # Plot and color features
+        max_len = len(self.ref_raw.features)
+        for i, x in enumerate(self.ref_raw.features):
+            print i
+            try:
+                qual = x.qualifiers['label']
+            except:
+                qual = ''
+            mid = int(math.ceil((x.location.start + x.location.end) / 2))
+            locations = (x.location.start, x.location.end, mid, qual)
+            ax.broken_barh([(locations[0], locations[1])],
+                           (10, 9),
+                           facecolors=cm.Set3(float(i) / max_len),
+                           edgecolors='black')
+            ax.text(locations[2] + 40,
+                    15,
+                    locations[3][0],
+                    rotation=90)
+
+        def add_discrepancies(index, bin):
+            ax.plot(1000, 25)
+            index = str(index)
+            height = 22 + bin * 10
+
+            for key, value in self.insertions.iteritems():
+                if key == index:
+                    for i, x in enumerate(value):
+                        ax.plot(x[0], height, marker='o', color='k')
+            for key, value in self.deletions.iteritems():
+                if key == index:
+                    for i, x in enumerate(value):
+                        ax.plot(x[0], height, marker='^', color='k')
+            for key, value in self.mismatches.iteritems():
+                if key == index:
+                    for i, x in enumerate(value):
+                        ax.plot(x[0], height, marker='*', color='k')
+
+        def wrap_name(str_in):
+            n = 10
+            out = [str_in[i:i + n] for i in range(0, len(str_in), n)]
+            str_out = '\n'.join(out)
+            return str_out
 
         # Step 3: plot results ranges
         for i, x in enumerate(bins):
@@ -226,8 +221,13 @@ class Sanger:
                 xy = (gai_ind, (len(gai) - gai[::-1].find('X')) - gai_ind)
                 ax.broken_barh([xy],
                                (i * 10 + 20, 9),
-                               facecolors='red',
-                               edgecolors='none')
+                               facecolors='pink',
+                               edgecolors='black')
+                ax.text(xy[0] + 10,
+                        i * 10 + 28,
+                        wrap_name(self.resnames[y[2]]),
+                        verticalalignment='top')
+                add_discrepancies(index, i)
 
         #ax.set_ylim(5,35)
         ax.set_xlim(0, gr0[1])
@@ -235,24 +235,51 @@ class Sanger:
         ax.set_yticks([15, 25])
         ax.set_yticklabels(['Reference', 'Results'])
         ax.grid(True)
+        ax.xaxis.grid(False)
+        ax.yaxis.grid(False)
 
         pyplot.title('Alignment gap summary', fontstyle='normal')
         pyplot.show()
 
     def write_alignment():
+        # TODO: custom format or standard (e.g. FASTA)? Implement both?
         pass
 
     def write_plot():
         pass
 
-    def fixmismatch():
+    def fixmismatch(result, position, newvalue):
         pass
 
     def fixindel():
         pass
 
 
-def sequences_display(seqs, start_stop, context=10, indent=10):
+def readref(filepath, ftype='genbank'):
+    '''Helper function for reading reference genbank file'''
+    sequence = SeqIO.read(filepath, ftype)
+    return sequence
+
+
+def readres(dirpath):
+    '''Helper function for reading .seq results files'''
+    seq_paths = [x for x in os.listdir(dirpath) if x.endswith('.seq')]
+    abi_paths = [x for x in os.listdir(dirpath) if x.endswith('.abi')]
+    abi_paths += [x for x in os.listdir(dirpath) if x.endswith('.ab1')]
+    seq_seqs = [SeqIO.read(dirpath + x, 'fasta') for x in seq_paths]
+    abi_seqs = [SeqIO.read(dirpath + x, 'abi') for x in abi_paths]
+    sequences = seq_seqs + abi_seqs
+    return sequences
+
+
+def _findgap(list_in):
+    for x in list_in:
+        if x != '-':
+            return 'X'
+    return '-'
+
+
+def _sequences_display(seqs, start_stop, context=10, indent=4):
     if len(seqs) != 2:
         raise ValueError('Expected two sequences')
     start = start_stop[0]
@@ -267,18 +294,48 @@ def sequences_display(seqs, start_stop, context=10, indent=10):
     seq_list_1.append(seqs[0][stop + 1:min(stop + context, len(seqs[0]))])
     seq_list_2.append(seqs[1][stop + 1:min(stop + context, len(seqs[0]))])
 
-    leftbars = ['|' for x in seq_list_1[0]]
-    corespace = [' ' for x in seq_list_1[1]]
-    rightbars = ['|' for x in seq_list_1[2]]
+    # No bars for non-matching sequences
+    top = ''.join(seq_list_1)
+    bottom = ''.join(seq_list_2)
+    middle = ['|' if top[i] == bottom[i] else ' ' for i, x in enumerate(top)]
+    middle = ''.join(middle)
 
-    top_row = ''.join(seq_list_1)
-    middle_row = ''.join(leftbars + corespace + rightbars)
-    bottom_row = ''.join(seq_list_2)
     indent = ''.join([' ' for x in range(indent)])
     if start != stop:
         print indent + 'Positions %i to %i:' % (start, stop)
     else:
         print indent + 'Position %i:' % start
-    print indent + top_row
-    print indent + middle_row
-    print indent + bottom_row
+    print indent + top
+    print indent + middle
+    print indent + bottom
+
+
+def _disjoint_bins(range_tuple_list):
+    '''Construct disjoint bins given a list of range tuples'''
+    rtl = range_tuple_list
+    # number the ranges (third value in tuple)
+    rtl = [(x[0], x[1], i) for i, x in enumerate(rtl)]
+
+    # sort by range start
+    rtl = sorted(rtl, key=lambda starts: starts[0])
+    remaining = rtl
+
+    done_binning = False
+    n = 1
+    binned = []
+    while not done_binning:
+        current_bin = []
+        nextbin = []
+        while len(remaining) > 0:
+            last = remaining.pop(0)
+            current_bin.append(last)
+            nextbin += [x for x in remaining if x[0] <= last[1]]
+            remaining = [x for x in remaining if x[0] > last[1]]
+        binned.append(current_bin)
+        if len(remaining) == 0 and len(nextbin) == 0:
+            done_binning = True
+        else:
+            remaining = nextbin
+            n += 1
+
+    return binned

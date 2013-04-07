@@ -3,4 +3,16 @@ Sequence repeat detector - fuzzy matching / alignments
 Alignment module - batch processing of Sanger sequencing files
 Use Biopython Seq and SeqRecord objects for all sequences? 
     Pros: Don't need to reinvent the wheel - alphabet checking, rev comp, etc 
-    Cons: Using Seq objects can be a pain for users (and me)
+    Cons: may be unintuitive for users.
+    Conclusion: try it out! Users should't have to make Seq objects - they would be output.
+Nupack script - check primers to see if they act as desired - e.g. Gibson, FastClone. Especially important for long primers
+    For a small primer that only binds a target sequence:
+        should check for self-self complementarity at the melting temp, complex sizes of 1 and 2
+        Should do the same for the other primer it's supposed to be paired with
+        Should check complex size of 2 for primer 1 and primer 2 in solution - do they bind each other?
+    For a Gibson primer:
+        Same as for a normal primer set
+        Should also check whether the desired overlap is a high-probability structure,
+        as long primers can overlap in the wrong place (see David's experience with
+        inserting an Sso1 transmembrane domain into AtFLS2)
+        Should at least give a warning if the primer1-primer2 complex generates structure at the 3' end

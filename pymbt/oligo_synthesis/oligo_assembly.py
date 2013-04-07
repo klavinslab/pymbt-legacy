@@ -1,13 +1,9 @@
-# Module supplying methods/classes for generating
-# overlapping oligo sequences from a gene sequence.
-# Input should be: a validated DNA sequence
-# Output should: contain the set of oligos, the overlaps, and the overlap tms
+'''Module supplying methods/classes for generating
+   overlapping oligo sequences from a gene sequence.'''
 
-#TODO: Find way to avoid nested loops in oligo_calc
 
 import csv
 from math import floor
-from pymbt.sequence_manipulation import check_alphabet
 from pymbt.sequence_manipulation import reverse_complement
 from pymbt.tm_calc import calc_tm
 from pymbt.primer_design import design_primer_gene
@@ -29,11 +25,6 @@ class OligoAssembly(object):
             primers = design_primer_gene(seq, tm=primer_tm)
             self.primers = [x[0].upper() for x in primers]
             self.primer_tms = [x[1] for x in primers]
-
-    def __repr__(self):
-        str1 = "An OligoAssembly consisting of "
-        str2 = str(len(self.oligos)) + ' oligos.'
-        return str1 + str2
 
     def write(self, outpath):
         oligo_writer = csv.writer(open(outpath, 'wb'),
@@ -62,15 +53,20 @@ class OligoAssembly(object):
         except AttributeError:
             pass
 
+    def __repr__(self):
+        str1 = "An OligoAssembly consisting of "
+        str2 = str(len(self.oligos)) + ' oligos.'
+        return str1 + str2
+
 
 def oligo_calc(seq,
                tm=72,
                oligo_size=120,
                require_even=True,
                start_5=True):
+
     if len(seq) < oligo_size:
         raise ValueError('Oligo size must be smaller than input sequence')
-    check_alphabet(seq, material='dna')
     oligo_n = int(floor(float(len(seq)) / oligo_size) + 1)
 
     if require_even:

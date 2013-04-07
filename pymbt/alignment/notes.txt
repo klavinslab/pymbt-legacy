@@ -19,7 +19,7 @@ So, current ideal manual workflow:
     8. aligned.mismatches()[0] - lists mismatches, e.g. the first
     9. aligned.fixmismatch(0,'A') - sets first mismatch to be an 'A'.
 
-Ideal automaed workflow: have a bunch of results and a bunch of references,
+Ideal automated workflow: have a bunch of results and a bunch of references,
 want reports written out fast and in batch fashion. But still need some level of interaction
 sometimes....
 

@@ -1,28 +1,14 @@
-# Alternative version of OrthoSeq -
-# Instead of evaluating individual pairwise interactions,
-# look at the whole pool at once, every time - that way
-# we get what we *really* need - sequences that can be
-# placed into one big pot and not interact (or minimize that interaction)
-#
-# Generates a set of orthogonal DNA sequences for a given protein sequence
-# Currently limited by the size of the protein sequence - ~10 residues max
-# To increase size, need to optimize search method and take steps to reduce
-# memory usage (write to files and iterate/queue)
+'''Generates a set of orthogonal DNA sequences for a given protein sequence
+   Currently limited by the size of the protein sequence - ~10 residues max
+   To increase size, need to optimize search method and take steps to reduce
+   memory usage (write to files and iterate/queue)'''
 
-#TODO: shouldn't pickle bound methods - use hidden functions (_function)
-# necessary to pickle bound methods
-# TODO: Implement signal handler so it exits cleanly on ctrl-c
-#       Use 'try' approach
 # TODO: Many parts of the while loop are repetitive
-#       Roll into for loop or something.
-
-import types
-import copy_reg
 
 import csv
+import collections
 from datetime import datetime
 from itertools import combinations
-import multiprocessing
 import os
 import socket
 import time
@@ -39,354 +25,326 @@ class OrthoSeq:
     def __init__(self,
                  prot_seq,
                  T=50,
-                 min_free=0.95,
-                 conc=5e-7,
-                 nullinc_max=1e5):
+                 min_score=0.95,
+                 n_attempt=1e5):
         # Make sure sequence only includes amino acids
         check_alphabet(prot_seq, material='pep')
-
-        self.T = T
+        # Input sequence - a peptide
         self.prot_seq = prot_seq
-        self.min_free = min_free
-        self.conc = conc
-        self.nullinc_max = nullinc_max
+        # Temp at which to evaluate all reactions
+        self.T = T
+        # Primary scoring metric - minimum average free monomer concentrations
+        # - 0 would be fully-bound, 1 would be nothing bound
+        self.min_score = min_score
+        # Secondary scoring metric - stops the simulation after n
+        # attempts that fail to increase the primary score
+        self.n_attempt = n_attempt
 
-    def orthogonal_sequences(self,
-                             n,
-                             m=0,
-                             resume=False,
-                             wholemat=False,
-                             stop=False,
-                             report=True,
-                             weighted=True,
-                             freq_threshold=0.5):
+    def start(self,
+              n,
+              m=0,
+              resume=False,
+              wholemat=False,
+              report=True,
+              weighted=True,
+              freq_threshold=0.5):
 
-        # TODO: 'stop' and 'report_nupack' may be deprecated
         '''n: is the final number of orthogonal sequences to output.
-           m: is the number of new sequences to try out on each iteration
+           m: is the number of new sequences to try out on each iteration.
            resume: specifies a path to a dir from a previous run, and will
-           cause orthogonal_sequences to pick up where it left off.
-           wholemat: if True, m worst oligos are thrown out on each iteration
+           cause start() to pick up where it left off.
+           wholemat: if True, m worst oligos are thrown out on each iteration.
                      if False, single best is kept. There is a difference
                      but it should be better documented.
-           stop:
-           report_nupack:
+           weighted: boolean for whether codons should be weighted.
+           freq_threshold: relative frequency threshold below which codons
+                     should not be used.
         '''
-        self.weighted = weighted
-        self.freq_threshold = freq_threshold
-        # The default combination number should be done dynamically.
-        # Solved combinations equation for m.
-        # TODO: use this variable? Use actual combinations function?
-        #n_combinations = factorial(n + m) / (factorial(m) * factorial(n))
-        # Generate N oligos that meet min_free threshold
+        # Concentrations at which simulations are done
+        conc = 5e-7
+        # Arguments for _gen_oligo sequence generation
+        oligo_args = (self.prot_seq,
+                      self.min_score,
+                      freq_threshold,
+                      weighted,
+                      conc)
+        # Generate n oligos that meet score threshold
+        # If there's a list of oligos to resume improving, start using it
         if resume:
+            if len(resume) != n:
+                raise Exception('Number of sequences to resume doesn\'t match\
+                                 setting of \'n\'.')
+            for x in resume:
+                if type(x) != str:
+                    raise Exception('\'resume\' input isn\'t strings!')
             oligo_list = resume
+        # If not, generate initial set of oligos
         else:
-            i_pool = multiprocessing.Pool()
-            min_f = self.min_free
-            i_iter = i_pool.imap(self.gen_oligo, [min_f for x in range(n)])
-            oligo_list = [x for x in i_iter]
-            i_pool.close()
-            i_pool.join()
-
-        # Generate expected monomer concentrations matrices
-        # for both forward-forward and forward-reverse
-        #These vars are never used - why?
-        #c_mat_f = self.pairwise_monomer_concs(oligo_list)
-        #c_mat_r = self.pairwise_monomer_concs(oligo_list, reverse=True)
-
-        # Initial loop takes too long for n > 3, so start at
-        # 3 and add more as some are found?
+            oligo_list = [_gen_oligo(*oligo_args) for x in range(n)]
+            oligo_list = remove_redundant(oligo_list, oligo_args)
+        time_start = time.time()
         loop_count = 0
-        time_elapsed = 0
-
-        nullinc = 0
-        last_min_free = 0
+        n_attempted = 0
+        last_min_score = 0
+        # central loop of the program - keeps running until either the
+        # primary score is met or the score fails to increase for n attempts
         while True:
-            loop_start = time.time()
             loop_count += 1
-
-            n_pool = multiprocessing.Pool()
-            o_iterator = n_pool.imap(self.gen_oligo, [min_f for x in range(m)])
-            new_oligos = [x for x in o_iterator]
-            n_pool.close()
-            n_pool.join()
-
-            # Now calculate larger pool of oligos.
-            # It is probably safe to only calculate:
-            #   1. Each oligo in a 'forward' version against all
-            #      other reversed oligos in a size-N pool
-            #   2. Repeat this for each oligo
-            #   3. Discard the m worst oligos, repeat
-
+            # Generate new oligo(s) to test in combination with the rest
+            new_oligos = [_gen_oligo(*oligo_args) for x in range(m)]
             oligo_list += new_oligos
-
-            # Generate combinations - (m+n) choose n
+            # If two or more oligos are the same, replace with unique ones
+            oligo_list = remove_redundant(oligo_list, oligo_args)
+            # Generate all combinations - (m+n) choose n
             combos = [list(x) for x in combinations(oligo_list, n)]
 
-            # For each combination of length n,
-            # make n lists of oligos where each one
-            # is paired with the reverse of all the others
-            # So each ith list contains every 'oligo vs reverse of all others'
-            # possibility
-            full_combos = [[] for i, x in enumerate(combos)]
-            for i, v in enumerate(combos):
-                for j in v:
-                    newlist = [j]
-                    newlist += [r_c(x) for x in v if x != j]
-                    full_combos[i].append(newlist)
+            # For every combination of length m, generate m new lists where
+            # all but one of the oligos is reverse-complemented.
+            # reversed_combos is a list of lists of sequences, each entry
+            # compatible with the Nupack module's complexes method
+            reversed_combos = []
+            for combo in combos:
+                for seq in combo:
+                    newlist = [seq]
+                    newlist += [r_c(x) for x in combo if x != seq]
+                    reversed_combos.append(newlist)
 
-            def flatten(input_list):
-                return [y for x in input_list for y in x]
+            # a list of Nupack's 'complexes' that's m * (m + n) long
+            np_concs_raw = nupack_multiprocessing(reversed_combos,
+                                                  'dna',
+                                                  'concentrations',
+                                                  {'max_complexes': 2})
+            # just the concentrations list from each entry
+            np_concs = [x['concentration'] for x in np_concs_raw]
+            # just the types list from each entry
+            np_types = [x['types'] for x in np_concs_raw]
+            # the monomer concentrations from each entry
+            mon_concs = []
+            for i, x in enumerate(np_types):
+                # if sum of the list is 1, that means it's a monomer conc
+                # (e.g. [1, 0, 0, 0])
+                temp_list = []
+                for j, v in enumerate(x):
+                    if sum(v) == 1:
+                        temp_list.append(np_concs[i][j])
+                mon_concs.append(temp_list)
 
-            def unflatten(input_list, n):
-                unflattened = []
-                for i in range(len(input_list) / n):
-                    temp_list = []
-                    for j in range(n):
-                        temp_list.append(input_list.pop(0))
-                    unflattened.append(temp_list)
+            # Group by combo
+            grouped_mon_concs = unflatten(mon_concs, m)
 
-            full_flat = flatten(full_combos)
-            # TODO: pick up here - mon_concs3 is never used
-            mon_concentrations = nupack_multiprocessing(full_flat,
-                                                        'dna',
-                                                        'concentrations',
-                                                        {'max_complexes': 2})
-            mon_concs2 = [x['concentration'] for x in mon_concentrations]
-            mon_concs3 = unflatten(mon_concs2, n)
+            # Find the worst binder within each of the m
+            # rev-comp variations per combo
+            grouped_mins = [[min(y) for y in x] for x in grouped_mon_concs]
 
-            o_pool = multiprocessing.Pool()
-            o_pool_iter = o_pool.imap(self.n_p_nupack, full_combos)
-            # Report progress
-            if report:
-                tot = len(full_combos)
-                self._multiprocessing_progress(o_pool_iter, tot, interval=5)
-            mon_concs = [x for x in o_pool_iter]
-            o_pool.close()
-            o_pool.join()
+            # Find the worst binder for each combination
+            mon_conc_mins = [min(x) for x in grouped_mins]
+            best_index = mon_conc_mins.index(max(mon_conc_mins))
+            best_concs = grouped_mins[best_index]
+            # Keep the best-scoring combination of sequences
+            best_combo = combos[best_index]
 
-            # Flatten lists for easier scoring (min conc, mean conc)
-            mon_concs_flat = [[w for v in x for w in v] for x in mon_concs]
-
-            # Keep the best-scoring combo
-            mc_mins = [min(x) for x in mon_concs_flat]
-            best_combo = mc_mins.index(max(mc_mins))
-            oligo_list = combos[best_combo]
-            mon_concs_left = mon_concs_flat[best_combo]
-
-            # Scoring - mean free conc, minimum free conc
-            mean_free = (sum(mon_concs_left) / len(mon_concs_left)) / self.conc
-            min_free = min(mon_concs_left) / self.conc
-            best_concs = mon_concs[best_combo]
+            # Scoring - mean min free conc, minimum free conc
+            mean_score = (sum(best_concs) / len(best_concs)) / conc
+            min_score = min(best_concs) / conc
             met = 0
             for x in best_concs:
-                if min(x) / self.conc >= self.min_free:
+                if (x / conc) >= self.min_score:
                     met += 1
 
-            # Did the score improve? If not, increment counter
-            if min_free == last_min_free:
-                nullinc += 1
+            # Did the minimum score improve? If not, increment counter
+            if min_score == last_min_score:
+                n_attempted += 1
             else:
-                nullinc = 0
+                n_attempted = 0
+                oligo_list = best_combo
 
-            #######################################
-            # Logging - provides data trail and allows resuming/passing along
-            # an extended attempt
-            #######################################
+            # Record how much time has passed
+            timer = time.time() - time_start
 
-            # Initial file setup for logging
-            if loop_count == 1:
-                # Use date, time, host, and peptide sequence to uniquify file
-                current_date = datetime.now().strftime('%Y%m%d--%H%M%S')
-                host = socket.gethostname()
-                cur_id = current_date + '-' + host + '-' + self.prot_seq
-                cur_dir = os.getcwd()
-                fileprefix = '%s/%s-oligo_calc_' % (cur_dir, cur_id)
-
-                # Write out setup info file
-                infofile = open(fileprefix + 'info.txt', 'w')
-                info_csv = csv.writer(infofile, quoting=csv.QUOTE_MINIMAL)
-                info_csv.writerow(['sequence', 'oligo_n', 'oligo_m'])
-                info_csv.writerow([self.prot_seq, n, m])
-                infofile.close()
-
-                # Set up data log file
-                datafile = open(fileprefix + 'data.txt', 'w')
-                data_csv = csv.writer(datafile, quoting=csv.QUOTE_MINIMAL)
-                cols = ['loop',
-                        'nullinc',
-                        'mean_free',
-                        'min_free',
-                        'met',
-                        'time']
-                data_csv.writerow(cols)
-                datafile.close()
-
-            # Write the current set of oligos to file (enables resuming)
-            oligofile = open(fileprefix + 'latest.txt', 'w')
-            for i in oligo_list:
-                oligofile.write(i + '\n')
-            oligofile.close()
-
-            # Update the data log file
-            datafile = open(fileprefix + 'data.txt', 'a')
-            data_csv = csv.writer(datafile, quoting=csv.QUOTE_MINIMAL)
-            time_diff = time.time() - loop_start
-            time_elapsed += time_diff
-            d = [loop_count, nullinc, mean_free, min_free, met, time_elapsed]
-            data_csv.writerow(d)
-            datafile.close()
+            # Log
+            self.log(loop_count,
+                     n_attempted,
+                     mean_score,
+                     min_score,
+                     met,
+                     timer,
+                     oligo_list)
 
             # Script stop decision:
             # Stop looping if either:
             #   1. the threshold is met
-            #   2. the score has stopped improving by nullinc
+            #   2. the minimum score has stopped improving by n_attempt
             if met == len(oligo_list):
                 break
-            if nullinc == self.nullinc_max:
+            if n_attempted == self.n_attempt:
                 break
 
-            last_min_free = min_free
+            last_min_score = min_score
 
         return oligo_list
 
-    def n_p_nupack(self, sequence_list):
-        all_concs = []
-        for x in sequence_list:
-            n_np = Nupack(x, 'dna')
-            n_concs = n_np.concentrations(2)['concentration']
-            n_concs = n_concs[0:len(x)]
-            all_concs.append(n_concs)
-        return all_concs
+    def log(self,
+            loop_count,
+            n_attempted,
+            mean_score,
+            min_score,
+            met,
+            timer,
+            oligo_list):
+        '''provides data trail and allows resuming/passing along
+           an extended attempt'''
 
-    def gen_oligo(self, min_free):
-        # Generate oligos until one has a self-self interaction below
-        # the threshold.
-        threshold_met = False
+        # Initial file setup for logging
+        if loop_count == 1:
+            # Use date, time, host, and peptide sequence to uniquify file
+            current_date = datetime.now().strftime('%Y%m%d--%H%M%S')
+            host = socket.gethostname()
+            cur_id = current_date + '-' + host + '-' + self.prot_seq
+            cur_dir = os.getcwd()
+            file_prefix = '%s/%s-oligo_calc_' % (cur_dir, cur_id)
 
-        while not threshold_met:
-            # Generate a randomly or weighted-randomly
-            # coding sequence for the specified peptide
-            # Ensure it has an mfe of 0
-            if self.weighted:
-                choice = weighted_codons.WeightedCodons(self.prot_seq,
-                                                        frequency_table='sc',
-                                                        material='pep')
-                new_oligo = choice.generate()
-            else:
-                ft = self.freq_threshold
-                choice = random_codons.RandomCodons(self.prot_seq,
-                                                    threshold=ft)
-                new_oligo = choice.generate()
+            # Write out setup info file
+            info_file = open(file_prefix + 'info.txt', 'w')
+            info_csv = csv.writer(info_file, quoting=csv.QUOTE_MINIMAL)
+            info_csv.writerow(['sequence', 'oligo_n', 'oligo_m'])
+            info_csv.writerow([self.prot_seq, n, m])
+            info_file.close()
 
-            # Check oligo for self-self binding and mfe
-            oligo_monomer = self.monomers_concentration(2 * [new_oligo])
-            oligo_np = Nupack([new_oligo], 'dna')
-            oligo_mfe = oligo_np.mfe(0)
-            oligo_np.close()
-            if oligo_monomer >= min_free and oligo_mfe == 0.0:
-                threshold_met = True
+            # Set up data log file
+            data_file = open(file_prefix + 'data.csv', 'w')
+            data_csv = csv.writer(data_file, quoting=csv.QUOTE_MINIMAL)
+            cols = ['loop',
+                    'n_attempted',
+                    'mean_score',
+                    'min_score',
+                    'met',
+                    'time']
+            data_csv.writerow(cols)
+            data_file.close()
 
-        return new_oligo
+        # Write the current set of oligos to file (enables resuming)
+        oligo_file = open(file_prefix + 'latest.txt', 'w')
+        for i in oligo_list:
+            oligo_file.write(i + '\n')
+        oligo_file.close()
 
-    def monomers_concentration(self, sequence_list, mfe=True):
-        # Run nupack's 'concentrations'
-        np = Nupack(sequence_list, 'dna')
-        nc = np.concentrations(2, conc=self.conc, mfe=mfe)
-        concs = nc['concentration']
-        types = nc['types']
+        # Update the data log file
+        data_file = open(file_prefix + 'data.csv', 'a')
+        data_csv = csv.writer(data_file, quoting=csv.QUOTE_MINIMAL)
+        d = [loop_count, n_attempted, mean_score, min_score, met, timer]
+        data_csv.writerow(d)
+        data_file.close()
 
-        # Isolate the unbound monomer concentrations
-        free_conc = sum([concs[i] for i, x in enumerate(types) if sum(x) == 1])
-        free_fraction = free_conc / (2 * self.conc)
-        np.close()  # Delete temp dir
 
-        return free_fraction
+def _n_p_nupack(sequence_list):
+    all_concs = []
+    for x in sequence_list:
+        n_np = Nupack(x, 'dna')
+        n_concs = n_np.concentrations(2)['concentration']
+        n_concs = n_concs[0:len(x)]
+        all_concs.append(n_concs)
+    return all_concs
 
-    def pairwise_monomer_concs(self, seq_list, reverse=False):
-        # Generate upper triangular matrix of sequence pairs.
 
-        # If calculating forward-reverse concentrations, ignore
-        # self-self as it will always interact strongly
+def _monomers_concentration(input):
+    sequence_list = input[0]
+    conc = input[1]
 
-        sl = seq_list
+    # Run nupack's 'concentrations'
+    np = Nupack(sequence_list, 'dna')
+    nc = np.concentrations(2, conc=conc, mfe=True)
+    concs = nc['concentration']
+    types = nc['types']
 
-        seq_pairs = []
-        if reverse:
-            for i, x in enumerate(sl):
-                for j in range(i, len(sl)):
-                    if i != j:
-                        seq_pairs.append([sl[i], r_c(sl[j])])
+    # Isolate the unbound monomer concentrations
+    free_conc = sum([concs[i] for i, x in enumerate(types) if sum(x) == 1])
+    free_fraction = free_conc / (2 * conc)
+    np.close()  # Delete temp dir
+
+    return free_fraction
+
+
+def _gen_oligo(prot_seq, min_score, freq_threshold, weighted, conc):
+    # Generate oligos until one has a self-self interaction below
+    # the threshold.
+    threshold_met = False
+
+    while not threshold_met:
+        # Generate a randomly or weighted-randomly
+        # coding sequence for the specified peptide
+        # Ensure it has an mfe of 0
+        if weighted:
+            choice = weighted_codons.WeightedCodons(prot_seq,
+                                                    frequency_table='sc',
+                                                    material='pep')
+            new_oligo = choice.generate()
         else:
-            for i, x in enumerate(sl):
-                for j in range(i, len(sl)):
-                    seq_pairs.append([sl[i], sl[j]])
+            ft = freq_threshold
+            choice = random_codons.RandomCodons(prot_seq,
+                                                threshold=ft)
+            new_oligo = choice.generate()
 
-        # Calculate unbound monomer concentrations for all pairs
-        p = multiprocessing.Pool()
-        pairwise_iterator = p.imap(self.monomers_concentration, seq_pairs)
-        p_list = [x for x in pairwise_iterator]
-        p.close()
-        p.join()
+        # Check oligo for self-self binding and mfe
+        oligo_monomer = _monomers_concentration(([new_oligo, new_oligo], conc))
+        oligo_np = Nupack([new_oligo], 'dna')
+        oligo_mfe = oligo_np.mfe(0)
+        oligo_np.close()
+        if oligo_monomer >= min_score and oligo_mfe == 0.0:
+            threshold_met = True
 
-        # Convert results (1-dimensional list) into upper triangular matrix
-        # (list of lists)
-        cm = []  # concentrations matrix
-        for i, x in enumerate(sl):
-            if reverse:
-                # [] is used as placeholder for self-self when calculating
-                # forward-reverse unbound monomer concentrations
-                cur_bl = [[] for x in range(i + 1)]
-                iter_range = range((len(sl) - i - 1))
-                cur_row = cur_bl + [p_list.pop(0) for j in iter_range]
-            else:
-                cur_bl = [[] for x in range(i)]
-                iter_range = range((len(sl) - i))
-                cur_row = cur_bl + [p_list.pop(0) for j in iter_range]
-            cm.append(cur_row)
-
-        # Fill in the rest of the matrix
-        for i, x in enumerate(cm):
-            for j, y in enumerate(x):
-                cm[j][i] = y
-
-        return cm
-
-    def _multiprocessing_progress(self, mp_iterator, total_jobs, interval=1):
-        time_start = time.time()
-        while (True):
-            completed = mp_iterator._index
-            if (completed == total_jobs):
-                print '\n'
-                break
-            if completed > 0 & completed % 20 == 0:
-                remaining = total_jobs - completed
-                time_current = time.time()
-                rate_current = float(completed) / (time_current - time_start)
-                time_remaining = remaining / rate_current
-                m = int(time_remaining) / 60  # minutes
-                s = time_remaining - 60 * m  # seconds
-                print "Remaining: %s:%.2f min(s)\r" % (m, s)
-                time.sleep(interval)
-            else:
-                time.sleep(.1)
+    return new_oligo
 
 
-# The following code enables pickling bound methods:
-# Required for multiprocessing to function
-def _pickle_method(method):
-    name = method.__name__
-    im_self = method.im_self
-    im_class = method.im_class
-    return _unpickle_method, (name, im_self, im_class)
+def _multiprocessing_progress(mp_iterator, total_jobs, interval=1):
+    time_start = time.time()
+    while (True):
+        completed = mp_iterator._index
+        if (completed == total_jobs):
+            print '\n'
+            break
+        if completed > 0 & completed % 20 == 0:
+            time.sleep(interval)
+            remaining = total_jobs - completed
+            time_current = time.time()
+            rate_current = float(completed) / (time_current - time_start)
+            time_remaining = remaining / rate_current
+            m = int(time_remaining) / 60  # minutes
+            s = time_remaining - 60 * m  # seconds
+            print "Remaining: %s:%.2f min(s)\r" % (m, s)
+        else:
+            time.sleep(.1)
 
 
-def _unpickle_method(func, im_self, im_class):
-    return getattr(im_self, func)
+def remove_redundant(seq_list, oligo_params):
+    while True:
+        counted = collections.Counter(seq_list)
+        redundant = []
+        new_oligos = []
+        for key, value in counted.iteritems():
+            if value > 1:
+                for i in range(value - 1):
+                    redundant.append(key)
+        if redundant:
+            for x in redundant:
+                # Remove redundant entry - the one towards the end of the list
+                r_index = len(seq_list) - 1 - seq_list[::-1].index(x)
+                seq_list.pop(r_index)
+                new_oligos.append(_gen_oligo(*oligo_params))
+            seq_list += new_oligos
+        else:
+            break
+    return seq_list
 
 
-copy_reg.pickle(types.MethodType, _pickle_method, _unpickle_method)
+def unflatten(input_list, n):
+    list_copy = [x for x in input_list]
+    unflattened = []
+    for i in range(len(list_copy) / n):
+        temp_list = []
+        for j in range(n):
+            temp_list.append(list_copy.pop(0))
+        unflattened.append(temp_list)
+    return unflattened
 
 
 if __name__ == "__main__":
@@ -403,19 +361,19 @@ if __name__ == "__main__":
     n = config.getint('Main Settings', 'n sequences')
     m = config.getint('Main Settings', 'm sequences')
     T = config.getfloat('Main Settings', 'temperature')
-    min_free = config.getfloat('Main Settings', 'min unbound monomer score')
+    min_score = config.getfloat('Main Settings', 'min unbound monomer score')
     con = config.getfloat('Main Settings', 'species concentration')
     wholemat = config.getboolean('Main Settings', 'whole matrix')
     nm = config.getfloat('Main Settings', 'no increase limit')
     resume = config.get('Main Settings', 'resume')
 
     # Run OrthoSeq.orthogonal_sequences
-    OS = OrthoSeq(sequence, T=T, min_free=min_free, conc=con, nullinc_max=nm)
+    o_seq = OrthoSeq(sequence, T=T, min_score=min_score, n_attempt=nm)
     if resume == 'False':
-        OS.orthogonal_sequences(n, m=m, wholemat=wholemat)
+        o_seq.start(n, m=m, wholemat=wholemat)
     else:
         resfile = open(resume, 'r')
         resume = resfile.readlines()
         resfile.close()
         resume = [x.strip() for x in resume]
-        OS.orthogonal_sequences(n, m=m, wholemat=wholemat, resume=resume)
+        o_seq.start(n, m=m, wholemat=wholemat, resume=resume)

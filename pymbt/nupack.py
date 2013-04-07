@@ -1,6 +1,4 @@
-# nupack 3.0 python wrapper. Loosely based on the nupack 2.0
-# wrapper distributed as part of the RBS Calculator:
-# (https://github.com/hsalis/Ribosome-Binding-Site-Calculator)
+'''Wrapper for NUPACK 3.0.'''
 
 import multiprocessing
 import time
@@ -11,7 +9,6 @@ from os.path import isdir
 from os import environ
 from pymbt.sequence_manipulation import check_alphabet
 
-# TODO: rmdir doesn't do anything?
 
 if 'NUPACKHOME' in environ:
     NUPACKHOME = environ['NUPACKHOME']
@@ -20,7 +17,7 @@ else:
 
 
 class Nupack:
-    '''NUPACK class'''
+    '''Contain sequence inputs and use NUPACK computation methods.'''
     def __init__(self, sequence_list, material):
         # Set up nupack environment variable
         self.nupack_home = NUPACKHOME
@@ -45,18 +42,22 @@ class Nupack:
         for sequence in self.sequence_list:
             check_alphabet(sequence, material=mat)
 
+        # Track whether complexes has been run
         self.complexes_run = False
 
-    def complexes(self, max_complexes, mfe=True, rmdir=True, T=50):
-        """
-        Runs 'complexes' command on the inputted sequence list.
+    def complexes(self, max_complexes, mfe=True, T=50):
+        '''
+        Run 'complexes'.
 
-        'max_complexes': maximum complex size (integer).
-        'mfe': include mfe calculations (boolean, defaults to True).
-        'T': sets the temperature.
-        """
+        :param max_complexes: maximum complex size (integer).
+        :type max_complexes: int.
+        :param mfe: include mfe calculations (boolean, defaults to True).
+        :type mfe: bool.
+        :param T: sets the temperature.
+        :type T: float.
 
-        # This version can only handle max_complex 2 or below - I think
+        '''
+
         self._open()  # Recreate temp dir if it was removed
 
         # Prepare input file
@@ -74,7 +75,7 @@ class Nupack:
         else:
             mfe = ''
 
-        # Calculate complexes
+        # Run 'complexes'
         complexes_args = ' -T %f -material %s %s' % (T, self.material, mfe)
         self._run_nupack('complexes', complexes_args)
 
@@ -85,41 +86,46 @@ class Nupack:
         eq_results = [x for x in eq_results if '%' not in x]
         eq_results = [v.split() for v in eq_results]
 
-        # Separate results into complex type and energy
         # Remove rank entry
         for i in eq_results:
             i.pop(0)
 
+        # Extract complexes
         eq_results_cx = []
         for x in eq_results:
             cx_i = []
-            for i, v in enumerate(self.sequence_list):
+            for i in range(len(self.sequence_list)):
                 cx_i.append(int(float(x.pop(0))))
             eq_results_cx.append(cx_i)
 
+        # Extract energies
         eq_results_en = [float(x.pop(0)) for x in eq_results]
 
         self.complexes_run = max_complexes
+
         return {'complexes': eq_results_cx,
                 'complex_energy': eq_results_en}
 
-    def concentrations(self, max_complexes, conc=0.5e-6, mfe=True, rmdir=True):
-        """
-        Runs 'concentrations' command on the inputted sequence list.
+    def concentrations(self, max_complexes, conc=0.5e-6, mfe=True):
+        '''
+        Run 'concentrations'.
 
-        'conc': the concentration of each species. Defaults to 0.5e-6.
-                Can be either a single value or list.
-        'max_complexes': maximum complex size (integer).
-        'mfe': include mfe calculations (boolean, defaults to True).
-        """
+        :param conc: the concentration of each species. Defaults to 0.5e-6.
+        :type conc: float or list.
+        :param max_complexes: maximum complex size.
+        :type int.
+        :param mfe: include mfe calculations.
+        :type bool.
+
+        '''
+
         if self.complexes_run and self.complexes_run == max_complexes:
             pass  # complexes has already been run
         else:
             self._open()  # Recreate temp dir if it was removed
             # Run complexes in order to get input file
             self.complexes(max_complexes=max_complexes,
-                           mfe=True,
-                           rmdir=False)
+                           mfe=True)
 
         # Prepare input file
         if type(conc) == list:
@@ -163,11 +169,13 @@ class Nupack:
                 'energy': eq_results_en}
 
     def mfe(self, strand, T=50):
-        """
-        Runs 'mfe' command on the inputted sequence list.
+        '''
+        Run 'mfe'.
 
-        'T' sets the temperature.
-        """
+        :param T: temperature.
+        :type T: float.
+
+        '''
 
         self._open()  # Recreate temp dir if it was removed
 
@@ -194,11 +202,13 @@ class Nupack:
         return mfe
 
     def pairs(self, strand, T=50):
-        """
-        Runs 'pairs' command on the inputted sequence list.
+        '''
+        Run 'pairs'.
 
-        'T' sets the temperature.
-        """
+        :param T: sets the temperature.
+        :type T: float.
+
+        '''
 
         self._open()  # Recreate temp dir if it was removed
 
@@ -228,14 +238,16 @@ class Nupack:
         return {'type': types, 'probabilities': pp}
 
     def _open(self):
-        # Create the input data file in a temp dir if it doesn't exist
+        '''Check for temp dir. If it doesn't exist, create it.'''
         if not isdir(self.outdir):
             self.outdir = mkdtemp()
 
     def close(self):
+        '''Delete the temp dir. This prevents filling up /tmp.'''
         rmtree(self.outdir)
 
     def _run_nupack(self, cmd, arguments):
+        '''Wrapper for running NUPACK commands.'''
         known = ['complexes', 'concentrations', 'mfe', 'pairs']
         if cmd not in known:
             raise ValueError('Command must be one of the following:' + known)
@@ -250,12 +262,20 @@ class Nupack:
 
 
 def nupack_multiprocessing(inputs, material, cmd, arguments, report=True):
-    '''Provides access to NUPACK commands with multiprocessing support.
-       Inputs: list of sequences
-       material: 'dna' or 'rna'
-       cmd: string of command - 'mfe', 'pairs', 'complexes', 'concentrations'
-       arguments: keyword list of arguments
     '''
+    Provides access to NUPACK commands with multiprocessing support.
+
+    :param inputs: list of sequences.
+    :type inpus: list.
+    :param material: 'dna' or 'rna'.
+    :type material: str.
+    :param cmd: command: 'mfe', 'pairs', 'complexes', or 'concentrations'.
+    :type cmd: str.
+    :param arguments: arguments for the command.
+    :type arguments: str.
+
+    '''
+
     nupack_pool = multiprocessing.Pool()
     try:
         args = [{'seq': x,
@@ -287,6 +307,8 @@ def nupack_multiprocessing(inputs, material, cmd, arguments, report=True):
 
 
 def run_nupack(kwargs):
+    '''Create Nupack instance, run command with arguments.'''
+
     run = Nupack(kwargs['seq'], material=kwargs['material'])
     output = getattr(run, kwargs['cmd'])(**kwargs['arguments'])
     run.close()
