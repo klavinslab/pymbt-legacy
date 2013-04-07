@@ -1,0 +1,173 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pymbt.alignment.needle &mdash; pymbt 0.1a documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1a',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="pymbt 0.1a documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pymbt 0.1a documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pymbt.alignment.needle</h1><div class="highlight"><pre>
+<span class="c"># Does needleman-wunsch alignment using emboss needle</span>
+<span class="c"># Writes to temp file, returns alignment object</span>
+<span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">mkdtemp</span>
+<span class="kn">from</span> <span class="nn">shutil</span> <span class="kn">import</span> <span class="n">rmtree</span>
+
+<span class="kn">from</span> <span class="nn">Bio.Emboss.Applications</span> <span class="kn">import</span> <span class="n">NeedleCommandline</span>
+<span class="kn">from</span> <span class="nn">Bio.Emboss.Applications</span> <span class="kn">import</span> <span class="n">NeedleallCommandline</span>
+<span class="kn">from</span> <span class="nn">Bio</span> <span class="kn">import</span> <span class="n">AlignIO</span>
+
+
+<div class="viewcode-block" id="needle"><a class="viewcode-back" href="../../../pymbt.alignment.html#pymbt.alignment.needle.needle">[docs]</a><span class="k">def</span> <span class="nf">needle</span><span class="p">(</span><span class="n">seq1</span><span class="p">,</span> <span class="n">seq2</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Needleman-Wunsch alignment&#39;&#39;&#39;</span>
+    <span class="n">workdir</span> <span class="o">=</span> <span class="n">mkdtemp</span><span class="p">()</span>
+    <span class="n">aseq_handle</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">workdir</span> <span class="o">+</span> <span class="s">&#39;/aseq.fasta&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
+    <span class="n">aseq_handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;&gt;seq1</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="n">aseq_handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">seq1</span><span class="p">)</span>
+    <span class="n">aseq_handle</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">bseq_handle</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">workdir</span> <span class="o">+</span> <span class="s">&#39;/bseq.fasta&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
+    <span class="n">bseq_handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;&gt;seq2</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="n">bseq_handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">seq2</span><span class="p">)</span>
+    <span class="n">bseq_handle</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="n">cline</span> <span class="o">=</span> <span class="n">NeedleCommandline</span><span class="p">(</span><span class="n">cmd</span><span class="o">=</span><span class="s">&#39;needle&#39;</span><span class="p">)</span>
+    <span class="n">cline</span><span class="o">.</span><span class="n">gapopen</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">cline</span><span class="o">.</span><span class="n">gapextend</span> <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="n">cline</span><span class="o">.</span><span class="n">asequence</span> <span class="o">=</span> <span class="n">workdir</span> <span class="o">+</span> <span class="s">&#39;/aseq.fasta&#39;</span>
+    <span class="n">cline</span><span class="o">.</span><span class="n">bsequence</span> <span class="o">=</span> <span class="n">workdir</span> <span class="o">+</span> <span class="s">&#39;/bseq.fasta&#39;</span>
+    <span class="n">cline</span><span class="o">.</span><span class="n">outfile</span> <span class="o">=</span> <span class="n">workdir</span> <span class="o">+</span> <span class="s">&#39;/needle.txt&#39;</span>
+    <span class="n">cline</span><span class="p">()</span>
+    <span class="n">align</span> <span class="o">=</span> <span class="n">AlignIO</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">workdir</span> <span class="o">+</span> <span class="s">&#39;/needle.txt&#39;</span><span class="p">,</span> <span class="s">&#39;emboss&#39;</span><span class="p">)</span>
+    <span class="n">align_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">workdir</span> <span class="o">+</span> <span class="s">&#39;/needle.txt&#39;</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span>
+    <span class="n">handle</span> <span class="o">=</span> <span class="n">align_file</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+    <span class="n">score</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">handle</span> <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">7</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;# Score&#39;</span><span class="p">]</span>
+    <span class="n">score</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">score</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()[</span><span class="mi">9</span><span class="p">:])</span>
+
+    <span class="n">rmtree</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">align</span><span class="p">,</span> <span class="n">score</span>
+
+</div>
+<div class="viewcode-block" id="needleall"><a class="viewcode-back" href="../../../pymbt.alignment.html#pymbt.alignment.needle.needleall">[docs]</a><span class="k">def</span> <span class="nf">needleall</span><span class="p">(</span><span class="n">seq1</span><span class="p">,</span> <span class="n">seq2s</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Needleman-Wunsch alignment&#39;&#39;&#39;</span>
+    <span class="n">workdir</span> <span class="o">=</span> <span class="n">mkdtemp</span><span class="p">()</span>
+    <span class="n">aseq_handle</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">workdir</span> <span class="o">+</span> <span class="s">&#39;/aseq.fasta&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
+    <span class="n">aseq_handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;&gt;seq1</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="n">aseq_handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">seq1</span><span class="p">)</span>
+    <span class="n">aseq_handle</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">bseq_handle</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">workdir</span> <span class="o">+</span> <span class="s">&#39;/bseq.fasta&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">seq2s</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">seq2s</span> <span class="o">=</span> <span class="p">[</span><span class="n">seq2s</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">seq2s</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;second input must be list of sequences&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">seq2s</span><span class="p">):</span>
+        <span class="n">bseq_handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;&gt;seq&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">bseq_handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="n">bseq_handle</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="n">cline</span> <span class="o">=</span> <span class="n">NeedleallCommandline</span><span class="p">(</span><span class="n">cmd</span><span class="o">=</span><span class="s">&#39;needleall&#39;</span><span class="p">)</span>
+    <span class="n">cline</span><span class="o">.</span><span class="n">gapopen</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">cline</span><span class="o">.</span><span class="n">gapextend</span> <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="n">cline</span><span class="o">.</span><span class="n">asequence</span> <span class="o">=</span> <span class="n">workdir</span> <span class="o">+</span> <span class="s">&#39;/aseq.fasta&#39;</span>
+    <span class="n">cline</span><span class="o">.</span><span class="n">bsequence</span> <span class="o">=</span> <span class="n">workdir</span> <span class="o">+</span> <span class="s">&#39;/bseq.fasta&#39;</span>
+    <span class="n">cline</span><span class="o">.</span><span class="n">outfile</span> <span class="o">=</span> <span class="n">workdir</span> <span class="o">+</span> <span class="s">&#39;/needle.txt&#39;</span>
+    <span class="n">cline</span><span class="o">.</span><span class="n">aformat</span> <span class="o">=</span> <span class="s">&#39;srspair&#39;</span>
+    <span class="n">cline</span><span class="p">()</span>
+    <span class="n">align_handle</span> <span class="o">=</span> <span class="n">AlignIO</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">workdir</span> <span class="o">+</span> <span class="s">&#39;/needle.txt&#39;</span><span class="p">,</span> <span class="s">&#39;emboss&#39;</span><span class="p">)</span>
+    <span class="n">align</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">align_handle</span><span class="p">]</span>
+    <span class="n">align_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">workdir</span> <span class="o">+</span> <span class="s">&#39;/needle.txt&#39;</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span>
+    <span class="n">handle</span> <span class="o">=</span> <span class="n">align_file</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+    <span class="n">score</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">handle</span> <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">7</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;# Score&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">score</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">strip</span><span class="p">()[</span><span class="mi">9</span><span class="p">:])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">score</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">score</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()[</span><span class="mi">9</span><span class="p">:])</span>
+    <span class="n">to_return</span> <span class="o">=</span> <span class="p">[(</span><span class="n">align</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">score</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">align</span><span class="p">)]</span>
+
+    <span class="n">rmtree</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">to_return</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pymbt 0.1a documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Nick Bolten.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

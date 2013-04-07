@@ -18,16 +18,25 @@ else:
 
 class Nupack:
     '''Contain sequence inputs and use NUPACK computation methods.'''
-    def __init__(self, sequence_list, material):
+    def __init__(self, sequence, material):
+        '''
+        :param sequence_list: Input sequences. Can also be list of sequences.
+        :type sequence_list: str.
+        :param material: Input material type - 'dna' or 'rna'.
+        :type material: str.
+
+        '''
         # Set up nupack environment variable
         self.nupack_home = NUPACKHOME
         # Store reused information
-        if type(sequence_list) != list:
-            if type(sequence_list) == str:
+        if type(sequence) != list:
+            if type(sequence) == str:
                 # if user input a string, make it a list for processing later
-                sequence_list = [sequence_list]
+                sequence_list = [sequence]
             else:
                 raise ValueError('Did not supply a sequence string or list')
+        else:
+            sequence_list = sequence
         self.sequence_list = sequence_list
         self.outdir = mkdtemp()
 
@@ -49,11 +58,11 @@ class Nupack:
         '''
         Run 'complexes'.
 
-        :param max_complexes: maximum complex size (integer).
+        :param max_complexes: Maximum complex size (integer).
         :type max_complexes: int.
-        :param mfe: include mfe calculations (boolean, defaults to True).
+        :param mfe: Include mfe calculations (boolean, defaults to True).
         :type mfe: bool.
-        :param T: sets the temperature.
+        :param T: Sets the temperature.
         :type T: float.
 
         '''
@@ -110,11 +119,11 @@ class Nupack:
         '''
         Run 'concentrations'.
 
-        :param conc: the concentration of each species. Defaults to 0.5e-6.
+        :param conc: The concentration of each species. Defaults to 0.5e-6.
         :type conc: float or list.
-        :param max_complexes: maximum complex size.
+        :param max_complexes: Maximum complex size.
         :type int.
-        :param mfe: include mfe calculations.
+        :param mfe: Include mfe calculations.
         :type bool.
 
         '''
@@ -172,7 +181,7 @@ class Nupack:
         '''
         Run 'mfe'.
 
-        :param T: temperature.
+        :param T: Temperature in degrees C.
         :type T: float.
 
         '''
@@ -205,7 +214,7 @@ class Nupack:
         '''
         Run 'pairs'.
 
-        :param T: sets the temperature.
+        :param T: Sets the temperature in degrees C.
         :type T: float.
 
         '''
@@ -265,13 +274,13 @@ def nupack_multiprocessing(inputs, material, cmd, arguments, report=True):
     '''
     Provides access to NUPACK commands with multiprocessing support.
 
-    :param inputs: list of sequences.
+    :param inputs: List of sequences.
     :type inpus: list.
-    :param material: 'dna' or 'rna'.
+    :param material: Input material: 'dna' or 'rna'.
     :type material: str.
-    :param cmd: command: 'mfe', 'pairs', 'complexes', or 'concentrations'.
+    :param cmd: Command: 'mfe', 'pairs', 'complexes', or 'concentrations'.
     :type cmd: str.
-    :param arguments: arguments for the command.
+    :param arguments: Arguments for the command.
     :type arguments: str.
 
     '''

@@ -63,7 +63,19 @@
 <dl class="class">
 <dt id="pymbt.alignment.alignment.Sanger">
 <em class="property">class </em><tt class="descclassname">pymbt.alignment.alignment.</tt><tt class="descname">Sanger</tt><big>(</big><em>ref</em>, <em>res</em><big>)</big><a class="reference internal" href="_modules/pymbt/alignment/alignment.html#Sanger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.alignment.alignment.Sanger" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sanger sequencing alignment generation and analysis class</p>
+<dd><p>Align and analyze Sanger sequencing results.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ref</strong> (<em>str.</em>) &#8211; Reference sequence.</li>
+<li><strong>res</strong> (<em>str.</em>) &#8211; Sequencing result string. A list of strings is also valid.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 <dl class="method">
 <dt id="pymbt.alignment.alignment.Sanger.fixindel">
 <tt class="descname">fixindel</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pymbt/alignment/alignment.html#Sanger.fixindel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.alignment.alignment.Sanger.fixindel" title="Permalink to this definition">¶</a></dt>
@@ -77,12 +89,14 @@
 <dl class="method">
 <dt id="pymbt.alignment.alignment.Sanger.plot">
 <tt class="descname">plot</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pymbt/alignment/alignment.html#Sanger.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.alignment.alignment.Sanger.plot" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Plot visualization of results using matplotlib.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="pymbt.alignment.alignment.Sanger.report">
 <tt class="descname">report</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pymbt/alignment/alignment.html#Sanger.report"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.alignment.alignment.Sanger.report" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Report deletions, mismatches, and insertions.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="pymbt.alignment.alignment.Sanger.write_alignment">
@@ -99,28 +113,73 @@
 <dl class="function">
 <dt id="pymbt.alignment.alignment.readref">
 <tt class="descclassname">pymbt.alignment.alignment.</tt><tt class="descname">readref</tt><big>(</big><em>filepath</em>, <em>ftype='genbank'</em><big>)</big><a class="reference internal" href="_modules/pymbt/alignment/alignment.html#readref"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.alignment.alignment.readref" title="Permalink to this definition">¶</a></dt>
-<dd><p>Helper function for reading reference genbank file</p>
+<dd><p>Read reference genbank file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>filepath</strong> (<em>str.</em>) &#8211; Path to the file (typically genbank).</li>
+<li><strong>ftype</strong> (<em>str.</em>) &#8211; Valid filetype readable by Bio.SeqIO.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="pymbt.alignment.alignment.readres">
 <tt class="descclassname">pymbt.alignment.alignment.</tt><tt class="descname">readres</tt><big>(</big><em>dirpath</em><big>)</big><a class="reference internal" href="_modules/pymbt/alignment/alignment.html#readres"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.alignment.alignment.readres" title="Permalink to this definition">¶</a></dt>
-<dd><p>Helper function for reading .seq results files</p>
+<dd><p>Read .seq results files from a dir.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dirpath</strong> &#8211; Path to directory containing sequencing files.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
 <div class="section" id="module-pymbt.alignment.needle">
 <span id="needle-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">needle</span></tt> Module<a class="headerlink" href="#module-pymbt.alignment.needle" title="Permalink to this headline">¶</a></h2>
+<p>Needleman-Wunsch alignment using emboss needle.</p>
 <dl class="function">
 <dt id="pymbt.alignment.needle.needle">
 <tt class="descclassname">pymbt.alignment.needle.</tt><tt class="descname">needle</tt><big>(</big><em>seq1</em>, <em>seq2</em><big>)</big><a class="reference internal" href="_modules/pymbt/alignment/needle.html#needle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.alignment.needle.needle" title="Permalink to this definition">¶</a></dt>
-<dd><p>Needleman-Wunsch alignment</p>
+<dd><p>Do Needleman-Wunsch alignment.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>seq1</strong> (<em>str.</em>) &#8211; First sequence.</li>
+<li><strong>seq2</strong> (<em>str.</em>) &#8211; Second sequence.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="pymbt.alignment.needle.needleall">
 <tt class="descclassname">pymbt.alignment.needle.</tt><tt class="descname">needleall</tt><big>(</big><em>seq1</em>, <em>seq2s</em><big>)</big><a class="reference internal" href="_modules/pymbt/alignment/needle.html#needleall"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.alignment.needle.needleall" title="Permalink to this definition">¶</a></dt>
-<dd><p>Needleman-Wunsch alignment</p>
+<dd><p>Do Needleman-Wunsch alignment using EMBOSS NeedleAll.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>seq1</strong> (<em>str.</em>) &#8211; First sequence.</li>
+<li><strong>seq2s</strong> (<em>list.</em>) &#8211; List of second sequences to align with the seq1.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>

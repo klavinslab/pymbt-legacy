@@ -5,14 +5,16 @@ from pymbt.sequence_manipulation import translate_seq
 
 
 class RandomCodons:
-    '''Provides a generator class for random DNA or RNA sequence.
-         sequence: sequence for which to generate randomized codons.
-         material: 'dna' for DNA or 'pep' for amino acid sequence.'''
-    def __init__(self,
-                 sequence,
-                 material='pep',
-                 freq_table='sc',
+    '''Generator class for random DNA or RNA sequence.'''
+    def __init__(self, sequence, material='pep', freq_table='sc',
                  threshold=0.0):
+        '''
+        :param sequence: Sequence for which to generate randomized codons.
+        :type sequence: str.
+        :param material: 'dna' for DNA or 'pep' for amino acid sequence.
+        :type material: str.
+
+        '''
         self.sequence = check_alphabet(sequence, material=material)
         if material == 'dna':
             self.sequence = translate_seq(self.sequence)
@@ -23,6 +25,7 @@ class RandomCodons:
         return 'RandomCodons generator for %s' % self.sequence
 
     def generate(self):
+        '''Generate the sequence.'''
         new_table = {}
         for key, value in self.frequencies.iteritems():
             average = 1.0 / len(value)

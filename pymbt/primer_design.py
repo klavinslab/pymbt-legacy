@@ -10,19 +10,19 @@ def design_primer(seq, tm=72, min_len=10, tm_errorminus=1, tm_errorplus=3,
     '''
     Design primer to a nearest-neighbor Tm setpoint.
 
-    :param seq: input sequence.
+    :param seq: Input sequence.
     :type seq: str.
-    :param tm: ideal primer Tm.
+    :param tm: Ideal primer Tm in degrees C.
     :type tm: float.
-    :param min_len: minimum primer length.
+    :param min_len: Minimum primer length.
     :type min_len: int.
-    :param tm_errorminus: allowed Tm undershoot.
+    :param tm_errorminus: Allowed Tm undershoot.
     :type tm_errorminus: float.
-    :param tm_errorplus: allowed Tm overshoot.
+    :param tm_errorplus: Allowed Tm overshoot.
     :type tm_errorplus: float.
-    :param endGC: obey the 'end on G or C' rule.
+    :param endGC: Obey the 'end on G or C' rule.
     :type endGC: bool.
-    :param overhang: append the primer to this overhang sequence.
+    :param overhang: Append the primer to this overhang sequence.
     :type overhang: str.
 
     '''
@@ -84,11 +84,11 @@ def design_primer_gene(seq, overhangs=['', ''], **kwargs):
     '''
     Design both forward and reverse primers for a sequence.
 
-    :param seq: input sequence.
+    :param seq: Input sequence.
     :type seq: str.
-    :param overhangs: list of overhang sequences.
+    :param overhangs: List of overhang sequences.
     :type overhangs: list.
-    :param **kwargs: keyword arguments to feed to design_primer.
+    :param **kwargs: Keyword arguments to feed to design_primer.
 
     '''
     fwd_primer = design_primer(seq,

@@ -1,0 +1,223 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>sequence_generation Package &mdash; pymbt 0.1a documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1a',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="pymbt 0.1a documentation" href="index.html" />
+    <link rel="up" title="pymbt Package" href="pymbt.html" />
+    <link rel="prev" title="sequence_analysis Package" href="pymbt.sequence_analysis.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pymbt.sequence_analysis.html" title="sequence_analysis Package"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">pymbt 0.1a documentation</a> &raquo;</li>
+          <li><a href="pymbt.html" accesskey="U">pymbt Package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="sequence-generation-package">
+<h1>sequence_generation Package<a class="headerlink" href="#sequence-generation-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-pymbt.sequence_generation.orthogonal_sequences">
+<span id="orthogonal-sequences-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">orthogonal_sequences</span></tt> Module<a class="headerlink" href="#module-pymbt.sequence_generation.orthogonal_sequences" title="Permalink to this headline">¶</a></h2>
+<p>Generates a set of orthogonal DNA sequences for a given protein sequence
+Currently limited by the size of the protein sequence - ~10 residues max
+To increase size, need to optimize search method and take steps to reduce
+memory usage (write to files and iterate/queue)</p>
+<dl class="class">
+<dt id="pymbt.sequence_generation.orthogonal_sequences.OrthoSeq">
+<em class="property">class </em><tt class="descclassname">pymbt.sequence_generation.orthogonal_sequences.</tt><tt class="descname">OrthoSeq</tt><big>(</big><em>prot_seq</em>, <em>T=50</em>, <em>min_score=0.95</em>, <em>n_attempt=100000.0</em><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/orthogonal_sequences.html#OrthoSeq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.orthogonal_sequences.OrthoSeq" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="pymbt.sequence_generation.orthogonal_sequences.OrthoSeq.log">
+<tt class="descname">log</tt><big>(</big><em>loop_count</em>, <em>n_attempted</em>, <em>mean_score</em>, <em>min_score</em>, <em>met</em>, <em>timer</em>, <em>oligo_list</em><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/orthogonal_sequences.html#OrthoSeq.log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.orthogonal_sequences.OrthoSeq.log" title="Permalink to this definition">¶</a></dt>
+<dd><p>provides data trail and allows resuming/passing along
+an extended attempt</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pymbt.sequence_generation.orthogonal_sequences.OrthoSeq.start">
+<tt class="descname">start</tt><big>(</big><em>n</em>, <em>m=0</em>, <em>resume=False</em>, <em>wholemat=False</em>, <em>report=True</em>, <em>weighted=True</em>, <em>freq_threshold=0.5</em><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/orthogonal_sequences.html#OrthoSeq.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.orthogonal_sequences.OrthoSeq.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>n: is the final number of orthogonal sequences to output.
+m: is the number of new sequences to try out on each iteration.
+resume: specifies a path to a dir from a previous run, and will
+cause start() to pick up where it left off.
+wholemat: if True, m worst oligos are thrown out on each iteration.</p>
+<blockquote>
+<div>if False, single best is kept. There is a difference
+but it should be better documented.</div></blockquote>
+<p>weighted: boolean for whether codons should be weighted.
+freq_threshold: relative frequency threshold below which codons</p>
+<blockquote>
+<div>should not be used.</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pymbt.sequence_generation.orthogonal_sequences.remove_redundant">
+<tt class="descclassname">pymbt.sequence_generation.orthogonal_sequences.</tt><tt class="descname">remove_redundant</tt><big>(</big><em>seq_list</em>, <em>oligo_params</em><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/orthogonal_sequences.html#remove_redundant"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.orthogonal_sequences.remove_redundant" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pymbt.sequence_generation.orthogonal_sequences.unflatten">
+<tt class="descclassname">pymbt.sequence_generation.orthogonal_sequences.</tt><tt class="descname">unflatten</tt><big>(</big><em>input_list</em>, <em>n</em><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/orthogonal_sequences.html#unflatten"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.orthogonal_sequences.unflatten" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-pymbt.sequence_generation.random_bases">
+<span id="random-bases-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">random_bases</span></tt> Module<a class="headerlink" href="#module-pymbt.sequence_generation.random_bases" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pymbt.sequence_generation.random_bases.RandomBases">
+<em class="property">class </em><tt class="descclassname">pymbt.sequence_generation.random_bases.</tt><tt class="descname">RandomBases</tt><big>(</big><em>n</em><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/random_bases.html#RandomBases"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.random_bases.RandomBases" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provides a generator class for random DNA or RNA sequence</p>
+<dl class="method">
+<dt id="pymbt.sequence_generation.random_bases.RandomBases.generate">
+<tt class="descname">generate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/random_bases.html#RandomBases.generate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.random_bases.RandomBases.generate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pymbt.sequence_generation.random_codons">
+<span id="random-codons-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">random_codons</span></tt> Module<a class="headerlink" href="#module-pymbt.sequence_generation.random_codons" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pymbt.sequence_generation.random_codons.RandomCodons">
+<em class="property">class </em><tt class="descclassname">pymbt.sequence_generation.random_codons.</tt><tt class="descname">RandomCodons</tt><big>(</big><em>sequence</em>, <em>material='pep'</em>, <em>freq_table='sc'</em>, <em>threshold=0.0</em><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/random_codons.html#RandomCodons"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.random_codons.RandomCodons" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provides a generator class for random DNA or RNA sequence.
+sequence: sequence for which to generate randomized codons.
+material: &#8216;dna&#8217; for DNA or &#8216;pep&#8217; for amino acid sequence.</p>
+<dl class="method">
+<dt id="pymbt.sequence_generation.random_codons.RandomCodons.generate">
+<tt class="descname">generate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/random_codons.html#RandomCodons.generate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.random_codons.RandomCodons.generate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pymbt.sequence_generation.weighted_codons">
+<span id="weighted-codons-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">weighted_codons</span></tt> Module<a class="headerlink" href="#module-pymbt.sequence_generation.weighted_codons" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pymbt.sequence_generation.weighted_codons.WeightedCodons">
+<em class="property">class </em><tt class="descclassname">pymbt.sequence_generation.weighted_codons.</tt><tt class="descname">WeightedCodons</tt><big>(</big><em>sequence</em>, <em>frequency_table='sc'</em>, <em>material='pep'</em><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/weighted_codons.html#WeightedCodons"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.weighted_codons.WeightedCodons" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provides a generator class for random DNA or RNA sequence.
+sequence: sequence for which to generate randomized codons.
+frequency_table: specifies which codon frequency dictionary to use.
+material: input material.</p>
+<blockquote>
+<div>&#8216;dna&#8217; for DNA or
+&#8216;pep&#8217; for amino acid sequence (default).</div></blockquote>
+<dl class="method">
+<dt id="pymbt.sequence_generation.weighted_codons.WeightedCodons.generate">
+<tt class="descname">generate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/weighted_codons.html#WeightedCodons.generate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.weighted_codons.WeightedCodons.generate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pymbt.sequence_generation.weighted_codons.WeightedCodons.weighted">
+<tt class="descname">weighted</tt><big>(</big><em>pep</em><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/weighted_codons.html#WeightedCodons.weighted"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.weighted_codons.WeightedCodons.weighted" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">sequence_generation Package</a><ul>
+<li><a class="reference internal" href="#module-pymbt.sequence_generation.orthogonal_sequences"><tt class="docutils literal"><span class="pre">orthogonal_sequences</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-pymbt.sequence_generation.random_bases"><tt class="docutils literal"><span class="pre">random_bases</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-pymbt.sequence_generation.random_codons"><tt class="docutils literal"><span class="pre">random_codons</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-pymbt.sequence_generation.weighted_codons"><tt class="docutils literal"><span class="pre">weighted_codons</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="pymbt.sequence_analysis.html"
+                        title="previous chapter">sequence_analysis Package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/pymbt.sequence_generation.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pymbt.sequence_analysis.html" title="sequence_analysis Package"
+             >previous</a> |</li>
+        <li><a href="index.html">pymbt 0.1a documentation</a> &raquo;</li>
+          <li><a href="pymbt.html" >pymbt Package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Nick Bolten.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

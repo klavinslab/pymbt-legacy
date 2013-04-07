@@ -10,8 +10,15 @@ from pymbt.sequence_manipulation import reverse_complement
 
 
 class Sanger:
-    '''Sanger sequencing alignment generation and analysis class'''
+    '''Align and analyze Sanger sequencing results.'''
     def __init__(self, ref, res):
+        '''
+        :param ref: Reference sequence.
+        :type ref: str.
+        :param res: Sequencing result string. A list of strings is also valid.
+        :type res: str.
+
+        '''
         # make results a list if there's just one
         if type(res) == str:
             res = [res]
@@ -118,6 +125,7 @@ class Sanger:
             self.deletions[key] = newlist
 
     def report(self):
+        '''Report deletions, mismatches, and insertions.'''
         print 'mismatches: ' + str(self.mismatches)
         print 'insertions: ' + str(self.insertions)
         print 'deletions: ' + str(self.deletions)
@@ -156,6 +164,7 @@ class Sanger:
                     print ''
 
     def plot(self):
+        '''Plot visualization of results using matplotlib.'''
         # Step 1: turn results into ranges, bin those ranges for displaying
         ga = self.gaps
         bins = _disjoint_bins(self.ranges)
@@ -256,13 +265,27 @@ class Sanger:
 
 
 def readref(filepath, ftype='genbank'):
-    '''Helper function for reading reference genbank file'''
+    '''
+    Read reference genbank file.
+
+    :param filepath: Path to the file (typically genbank).
+    :type filepath: str.
+    :param ftype: Valid filetype readable by Bio.SeqIO.
+    :type ftype: str.
+
+    '''
     sequence = SeqIO.read(filepath, ftype)
     return sequence
 
 
 def readres(dirpath):
-    '''Helper function for reading .seq results files'''
+    '''
+    Read .seq results files from a dir.
+
+    :param dirpath: Path to directory containing sequencing files.
+    :type dirtpath: str.
+
+    '''
     seq_paths = [x for x in os.listdir(dirpath) if x.endswith('.seq')]
     abi_paths = [x for x in os.listdir(dirpath) if x.endswith('.abi')]
     abi_paths += [x for x in os.listdir(dirpath) if x.endswith('.ab1')]
@@ -273,6 +296,13 @@ def readres(dirpath):
 
 
 def _findgap(list_in):
+    '''
+    Iterate over string list, return 'X' if has non-\'-\' value.
+
+    :param list_in: String list.
+    :type list_in: list.
+
+    '''
     for x in list_in:
         if x != '-':
             return 'X'
@@ -280,6 +310,22 @@ def _findgap(list_in):
 
 
 def _sequences_display(seqs, start_stop, context=10, indent=4):
+    '''
+    Given two sequences to compare, display them and visualize non-matching
+    regions.
+
+    :param seqs: Sequences to display.
+    :type seqs: list.
+    :param start_stop: Indices to display.
+    :type start_stop: tuple.
+    :param context: Extra context to add on either side of the displayed
+    sequences.
+    :type context: int.
+    :param indent: Indentation of the displayed text.
+    :type indent: int.
+
+    '''
+
     if len(seqs) != 2:
         raise ValueError('Expected two sequences')
     start = start_stop[0]
@@ -311,7 +357,13 @@ def _sequences_display(seqs, start_stop, context=10, indent=4):
 
 
 def _disjoint_bins(range_tuple_list):
-    '''Construct disjoint bins given a list of range tuples'''
+    '''
+    Construct disjoint bins given a list of range tuples.
+
+    :param range_tuple_list: A list of tuples containing range values.
+    :type range_tuple_list: list.
+
+    '''
     rtl = range_tuple_list
     # number the ranges (third value in tuple)
     rtl = [(x[0], x[1], i) for i, x in enumerate(rtl)]

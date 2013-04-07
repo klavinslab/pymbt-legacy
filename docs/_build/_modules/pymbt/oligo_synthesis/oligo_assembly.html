@@ -1,0 +1,254 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pymbt.oligo_synthesis.oligo_assembly &mdash; pymbt 0.1a documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1a',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="pymbt 0.1a documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pymbt 0.1a documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pymbt.oligo_synthesis.oligo_assembly</h1><div class="highlight"><pre>
+<span class="sd">&#39;&#39;&#39;Module supplying methods/classes for generating</span>
+<span class="sd">   overlapping oligo sequences from a gene sequence.&#39;&#39;&#39;</span>
+
+
+<span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">floor</span>
+<span class="kn">from</span> <span class="nn">pymbt.sequence_manipulation</span> <span class="kn">import</span> <span class="n">reverse_complement</span>
+<span class="kn">from</span> <span class="nn">pymbt.tm_calc</span> <span class="kn">import</span> <span class="n">calc_tm</span>
+<span class="kn">from</span> <span class="nn">pymbt.primer_design</span> <span class="kn">import</span> <span class="n">design_primer_gene</span>
+
+
+<div class="viewcode-block" id="OligoAssembly"><a class="viewcode-back" href="../../../pymbt.oligo_synthesis.html#pymbt.oligo_synthesis.oligo_assembly.OligoAssembly">[docs]</a><span class="k">class</span> <span class="nc">OligoAssembly</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">seq</span><span class="p">,</span>
+                 <span class="n">primers</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">primer_tm</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="n">assembly_dict</span> <span class="o">=</span> <span class="n">oligo_calc</span><span class="p">(</span><span class="n">seq</span><span class="o">=</span><span class="n">seq</span><span class="p">,</span>
+                                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oligos</span> <span class="o">=</span> <span class="n">assembly_dict</span><span class="p">[</span><span class="s">&#39;oligos&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">overlaps</span> <span class="o">=</span> <span class="n">assembly_dict</span><span class="p">[</span><span class="s">&#39;overlaps&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">overlap_tms</span> <span class="o">=</span> <span class="n">assembly_dict</span><span class="p">[</span><span class="s">&#39;overlap_tms&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">primers</span><span class="p">:</span>
+            <span class="n">primers</span> <span class="o">=</span> <span class="n">design_primer_gene</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">tm</span><span class="o">=</span><span class="n">primer_tm</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">primers</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">primers</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">primer_tms</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">primers</span><span class="p">]</span>
+
+<div class="viewcode-block" id="OligoAssembly.write"><a class="viewcode-back" href="../../../pymbt.oligo_synthesis.html#pymbt.oligo_synthesis.oligo_assembly.OligoAssembly.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outpath</span><span class="p">):</span>
+        <span class="n">oligo_writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="s">&#39;wb&#39;</span><span class="p">),</span>
+                                  <span class="n">delimiter</span><span class="o">=</span><span class="s">&#39;,&#39;</span><span class="p">,</span>
+                                  <span class="n">quoting</span><span class="o">=</span><span class="n">csv</span><span class="o">.</span><span class="n">QUOTE_MINIMAL</span><span class="p">)</span>
+        <span class="n">oligo_writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;oligo&#39;</span><span class="p">,</span> <span class="s">&#39;notes&#39;</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oligos</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="s">&#39;oligo </span><span class="si">%i</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">oligo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oligos</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oligos</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">o_tm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">overlap_tms</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">len_tm</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">oligo</span><span class="p">),</span> <span class="n">o_tm</span><span class="p">)</span>
+                <span class="n">notes</span> <span class="o">=</span> <span class="s">&#39;oligo length: </span><span class="si">%d</span><span class="s">, overlap Tm: </span><span class="si">%.2f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">len_tm</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">notes</span> <span class="o">=</span> <span class="s">&#39;oligo length: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">oligo</span><span class="p">)</span>
+            <span class="n">oligo_writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="n">name</span><span class="p">,</span>
+                                   <span class="n">oligo</span><span class="p">,</span>
+                                   <span class="n">notes</span><span class="p">])</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">oligo_writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="s">&#39;primer 1&#39;</span><span class="p">,</span>
+                                  <span class="bp">self</span><span class="o">.</span><span class="n">primers</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                  <span class="s">&#39;Tm: </span><span class="si">%.2f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">primer_tms</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+            <span class="n">oligo_writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="s">&#39;primer 2&#39;</span><span class="p">,</span>
+                                  <span class="bp">self</span><span class="o">.</span><span class="n">primers</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                  <span class="s">&#39;Tm: </span><span class="si">%.2f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">primer_tms</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+</div>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">str1</span> <span class="o">=</span> <span class="s">&quot;An OligoAssembly consisting of &quot;</span>
+        <span class="n">str2</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oligos</span><span class="p">))</span> <span class="o">+</span> <span class="s">&#39; oligos.&#39;</span>
+        <span class="k">return</span> <span class="n">str1</span> <span class="o">+</span> <span class="n">str2</span>
+
+</div>
+<div class="viewcode-block" id="oligo_calc"><a class="viewcode-back" href="../../../pymbt.oligo_synthesis.html#pymbt.oligo_synthesis.oligo_assembly.oligo_calc">[docs]</a><span class="k">def</span> <span class="nf">oligo_calc</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span>
+               <span class="n">tm</span><span class="o">=</span><span class="mi">72</span><span class="p">,</span>
+               <span class="n">oligo_size</span><span class="o">=</span><span class="mi">120</span><span class="p">,</span>
+               <span class="n">require_even</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+               <span class="n">start_5</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">oligo_size</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Oligo size must be smaller than input sequence&#39;</span><span class="p">)</span>
+    <span class="n">oligo_n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">floor</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">seq</span><span class="p">))</span> <span class="o">/</span> <span class="n">oligo_size</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">require_even</span><span class="p">:</span>
+        <span class="n">oligo_increment</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="k">if</span> <span class="n">oligo_n</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">oligo_n</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">oligo_increment</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="n">lowest_tm_overlap</span> <span class="o">=</span> <span class="o">-</span><span class="mi">40000</span>  <span class="c"># Arbitrary super negative number</span>
+    <span class="n">overlap_tms</span> <span class="o">=</span> <span class="p">[</span><span class="n">lowest_tm_overlap</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">oligo_n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="c"># Loop until all overlaps meet minimum Tm</span>
+    <span class="k">while</span><span class="p">(</span><span class="nb">any</span><span class="p">([</span><span class="n">x</span> <span class="o">&lt;=</span> <span class="n">tm</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">overlap_tms</span><span class="p">])):</span>
+        <span class="c"># Calculate:</span>
+        <span class="c"># initial number of overlaps</span>
+        <span class="c"># overlap locations</span>
+        <span class="n">overlap_n</span> <span class="o">=</span> <span class="n">oligo_n</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">olap_iter</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">overlap_n</span><span class="p">)</span>
+        <span class="n">init</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">seq</span><span class="p">))</span> <span class="o">/</span> <span class="n">oligo_n</span>
+        <span class="n">overlap_starts</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">floor</span><span class="p">((</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">init</span><span class="p">))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">olap_iter</span><span class="p">]</span>
+        <span class="n">overlap_ends</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">overlap_starts</span><span class="p">]</span>
+        <span class="n">overlaps</span> <span class="o">=</span> <span class="p">[</span><span class="n">seq</span><span class="p">[</span><span class="n">overlap_starts</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span><span class="n">overlap_ends</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">olap_iter</span><span class="p">]</span>
+        <span class="n">oligo_start</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">overlap_starts</span>
+        <span class="n">oligo_e</span> <span class="o">=</span> <span class="n">overlap_ends</span> <span class="o">+</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">seq</span><span class="p">)]</span>
+        <span class="n">oligos</span> <span class="o">=</span> <span class="p">[</span><span class="n">seq</span><span class="p">[</span><span class="n">oligo_start</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span><span class="n">oligo_e</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">olap_iter</span><span class="p">]</span>
+
+        <span class="c"># Get initial overlap tms (1 base?)</span>
+        <span class="n">overlap_tms</span> <span class="o">=</span> <span class="p">[</span><span class="n">calc_tm</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">overlaps</span><span class="p">]</span>
+
+        <span class="c"># Initializations for next while loop</span>
+
+        <span class="c"># nonmaxed overlaps</span>
+        <span class="n">overlap_tms</span> <span class="o">=</span> <span class="p">[</span><span class="n">calc_tm</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">overlaps</span><span class="p">]</span>
+        <span class="n">lowest_tm_overlap</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">overlap_tms</span><span class="p">)</span>
+        <span class="n">lowest_index</span> <span class="o">=</span> <span class="n">overlap_tms</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">lowest_tm_overlap</span><span class="p">)</span>
+        <span class="n">maxed</span> <span class="o">=</span> <span class="p">[</span><span class="bp">False</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">oligo_n</span><span class="p">)]</span>
+        <span class="n">threshold_unmet</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="k">while</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">maxed</span><span class="p">)</span> <span class="ow">and</span> <span class="n">threshold_unmet</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">maxed</span><span class="p">):</span>
+            <span class="n">overlaps</span> <span class="o">=</span> <span class="p">[</span><span class="n">seq</span><span class="p">[</span><span class="n">oligo_start</span><span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]:</span><span class="n">oligo_e</span><span class="p">[</span><span class="n">x</span><span class="p">]]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">olap_iter</span><span class="p">]</span>
+            <span class="c"># Calculate Tm of newly-increased overlap</span>
+            <span class="n">overlap_tms</span><span class="p">[</span><span class="n">lowest_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">calc_tm</span><span class="p">(</span><span class="n">overlaps</span><span class="p">[</span><span class="n">lowest_index</span><span class="p">])</span>
+            <span class="c"># Identify overlap with the lowest Tm</span>
+            <span class="n">lowest_tm_overlap</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">overlap_tms</span><span class="p">)</span>
+            <span class="c"># Index of overlap with the lowest Tm</span>
+            <span class="n">lowest_index</span> <span class="o">=</span> <span class="n">overlap_tms</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">lowest_tm_overlap</span><span class="p">)</span>
+            <span class="c"># Oligos to the left and right of the lowest Tm overlap</span>
+            <span class="n">lowest_tm_overlap_left</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">oligos</span><span class="p">[</span><span class="n">lowest_index</span><span class="p">])</span>
+            <span class="n">lowest_tm_overlap_right</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">oligos</span><span class="p">[</span><span class="n">lowest_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+
+            <span class="k">def</span> <span class="nf">increase_right_oligo</span><span class="p">():</span>
+                <span class="n">oligo_e</span><span class="p">[</span><span class="n">lowest_index</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="k">def</span> <span class="nf">increase_left_oligo</span><span class="p">():</span>
+                <span class="n">oligo_start</span><span class="p">[</span><span class="n">lowest_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span>
+
+            <span class="c"># If one of the oligos is max size, increase the other one</span>
+            <span class="k">if</span> <span class="n">lowest_tm_overlap_right</span> <span class="o">==</span> <span class="n">oligo_size</span><span class="p">:</span>
+                <span class="n">increase_right_oligo</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">lowest_tm_overlap_left</span> <span class="o">==</span> <span class="n">oligo_size</span><span class="p">:</span>
+                <span class="n">increase_left_oligo</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c"># Increase the smaller of the two oligos or,</span>
+                <span class="c"># if the same size, increase the one on the left</span>
+                <span class="c"># This biases the result but ensures it is deterministic</span>
+                <span class="k">if</span> <span class="n">lowest_tm_overlap_left</span> <span class="o">&gt;</span> <span class="n">lowest_tm_overlap_right</span><span class="p">:</span>
+                    <span class="n">increase_left_oligo</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">increase_right_oligo</span><span class="p">()</span>
+
+            <span class="c"># Recalculate oligos from start and end indices</span>
+            <span class="n">oligos</span> <span class="o">=</span> <span class="p">[</span><span class="n">seq</span><span class="p">[</span><span class="n">oligo_start</span><span class="p">[</span><span class="n">x</span><span class="p">]:</span><span class="n">oligo_e</span><span class="p">[</span><span class="n">x</span><span class="p">]]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">oligo_n</span><span class="p">)]</span>
+            <span class="n">maxed</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="n">oligo_size</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">oligos</span><span class="p">]</span>
+            <span class="n">threshold_unmet</span> <span class="o">=</span> <span class="nb">any</span><span class="p">([</span><span class="n">x</span> <span class="o">&lt;=</span> <span class="n">tm</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">overlap_tms</span><span class="p">])</span>
+
+        <span class="n">oligo_n</span> <span class="o">+=</span> <span class="n">oligo_increment</span>
+
+    <span class="k">if</span> <span class="n">start_5</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">oligos</span><span class="p">))</span> <span class="k">if</span> <span class="n">x</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]:</span>
+            <span class="n">r_oligo</span> <span class="o">=</span> <span class="n">reverse_complement</span><span class="p">(</span><span class="n">oligos</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">oligos</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">r_oligo</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">oligos</span><span class="p">))</span> <span class="k">if</span> <span class="n">x</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]:</span>
+            <span class="n">r_oligo</span> <span class="o">=</span> <span class="n">reverse_complement</span><span class="p">(</span><span class="n">oligos</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">oligos</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">r_oligo</span>
+
+    <span class="n">oligos</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">oligos</span><span class="p">]</span>
+    <span class="n">assembly_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;oligos&#39;</span><span class="p">:</span> <span class="n">oligos</span><span class="p">,</span>
+                     <span class="s">&#39;overlaps&#39;</span><span class="p">:</span> <span class="n">overlaps</span><span class="p">,</span>
+                     <span class="s">&#39;overlap_tms&#39;</span><span class="p">:</span> <span class="n">overlap_tms</span><span class="p">}</span>
+    <span class="k">return</span> <span class="n">assembly_dict</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pymbt 0.1a documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Nick Bolten.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

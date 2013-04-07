@@ -73,8 +73,20 @@ source: <a class="reference external" href="http://www.kazusa.or.jp/codon/">http
 <p>Wrapper for NUPACK 3.0.</p>
 <dl class="class">
 <dt id="pymbt.nupack.Nupack">
-<em class="property">class </em><tt class="descclassname">pymbt.nupack.</tt><tt class="descname">Nupack</tt><big>(</big><em>sequence_list</em>, <em>material</em><big>)</big><a class="reference internal" href="_modules/pymbt/nupack.html#Nupack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.nupack.Nupack" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pymbt.nupack.</tt><tt class="descname">Nupack</tt><big>(</big><em>sequence</em>, <em>material</em><big>)</big><a class="reference internal" href="_modules/pymbt/nupack.html#Nupack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.nupack.Nupack" title="Permalink to this definition">¶</a></dt>
 <dd><p>Contain sequence inputs and use NUPACK computation methods.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>sequence_list</strong> (<em>str.</em>) &#8211; Input sequences. Can also be list of sequences.</li>
+<li><strong>material</strong> (<em>str.</em>) &#8211; Input material type - &#8216;dna&#8217; or &#8216;rna&#8217;.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 <dl class="method">
 <dt id="pymbt.nupack.Nupack.close">
 <tt class="descname">close</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pymbt/nupack.html#Nupack.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.nupack.Nupack.close" title="Permalink to this definition">¶</a></dt>
@@ -90,9 +102,9 @@ source: <a class="reference external" href="http://www.kazusa.or.jp/codon/">http
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>max_complexes</strong> (<em>int.</em>) &#8211; maximum complex size (integer).</li>
-<li><strong>mfe</strong> (<em>bool.</em>) &#8211; include mfe calculations (boolean, defaults to True).</li>
-<li><strong>T</strong> (<em>float.</em>) &#8211; sets the temperature.</li>
+<li><strong>max_complexes</strong> (<em>int.</em>) &#8211; Maximum complex size (integer).</li>
+<li><strong>mfe</strong> (<em>bool.</em>) &#8211; Include mfe calculations (boolean, defaults to True).</li>
+<li><strong>T</strong> (<em>float.</em>) &#8211; Sets the temperature.</li>
 </ul>
 </td>
 </tr>
@@ -109,15 +121,15 @@ source: <a class="reference external" href="http://www.kazusa.or.jp/codon/">http
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>conc</strong> (<em>float or list.</em>) &#8211; the concentration of each species. Defaults to 0.5e-6.</li>
-<li><strong>max_complexes</strong> &#8211; maximum complex size.</li>
+<li><strong>conc</strong> (<em>float or list.</em>) &#8211; The concentration of each species. Defaults to 0.5e-6.</li>
+<li><strong>max_complexes</strong> &#8211; Maximum complex size.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
 <p>:type int.
-:param mfe: include mfe calculations.
+:param mfe: Include mfe calculations.
 :type bool.</p>
 </dd></dl>
 
@@ -129,7 +141,7 @@ source: <a class="reference external" href="http://www.kazusa.or.jp/codon/">http
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>T</strong> (<em>float.</em>) &#8211; temperature.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>T</strong> (<em>float.</em>) &#8211; Temperature in degrees C.</td>
 </tr>
 </tbody>
 </table>
@@ -143,7 +155,7 @@ source: <a class="reference external" href="http://www.kazusa.or.jp/codon/">http
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>T</strong> (<em>float.</em>) &#8211; sets the temperature.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>T</strong> (<em>float.</em>) &#8211; Sets the temperature in degrees C.</td>
 </tr>
 </tbody>
 </table>
@@ -160,10 +172,10 @@ source: <a class="reference external" href="http://www.kazusa.or.jp/codon/">http
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>inputs</strong> &#8211; list of sequences.</li>
-<li><strong>material</strong> (<em>str.</em>) &#8211; &#8216;dna&#8217; or &#8216;rna&#8217;.</li>
-<li><strong>cmd</strong> (<em>str.</em>) &#8211; command: &#8216;mfe&#8217;, &#8216;pairs&#8217;, &#8216;complexes&#8217;, or &#8216;concentrations&#8217;.</li>
-<li><strong>arguments</strong> (<em>str.</em>) &#8211; arguments for the command.</li>
+<li><strong>inputs</strong> &#8211; List of sequences.</li>
+<li><strong>material</strong> (<em>str.</em>) &#8211; Input material: &#8216;dna&#8217; or &#8216;rna&#8217;.</li>
+<li><strong>cmd</strong> (<em>str.</em>) &#8211; Command: &#8216;mfe&#8217;, &#8216;pairs&#8217;, &#8216;complexes&#8217;, or &#8216;concentrations&#8217;.</li>
+<li><strong>arguments</strong> (<em>str.</em>) &#8211; Arguments for the command.</li>
 </ul>
 </td>
 </tr>
@@ -190,13 +202,13 @@ source: <a class="reference external" href="http://www.kazusa.or.jp/codon/">http
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>seq</strong> (<em>str.</em>) &#8211; input sequence.</li>
-<li><strong>tm</strong> (<em>float.</em>) &#8211; ideal primer Tm.</li>
-<li><strong>min_len</strong> (<em>int.</em>) &#8211; minimum primer length.</li>
-<li><strong>tm_errorminus</strong> (<em>float.</em>) &#8211; allowed Tm undershoot.</li>
-<li><strong>tm_errorplus</strong> (<em>float.</em>) &#8211; allowed Tm overshoot.</li>
-<li><strong>endGC</strong> (<em>bool.</em>) &#8211; obey the &#8216;end on G or C&#8217; rule.</li>
-<li><strong>overhang</strong> (<em>str.</em>) &#8211; append the primer to this overhang sequence.</li>
+<li><strong>seq</strong> (<em>str.</em>) &#8211; Input sequence.</li>
+<li><strong>tm</strong> (<em>float.</em>) &#8211; Ideal primer Tm in degrees C.</li>
+<li><strong>min_len</strong> (<em>int.</em>) &#8211; Minimum primer length.</li>
+<li><strong>tm_errorminus</strong> (<em>float.</em>) &#8211; Allowed Tm undershoot.</li>
+<li><strong>tm_errorplus</strong> (<em>float.</em>) &#8211; Allowed Tm overshoot.</li>
+<li><strong>endGC</strong> (<em>bool.</em>) &#8211; Obey the &#8216;end on G or C&#8217; rule.</li>
+<li><strong>overhang</strong> (<em>str.</em>) &#8211; Append the primer to this overhang sequence.</li>
 </ul>
 </td>
 </tr>
@@ -213,9 +225,9 @@ source: <a class="reference external" href="http://www.kazusa.or.jp/codon/">http
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>seq</strong> (<em>str.</em>) &#8211; input sequence.</li>
-<li><strong>overhangs</strong> (<em>list.</em>) &#8211; list of overhang sequences.</li>
-<li><strong>**kwargs</strong> &#8211; <p>keyword arguments to feed to design_primer.</p>
+<li><strong>seq</strong> (<em>str.</em>) &#8211; Input sequence.</li>
+<li><strong>overhangs</strong> (<em>list.</em>) &#8211; List of overhang sequences.</li>
+<li><strong>**kwargs</strong> &#8211; <p>Keyword arguments to feed to design_primer.</p>
 </li>
 </ul>
 </td>
@@ -230,21 +242,47 @@ source: <a class="reference external" href="http://www.kazusa.or.jp/codon/">http
 <dl class="function">
 <dt id="pymbt.sequence_manipulation.check_alphabet">
 <tt class="descclassname">pymbt.sequence_manipulation.</tt><tt class="descname">check_alphabet</tt><big>(</big><em>sequence</em>, <em>material='dna'</em><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_manipulation.html#check_alphabet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_manipulation.check_alphabet" title="Permalink to this definition">¶</a></dt>
-<dd><p>Verifies that a given sequence is made only of DNA, RNA, or peptides</p>
+<dd><p>Verify that a given string is made only of DNA, RNA, or peptide characters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>sequence</strong> (<em>str.</em>) &#8211; DNA, RNA, or peptide sequence.</li>
+<li><strong>material</strong> &#8211; Input material - &#8216;dna&#8217;, &#8216;rna&#8217;, or &#8216;pep&#8217;.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="pymbt.sequence_manipulation.reverse_complement">
 <tt class="descclassname">pymbt.sequence_manipulation.</tt><tt class="descname">reverse_complement</tt><big>(</big><em>sequence</em><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_manipulation.html#reverse_complement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_manipulation.reverse_complement" title="Permalink to this definition">¶</a></dt>
-<dd><p>Simple reverse complement function</p>
+<dd><p>Reverse complement a DNA sequence.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sequence</strong> (<em>str.</em>) &#8211; DNA sequence.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="pymbt.sequence_manipulation.translate_seq">
 <tt class="descclassname">pymbt.sequence_manipulation.</tt><tt class="descname">translate_seq</tt><big>(</big><em>sequence</em><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_manipulation.html#translate_seq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_manipulation.translate_seq" title="Permalink to this definition">¶</a></dt>
-<dd><p>Input is DNA, output is peptide.
-This script expects only peptide sequence.
-If it doesn&#8217;t find that, it errors</p>
+<dd><p>Translate a DNA sequence into peptide sequence.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sequence</strong> (<em>str.</em>) &#8211; DNA sequence.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -254,11 +292,24 @@ If it doesn&#8217;t find that, it errors</p>
 using the Finnzymes modified Breslauer 1986 parameters.</p>
 <dl class="function">
 <dt id="pymbt.tm_calc.calc_tm">
-<tt class="descclassname">pymbt.tm_calc.</tt><tt class="descname">calc_tm</tt><big>(</big><em>s</em>, <em>dnac=50</em>, <em>saltc=50</em>, <em>method='finnzymes'</em><big>)</big><a class="reference internal" href="_modules/pymbt/tm_calc.html#calc_tm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.tm_calc.calc_tm" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pymbt.tm_calc.</tt><tt class="descname">calc_tm</tt><big>(</big><em>sequence</em>, <em>dnac=50</em>, <em>saltc=50</em>, <em>method='finnzymes'</em><big>)</big><a class="reference internal" href="_modules/pymbt/tm_calc.html#calc_tm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.tm_calc.calc_tm" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns DNA/DNA tm using nearest neighbor thermodynamics.</p>
-<p>dnac is DNA concentration in nM
-saltc is salt concentration in mM.
-par is the parameter set to use (finnzymes, santaluciai, sugimoto)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>sequence</strong> (<em>str.</em>) &#8211; DNA sequence.</li>
+<li><strong>dnac</strong> (<em>float.</em>) &#8211; DNA concentration in nM.</li>
+<li><strong>saltc</strong> (<em>float.</em>) &#8211; Salt concentration in mM.</li>
+<li><strong>method</strong> &#8211; computation method to use. Only available method is</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>&#8216;finnzymes&#8217;.
+:type method: str.</p>
 </dd></dl>
 
 </div>

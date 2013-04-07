@@ -283,3 +283,6 @@ epub_copyright = u'2013, Nick Bolten'
 
 # Allow duplicate toc entries.
 #epub_tocdup = True
+
+# automatically document __init__
+autoclass_content = 'both'

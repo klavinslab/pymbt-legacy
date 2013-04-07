@@ -6,7 +6,13 @@ from pymbt.common_data import codons
 
 
 def reverse_complement(sequence):
-    '''Simple reverse complement function'''
+    '''
+    Reverse complement a DNA sequence.
+
+    :param sequence: DNA sequence.
+    :type sequence: str.
+
+    '''
     check_alphabet(sequence, material='dna')
     submat = maketrans('ATGCNatgcn', 'TACGNtacgn')
     sub_sequence = translate(sequence, submat)
@@ -15,7 +21,15 @@ def reverse_complement(sequence):
 
 
 def check_alphabet(sequence, material='dna'):
-    '''Verifies that a given sequence is made only of DNA, RNA, or peptides'''
+    '''
+    Verify that a given string is made only of DNA, RNA, or peptide characters.
+
+    :param sequence: DNA, RNA, or peptide sequence.
+    :type sequence: str.
+    :param material: Input material - 'dna', 'rna', or 'pep'.
+    :type sequence: str.
+
+    '''
     errs = {'dna': 'DNA', 'rna': 'RNA', 'pep': 'peptide'}
     if material == 'dna' or material == 'rna' or material == 'pep':
         alphabet = alphabets[material]
@@ -30,9 +44,13 @@ def check_alphabet(sequence, material='dna'):
 
 
 def translate_seq(sequence):
-    '''Input is DNA, output is peptide.
-    This script expects only peptide sequence.
-    If it doesn't find that, it errors'''
+    '''
+    Translate a DNA sequence into peptide sequence.
+
+    :param sequence: DNA sequence.
+    :type sequence: str.
+
+    '''
     # Split into 3-letter chunks
     sequence = check_alphabet(sequence, material='dna')
     # Make sure it's divisible by 3

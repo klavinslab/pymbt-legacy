@@ -13,15 +13,21 @@ from math import log
 from pymbt.sequence_manipulation import reverse_complement
 
 
-def calc_tm(s,
-            dnac=50,
-            saltc=50,
-            method='finnzymes'):
-    '''Returns DNA/DNA tm using nearest neighbor thermodynamics.
+def calc_tm(sequence, dnac=50, saltc=50, method='finnzymes'):
+    '''
+    Returns DNA/DNA tm using nearest neighbor thermodynamics.
 
-    dnac is DNA concentration in nM
-    saltc is salt concentration in mM.
-    par is the parameter set to use (finnzymes, santaluciai, sugimoto)'''
+    :param sequence: DNA sequence.
+    :type sequence: str.
+    :param dnac: DNA concentration in nM.
+    :type dnac: float.
+    :param saltc: Salt concentration in mM.
+    :type saltc: float.
+    :param method: computation method to use. Only available method is
+    'finnzymes'.
+    :type method: str.
+
+    '''
 
     # Universal gas constant
     R = 1.9872
@@ -52,29 +58,31 @@ def calc_tm(s,
             else:
                 return count
 
-    s = s.upper()
+    # shorter name
+    seq = sequence
+    seq = seq.upper()
     # Sum up the nearest-neighbor enthalpy and entropy counts*par
     H_keys = delta_H_par.keys()
     S_keys = delta_S_par.keys()
-    dh = sum([collect_pairs(s, x) * delta_H_par[x] for x in H_keys])
-    ds = sum([collect_pairs(s, x) * delta_S_par[x] for x in S_keys])
+    dh = sum([collect_pairs(seq, x) * delta_H_par[x] for x in H_keys])
+    ds = sum([collect_pairs(seq, x) * delta_S_par[x] for x in S_keys])
 
     # Error corrections
     # Initiation for seqs with a G-C pair vs only A-T
-    if 'G' in s or 'C' in s:
+    if 'G' in seq or 'C' in seq:
         dh += delta_H_par_err['initGC']
         ds += delta_S_par_err['initGC']
-    at_count = [x for x in s if x == 'A' or x == 'T']
-    if len(at_count) == len(s):
+    at_count = [x for x in seq if x == 'A' or x == 'T']
+    if len(at_count) == len(seq):
         dh += delta_H_par_err['initAT']
         ds += delta_S_par_err['initAT']
     # 5' terminal T-A
-    if s.startswith('T'):
+    if seq.startswith('T'):
         dh += delta_H_par_err['5termT']
         ds += delta_S_par_err['5termT']
     # Correction for self-complementary sequences
     # The meaning of 'self-complementary' is not well-defined...
-    if s == reverse_complement(s):
+    if seq == reverse_complement(seq):
         dh += delta_H_par_err['symm']
         ds += delta_S_par_err['symm']
 
@@ -89,7 +97,7 @@ def calc_tm(s,
         tm = -dh / (R * log(dnac / 16) - ds) + sc - 273.15
     if method == 'santalucia98':
         k = dnac / 4.0
-        ds = ds - 0.368 * (len(s) - 1) * log(saltc)
+        ds = ds - 0.368 * (len(seq) - 1) * log(saltc)
         tm = -dh / ((R * log(k)) - ds) - 273.15
 
     return tm

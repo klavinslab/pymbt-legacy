@@ -16,25 +16,16 @@ from pymbt.oligo_synthesis.structure_windows import context_walk
 
 
 class GeneSplitter:
-    '''A class that splits a large (~<10kb) sequence into smaller
-    ones that are easier to clone, either via oligo assembly or PCR'''
+    '''Split a large (~<10kb) sequence into smaller ones that are easier to
+    clone, either via oligo assembly or PCR. Store and write the results.'''
+    def __init__(self, seq, **kwargs):
+        '''
+        :param seq: Input sequence.
+        :type seq: str.
+        :param **kwargs: Keyword arguments to pass to split_gene.
+        '''
 
-    def __init__(self,
-                 seq,
-                 max_len=1100,
-                 min_context=200,
-                 core=60,
-                 context=90,
-                 step=10,
-                 force_exhaustive=False):
-
-        split = split_gene(seq,
-                           max_len=max_len,
-                           min_context=min_context,
-                           core=core,
-                           context=context,
-                           step=step,
-                           force_exhaustive=force_exhaustive)
+        split = split_gene(seq, kwargs)
         self.sequences = split['sequences']
         self.scores = split['scores']
         self.overlaps = split['overlaps']
@@ -49,14 +40,29 @@ class GeneSplitter:
                 cr.writerow([x, sta[i], sto[i], self.scores[i]])
 
 
-def split_gene(seq,
-               max_len=1100,
-               min_context=200,
-               core=60,
-               context=90,
-               step=10,
-               force_exhaustive=False):
+def split_gene(seq, max_len=1100, min_context=200, core=60, context=90,
+               step=10, force_exhaustive=False):
+    '''
+    Split a large (~<10kb) sequence into smaller ones that are easier to clone,
+    either via oligo assembly or PCR.
 
+    :param max_len: Maximum length of each split-up output sequence.
+    :type max_len: int.
+    :param min_context: Sets minimum size of each potential overlap
+    region to evaluate.
+    :type min_context: int.
+    :param core: Window size.
+    :type core: int.
+    :param context: Amount (in bp) of context to evaluate on either side
+    of the window.
+    :type context: int.
+    :param step: Step size for the windows.
+    :type step: int.
+    :param force_exhaustive: Forces algorithm to find global optimum
+    exhaustively. Can dramatically slow down the computation.
+    :type force_exhaustive: bool.
+
+    '''
     seq_len = len(seq)
     n = 1
     while True:
@@ -133,11 +139,19 @@ def split_gene(seq,
             'scores': scores}
 
 
-def find_best(walked, max_distance, seq_len, force_exhaustive=False):
-    '''Input to find_best is output of 'walked' adjusted for absolute sequence
-    position.
-    Output is indices of overlaps + score (the same format as entry of walked
-    list)
+def find_best(walked, max_len, seq_len, force_exhaustive=False):
+    '''
+    Search for the optimal overlap combination.
+
+    :param walked: list of lists of the output to context_walk, representing
+    a collection of each potential overlap's evaluated windows.
+    :type walked: list.
+    :param max_len: Maximum length of each split-up output sequence.
+    :type max_len: int.
+    :param force_exhaustive: Forces algorithm to find global optimum
+    exhaustively. Can dramatically slow down the computation.
+    :type force_exhaustive: bool.
+
     '''
 
     # sort results by score
@@ -156,11 +170,11 @@ def find_best(walked, max_distance, seq_len, force_exhaustive=False):
         for i in range(len(starts) - 1):
             working_stops = []
             for x in stops[i]:
-                if (x - current_start) <= max_distance:
+                if (x - current_start) <= max_len:
                     working_stops.append(x)
             next_starts = []
             for j, x in enumerate(stops[i]):
-                if (x - current_start) <= max_distance:
+                if (x - current_start) <= max_len:
                     next_starts.append(starts[i][j])
             if not working_stops:
                 return False
@@ -170,7 +184,7 @@ def find_best(walked, max_distance, seq_len, force_exhaustive=False):
 
     def check_useable(tuple_in):
         for i in range(len(tuple_in) - 1):
-            if tuple_in[i + 1][1] - tuple_in[i][0] > max_distance:
+            if tuple_in[i + 1][1] - tuple_in[i][0] > max_len:
                 return False
         return True
 
@@ -183,7 +197,7 @@ def find_best(walked, max_distance, seq_len, force_exhaustive=False):
         if not spannable(current):
             m += 1
         else:
-            remove_nonspanning(current, max_distance)
+            remove_nonspanning(current, max_len)
             n_combos = 1
             for x in current:
                 n_combos *= len(x)
@@ -220,9 +234,20 @@ def find_best(walked, max_distance, seq_len, force_exhaustive=False):
 
 
 def remove_from_left(pre_combo_list, max_len):
-    '''Traverses list of lists of (start, end, score) tuples of the type
+    '''
+    Traverse list of lists of (start, end, score) tuples of the type
     returned by context_walk. Removes any entries that cannot bridge the
-    gap to the next set of overlaps (distance greater than max_distance)'''
+    gap to the next set of overlaps (distance greater than max_distance).
+    This greatly speeds up computation time by removing impossible combinations
+    before they are evaluated computationally.
+
+    :param pre_combo_list: list of lists of the output to context_walk,
+    representing a collection of each potential overlap's evaluated windows.
+    :type pre_combo_list: list.
+    :param max_len: Maximum length of each split-up output sequence.
+    :type max_len: int.
+
+    '''
 
     pcl = pre_combo_list
     pcl_new = [x for x in pcl]
@@ -239,9 +264,18 @@ def remove_from_left(pre_combo_list, max_len):
 
 
 def remove_from_right(pre_combo_list, max_len):
-    '''Does the same thing as remove_from_left but in the reverse direction.
+    '''
+    Does the same thing as remove_from_left but in the reverse direction.
     These two functions have to be paired repeatedly in order to fully trim
-    the sequence (remove_nonspanning will do this)'''
+    the sequence (remove_nonspanning will do this)
+
+    :param pre_combo_list: list of lists of the output to context_walk,
+    representing a collection of each potential overlap's evaluated windows.
+    :type pre_combo_list: list.
+    :param max_len: Maximum length of each split-up output sequence.
+    :type max_len: int.
+
+    '''
 
     pcl = pre_combo_list
     pcl_new = [x for x in pcl]
@@ -262,8 +296,17 @@ def remove_from_right(pre_combo_list, max_len):
 
 
 def remove_nonspanning(pre_combo_list, max_len):
-    '''Trims list of lists of (start, end, score) tuples to those
-    that actually have a chance of spanning the sequence'''
+    '''
+    Trims list of lists of (start, end, score) tuples to those
+    that actually have a chance of spanning the sequence
+
+    :param pre_combo_list: list of lists of the output to context_walk,
+    representing a collection of each potential overlap's evaluated windows.
+    :type pre_combo_list: list.
+    :param max_len: Maximum length of each split-up output sequence.
+    :type max_len: int.
+
+    '''
 
     both_false = False
     while not both_false:

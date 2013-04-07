@@ -22,11 +22,21 @@ from pymbt.sequence_manipulation import check_alphabet
 
 
 class OrthoSeq:
-    def __init__(self,
-                 prot_seq,
-                 T=50,
-                 min_score=0.95,
-                 n_attempt=1e5):
+    '''Class to calculate, store, and write orthogonality-optimized peptide
+    sequences.'''
+    def __init__(self, prot_seq, T=50, min_score=0.95, n_attempt=1e5):
+        '''
+        :param prot_seq: Input protein sequence.
+        :type prot_seq: str.
+        :param T: Temperature at which to evaluate for orthogonality.
+        :type T: float.
+        :param min_score: Score setpoint - stop optimization once this score
+        has been reched.
+        :type min_score: float.
+        :param n_attempt: Attempt timeout - sets maximum number of times to
+        attempt optimization without seeing an improvement in score.
+
+        '''
         # Make sure sequence only includes amino acids
         check_alphabet(prot_seq, material='pep')
         # Input sequence - a peptide
@@ -40,25 +50,30 @@ class OrthoSeq:
         # attempts that fail to increase the primary score
         self.n_attempt = n_attempt
 
-    def start(self,
-              n,
-              m=0,
-              resume=False,
-              wholemat=False,
-              report=True,
-              weighted=True,
-              freq_threshold=0.5):
+    def start(self, n, m=0, resume=False, wholemat=False, report=True,
+              weighted=True, freq_threshold=0.5):
+        '''
+        Start the optimization.
 
-        '''n: is the final number of orthogonal sequences to output.
-           m: is the number of new sequences to try out on each iteration.
-           resume: specifies a path to a dir from a previous run, and will
-           cause start() to pick up where it left off.
-           wholemat: if True, m worst oligos are thrown out on each iteration.
-                     if False, single best is kept. There is a difference
-                     but it should be better documented.
-           weighted: boolean for whether codons should be weighted.
-           freq_threshold: relative frequency threshold below which codons
-                     should not be used.
+        :param n: The final number of orthogonal sequences to output.
+        :type n: int.
+        :param m: The number of new sequences to try out on each iteration.
+        :type m: int.
+        :param resume: A path to a dir from a previous run, and will
+        cause start() to pick up where it left off.
+        :type resume: str.
+        :param wholemat: if True, m worst oligos are thrown out on each
+        iteration. if False, single best is kept. There is a difference but it
+        should be better documented.
+        :type wholemat: bool.
+        :param weighted: Determines whether codons generated should be
+        weighted (codon-optimized).
+        :type weighted: bool.
+        :param freq_threshold: relative frequency threshold below which codons
+        should not be used. Enables avoidance of very rare codons (codon
+        optimization).
+        :type freq_threshold: float.
+
         '''
         # Concentrations at which simulations are done
         conc = 5e-7
@@ -183,16 +198,29 @@ class OrthoSeq:
 
         return oligo_list
 
-    def log(self,
-            loop_count,
-            n_attempted,
-            mean_score,
-            min_score,
-            met,
-            timer,
+    def log(self, loop_count, n_attempted, mean_score, min_score, met, timer,
             oligo_list):
-        '''provides data trail and allows resuming/passing along
-           an extended attempt'''
+        '''
+        Provides data trail and allows resuming/passing along an extended
+        attempt.
+
+        :param loop_count: Current loop number.
+        :type loop_count: int.
+        :param n_attempted: Number of times optimization has been consecutively
+        attempted without improving the score.
+        :type n_attempted: int.
+        :param mean_score: Mean of the unboundedness score.
+        :type mean_score: float.
+        :param min_score: Min of the unboundedness score.
+        :type min_score: float.
+        :param met: Number of oligos that have met the score threshold.
+        :type met: int.
+        :param timer: Length of time for the calculation so far in seconds.
+        :type timer: float.
+        :param oligo_list: List of the current best oligos.
+        :type oligo_list: list.
+
+        '''
 
         # Initial file setup for logging
         if loop_count == 1:
@@ -237,6 +265,14 @@ class OrthoSeq:
 
 
 def _n_p_nupack(sequence_list):
+    '''
+    Runs nupack modules 'concentrations' on a list of sequences. Defined at top
+    level to enable pickling for multiprocessing.
+
+    :param sequence_list: Sequences to evaluate.
+    :type sequence_list: list.
+
+    '''
     all_concs = []
     for x in sequence_list:
         n_np = Nupack(x, 'dna')
@@ -247,6 +283,15 @@ def _n_p_nupack(sequence_list):
 
 
 def _monomers_concentration(input):
+    '''
+    Calculates the unbound (monomer) concentrations for a given concentration
+    of oligos.
+
+    :param input: Tuple of a list of sequences and their concentrations,
+    respectively.
+    :type input: tuple.
+
+    '''
     sequence_list = input[0]
     conc = input[1]
 
@@ -265,8 +310,23 @@ def _monomers_concentration(input):
 
 
 def _gen_oligo(prot_seq, min_score, freq_threshold, weighted, conc):
-    # Generate oligos until one has a self-self interaction below
-    # the threshold.
+    '''
+    Generate oligos until one has a self-self interaction below the threshold.
+
+    :param prot_seq: Protein sequence.
+    :type prot_seq: str.
+    :param min_score: Score setpoint - stop optimization once this score
+    has been reched.
+    :type min_score: float.
+    :param freq_threshold: relative frequency threshold below which codons
+    should not be used. Enables avoidance of very rare codons (codon
+    optimization).
+    :type freq_threshold: float.
+    :param weighted: Determines whether codons generated should be
+    weighted (codon-optimized).
+    :type weighted: bool.
+
+    '''
     threshold_met = False
 
     while not threshold_met:
@@ -296,6 +356,18 @@ def _gen_oligo(prot_seq, min_score, freq_threshold, weighted, conc):
 
 
 def _multiprocessing_progress(mp_iterator, total_jobs, interval=1):
+    '''
+    Reports progress of running multiprocessing command.
+
+    :param mp_iterator: Multiprocessing instance.
+    :type mp_iterator: instance.
+    :total_jobs: Total number of jobs the multiprocessing instance will run.
+    :type total_jobs: int.
+    :param interval: Length of time between updates.
+    :type interval: float.
+
+    '''
+
     time_start = time.time()
     while (True):
         completed = mp_iterator._index
@@ -316,6 +388,15 @@ def _multiprocessing_progress(mp_iterator, total_jobs, interval=1):
 
 
 def remove_redundant(seq_list, oligo_params):
+    '''
+    Removes and regenerates sequences that appear more than once in a list.
+
+    :param seq_list: Sequences.
+    :type seq_list: str.
+    :param oligo_params: parameters to be passed to _gen_oligo.
+    :type oligo_params: tuple.
+
+    '''
     while True:
         counted = collections.Counter(seq_list)
         redundant = []
@@ -337,6 +418,15 @@ def remove_redundant(seq_list, oligo_params):
 
 
 def unflatten(input_list, n):
+    '''
+    Given a flat list, makes a new list of n-length lists out of it, in order.
+
+    :param input_list: List to flatten.
+    :type input_list: list.
+    :param n: Group size.
+    :type n: int.
+
+    '''
     list_copy = [x for x in input_list]
     unflattened = []
     for i in range(len(list_copy) / n):

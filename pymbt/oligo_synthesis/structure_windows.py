@@ -2,16 +2,22 @@ from pymbt.sequence_manipulation import reverse_complement
 from pymbt.nupack import nupack_multiprocessing
 
 
-def context_walk(seq, core_len, context_len, step, report=False):
-    '''Generates context-dependent 'non-boundedness' series of scores for
-       a given DNA sequence. Uses NUPACK's pair probabilities to derive
-       the score.
-           - seq:         input sequence.
-           - core_len:    window size in base pairs.
-           - context_len: the number of bases of context to use when analyzing
-                          each window.
-           - step:        the number of base pairs to move for each new window.
-       '''
+def context_walk(seq, core_len, context_len, step):
+    '''
+    Generate context-dependent 'non-boundedness' series of scores for a given
+    DNA sequence. Uses NUPACK's pair probabilities to derive the score.
+
+    :param seq: Input sequence.
+    :type seq: str.
+    :param core_len: Window size in base pairs.
+    :type core_len: int.
+    :param context_len: The number of bases of context to use when analyzing
+    each window.
+    :type context_len: int.
+    :param step: The number of base pairs to move for each new window.
+    :type step: int.
+
+    '''
     # split into sections. not sophisticated
     # variable names are obscure
     adjusted = len(seq) - context_len - core_len

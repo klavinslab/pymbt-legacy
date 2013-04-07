@@ -1,15 +1,22 @@
-# Does needleman-wunsch alignment using emboss needle
-# Writes to temp file, returns alignment object
+'''Needleman-Wunsch alignment using emboss needle.'''
 from tempfile import mkdtemp
 from shutil import rmtree
-
 from Bio.Emboss.Applications import NeedleCommandline
 from Bio.Emboss.Applications import NeedleallCommandline
 from Bio import AlignIO
 
 
 def needle(seq1, seq2):
-    '''Needleman-Wunsch alignment'''
+    '''
+    Do Needleman-Wunsch alignment.
+
+    :param seq1: First sequence.
+    :type seq1: str.
+    :param seq2: Second sequence.
+    :type seq2: str.
+
+    '''
+
     workdir = mkdtemp()
     aseq_handle = open(workdir + '/aseq.fasta', 'w')
     aseq_handle.write('>seq1\n')
@@ -37,8 +44,17 @@ def needle(seq1, seq2):
     return align, score
 
 
+# TODO: figure out what this function was supposed to do
 def needleall(seq1, seq2s):
-    '''Needleman-Wunsch alignment'''
+    '''
+    Do Needleman-Wunsch alignment using EMBOSS NeedleAll.
+
+    :param seq1: First sequence.
+    :type seq1: str.
+    :param seq2s: List of second sequences to align with the seq1.
+    :type seq2s: list.
+
+    '''
     workdir = mkdtemp()
     aseq_handle = open(workdir + '/aseq.fasta', 'w')
     aseq_handle.write('>seq1\n')
