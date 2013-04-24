@@ -3,8 +3,6 @@
    To increase size, need to optimize search method and take steps to reduce
    memory usage (write to files and iterate/queue)'''
 
-# TODO: Many parts of the while loop are repetitive
-
 import csv
 import collections
 from datetime import datetime
@@ -12,7 +10,6 @@ from itertools import combinations
 import os
 import socket
 import time
-
 from pymbt.nupack import nupack_multiprocessing
 from pymbt.nupack import Nupack
 from pymbt.sequence_generation import random_codons
@@ -24,25 +21,36 @@ from pymbt.sequence_manipulation import check_alphabet
 class OrthoSeq:
     '''Class to calculate, store, and write orthogonality-optimized peptide
     sequences.'''
-    def __init__(self, prot_seq, T=50, min_score=0.95, n_attempt=1e5):
+
+    def __init__(self, prot_seq, oligo_n, candidates=0, temp=50,
+                 min_score=0.95, n_attempt=1e5):
         '''
         :param prot_seq: Input protein sequence.
-        :type prot_seq: str.
-        :param T: Temperature at which to evaluate for orthogonality.
-        :type T: float.
+        :type prot_seq: str
+        :param oligo_n: The final number of orthogonal sequences to output.
+        :type oligo_n: int
+        :param candidates: The number of new sequences to try out on each
+                           iteration.
+        :type candidates: int
+        :param temp: Temperature at which to evaluate for orthogonality.
+        :type temp: float
         :param min_score: Score setpoint - stop optimization once this score
-        has been reched.
-        :type min_score: float.
+                          has been reched.
+        :type min_score: float
         :param n_attempt: Attempt timeout - sets maximum number of times to
-        attempt optimization without seeing an improvement in score.
+                          attempt optimization without seeing an improvement in
+                          score
 
         '''
+
         # Make sure sequence only includes amino acids
         check_alphabet(prot_seq, material='pep')
-        # Input sequence - a peptide
+
+        # Attributes
         self.prot_seq = prot_seq
-        # Temp at which to evaluate all reactions
-        self.T = T
+        self.oligo_n = oligo_n
+        self.candidates = candidates
+        self.temp = temp
         # Primary scoring metric - minimum average free monomer concentrations
         # - 0 would be fully-bound, 1 would be nothing bound
         self.min_score = min_score
@@ -50,52 +58,45 @@ class OrthoSeq:
         # attempts that fail to increase the primary score
         self.n_attempt = n_attempt
 
-    def start(self, n, m=0, resume=False, wholemat=False, report=True,
-              weighted=True, freq_threshold=0.5):
+    def start(self, resume=False, report=True, weighted=True,
+              freq_threshold=0.5, oligo_conc=5e-7):
         '''
         Start the optimization.
 
-        :param n: The final number of orthogonal sequences to output.
-        :type n: int.
-        :param m: The number of new sequences to try out on each iteration.
-        :type m: int.
         :param resume: A path to a dir from a previous run, and will
-        cause start() to pick up where it left off.
-        :type resume: str.
-        :param wholemat: if True, m worst oligos are thrown out on each
-        iteration. if False, single best is kept. There is a difference but it
-        should be better documented.
-        :type wholemat: bool.
+                       cause start() to pick up where it left off.
+        :type resume: str
+        :param report: report multiprocessing progress.
+        :type report: bool
         :param weighted: Determines whether codons generated should be
-        weighted (codon-optimized).
-        :type weighted: bool.
+                         weighted (codon-optimized).
+        :type weighted: bool
         :param freq_threshold: relative frequency threshold below which codons
-        should not be used. Enables avoidance of very rare codons (codon
-        optimization).
-        :type freq_threshold: float.
+                               should not be used. Enables avoidance of very
+                               rare codons (codon optimization).
+        :type freq_threshold: float
 
         '''
-        # Concentrations at which simulations are done
-        conc = 5e-7
+
         # Arguments for _gen_oligo sequence generation
         oligo_args = (self.prot_seq,
                       self.min_score,
                       freq_threshold,
                       weighted,
-                      conc)
+                      oligo_conc)
         # Generate n oligos that meet score threshold
         # If there's a list of oligos to resume improving, start using it
         if resume:
-            if len(resume) != n:
+            if len(resume) != self.oligo_n:
                 raise Exception('Number of sequences to resume doesn\'t match\
                                  setting of \'n\'.')
-            for x in resume:
-                if type(x) != str:
+            for oligo in resume:
+                if type(oligo) != str:
                     raise Exception('\'resume\' input isn\'t strings!')
             oligo_list = resume
         # If not, generate initial set of oligos
         else:
-            oligo_list = [_gen_oligo(*oligo_args) for x in range(n)]
+            oligo_list = [_gen_oligo(*oligo_args) for x in range(self.oligo_n)]
             oligo_list = remove_redundant(oligo_list, oligo_args)
         time_start = time.time()
         loop_count = 0
@@ -106,12 +107,13 @@ class OrthoSeq:
         while True:
             loop_count += 1
             # Generate new oligo(s) to test in combination with the rest
-            new_oligos = [_gen_oligo(*oligo_args) for x in range(m)]
+            new_oligos = [_gen_oligo(*oligo_args) for x in
+                          range(self.candidates)]
             oligo_list += new_oligos
             # If two or more oligos are the same, replace with unique ones
             oligo_list = remove_redundant(oligo_list, oligo_args)
             # Generate all combinations - (m+n) choose n
-            combos = [list(x) for x in combinations(oligo_list, n)]
+            combos = [list(x) for x in combinations(oligo_list, self.oligo_n)]
 
             # For every combination of length m, generate m new lists where
             # all but one of the oligos is reverse-complemented.
@@ -128,24 +130,25 @@ class OrthoSeq:
             np_concs_raw = nupack_multiprocessing(reversed_combos,
                                                   'dna',
                                                   'concentrations',
-                                                  {'max_complexes': 2})
+                                                  {'max_complexes': 2,
+                                                   'report': report})
             # just the concentrations list from each entry
             np_concs = [x['concentration'] for x in np_concs_raw]
             # just the types list from each entry
             np_types = [x['types'] for x in np_concs_raw]
             # the monomer concentrations from each entry
             mon_concs = []
-            for i, x in enumerate(np_types):
+            for i, np_type in enumerate(np_types):
                 # if sum of the list is 1, that means it's a monomer conc
                 # (e.g. [1, 0, 0, 0])
                 temp_list = []
-                for j, v in enumerate(x):
-                    if sum(v) == 1:
+                for j, vals in enumerate(np_type):
+                    if sum(vals) == 1:
                         temp_list.append(np_concs[i][j])
                 mon_concs.append(temp_list)
 
             # Group by combo
-            grouped_mon_concs = unflatten(mon_concs, m)
+            grouped_mon_concs = unflatten(mon_concs, self.candidates)
 
             # Find the worst binder within each of the m
             # rev-comp variations per combo
@@ -159,15 +162,15 @@ class OrthoSeq:
             best_combo = combos[best_index]
 
             # Scoring - mean min free conc, minimum free conc
-            mean_score = (sum(best_concs) / len(best_concs)) / conc
-            min_score = min(best_concs) / conc
+            score_mean = (sum(best_concs) / len(best_concs)) / oligo_conc
+            score_min = min(best_concs) / oligo_conc
             met = 0
-            for x in best_concs:
-                if (x / conc) >= self.min_score:
+            for conc in best_concs:
+                if (conc / oligo_conc) >= self.min_score:
                     met += 1
 
             # Did the minimum score improve? If not, increment counter
-            if min_score == last_min_score:
+            if score_min == last_min_score:
                 n_attempted += 1
             else:
                 n_attempted = 0
@@ -177,48 +180,48 @@ class OrthoSeq:
             timer = time.time() - time_start
 
             # Log
-            self.log(loop_count,
-                     n_attempted,
-                     mean_score,
-                     min_score,
-                     met,
-                     timer,
-                     oligo_list)
+            self._log(loop_count,
+                      n_attempted,
+                      score_mean,
+                      score_mean,
+                      met,
+                      timer,
+                      oligo_list)
 
             # Script stop decision:
             # Stop looping if either:
-            #   1. the threshold is met
-            #   2. the minimum score has stopped improving by n_attempt
+            #   the threshold is met
+            #   the minimum score has stopped improving by n_attempt
             if met == len(oligo_list):
                 break
             if n_attempted == self.n_attempt:
                 break
 
-            last_min_score = min_score
+            last_min_score = score_min
 
         return oligo_list
 
-    def log(self, loop_count, n_attempted, mean_score, min_score, met, timer,
-            oligo_list):
+    def _log(self, loop_count, n_attempted, score_mean, score_min, met, timer,
+             oligo_list):
         '''
         Provides data trail and allows resuming/passing along an extended
         attempt.
 
         :param loop_count: Current loop number.
-        :type loop_count: int.
+        :type loop_count: int
         :param n_attempted: Number of times optimization has been consecutively
-        attempted without improving the score.
-        :type n_attempted: int.
-        :param mean_score: Mean of the unboundedness score.
-        :type mean_score: float.
-        :param min_score: Min of the unboundedness score.
-        :type min_score: float.
+                            attempted without improving the score.
+        :type n_attempted: int
+        :param score_mean: Mean of the unboundedness score.
+        :type score_mean: float
+        :param score_min: Min of the unboundedness score.
+        :type score_min: float
         :param met: Number of oligos that have met the score threshold.
-        :type met: int.
+        :type met: int
         :param timer: Length of time for the calculation so far in seconds.
-        :type timer: float.
+        :type timer: float
         :param oligo_list: List of the current best oligos.
-        :type oligo_list: list.
+        :type oligo_list: list
 
         '''
 
@@ -234,8 +237,8 @@ class OrthoSeq:
             # Write out setup info file
             info_file = open(file_prefix + 'info.txt', 'w')
             info_csv = csv.writer(info_file, quoting=csv.QUOTE_MINIMAL)
-            info_csv.writerow(['sequence', 'oligo_n', 'oligo_m'])
-            info_csv.writerow([self.prot_seq, n, m])
+            info_csv.writerow(['sequence', 'oligo_n', 'candidates'])
+            info_csv.writerow([self.prot_seq, self.oligo_n, self.candidates])
             info_file.close()
 
             # Set up data log file
@@ -243,8 +246,8 @@ class OrthoSeq:
             data_csv = csv.writer(data_file, quoting=csv.QUOTE_MINIMAL)
             cols = ['loop',
                     'n_attempted',
-                    'mean_score',
-                    'min_score',
+                    'score_mean',
+                    'score_min',
                     'met',
                     'time']
             data_csv.writerow(cols)
@@ -259,8 +262,8 @@ class OrthoSeq:
         # Update the data log file
         data_file = open(file_prefix + 'data.csv', 'a')
         data_csv = csv.writer(data_file, quoting=csv.QUOTE_MINIMAL)
-        d = [loop_count, n_attempted, mean_score, min_score, met, timer]
-        data_csv.writerow(d)
+        data = [loop_count, n_attempted, score_mean, score_min, met, timer]
+        data_csv.writerow(data)
         data_file.close()
 
 
@@ -270,41 +273,40 @@ def _n_p_nupack(sequence_list):
     level to enable pickling for multiprocessing.
 
     :param sequence_list: Sequences to evaluate.
-    :type sequence_list: list.
+    :type sequence_list: list
 
     '''
+
     all_concs = []
-    for x in sequence_list:
-        n_np = Nupack(x, 'dna')
+    for sequence in sequence_list:
+        n_np = Nupack(sequence, 'dna')
         n_concs = n_np.concentrations(2)['concentration']
-        n_concs = n_concs[0:len(x)]
+        n_concs = n_concs[0:len(sequence)]
         all_concs.append(n_concs)
     return all_concs
 
 
-def _monomers_concentration(input):
+def _monomers_concentration(sequences, conc):
     '''
     Calculates the unbound (monomer) concentrations for a given concentration
     of oligos.
 
     :param input: Tuple of a list of sequences and their concentrations,
-    respectively.
-    :type input: tuple.
+                  respectively.
+    :type input: tuple
 
     '''
-    sequence_list = input[0]
-    conc = input[1]
 
     # Run nupack's 'concentrations'
-    np = Nupack(sequence_list, 'dna')
-    nc = np.concentrations(2, conc=conc, mfe=True)
-    concs = nc['concentration']
-    types = nc['types']
+    nupack = Nupack(sequences, 'dna')
+    concentrations = nupack.concentrations(2, conc=conc, mfe=True)
+    concs = concentrations['concentration']
+    types = concentrations['types']
 
     # Isolate the unbound monomer concentrations
     free_conc = sum([concs[i] for i, x in enumerate(types) if sum(x) == 1])
     free_fraction = free_conc / (2 * conc)
-    np.close()  # Delete temp dir
+    nupack.close()  # Delete temp dir
 
     return free_fraction
 
@@ -314,19 +316,20 @@ def _gen_oligo(prot_seq, min_score, freq_threshold, weighted, conc):
     Generate oligos until one has a self-self interaction below the threshold.
 
     :param prot_seq: Protein sequence.
-    :type prot_seq: str.
+    :type prot_seq: str
     :param min_score: Score setpoint - stop optimization once this score
-    has been reched.
-    :type min_score: float.
+                      has been reched.
+    :type min_score: float
     :param freq_threshold: relative frequency threshold below which codons
-    should not be used. Enables avoidance of very rare codons (codon
-    optimization).
-    :type freq_threshold: float.
+                           should not be used. Enables avoidance of very rare
+                           codons (codon optimization).
+    :type freq_threshold: float
     :param weighted: Determines whether codons generated should be
-    weighted (codon-optimized).
-    :type weighted: bool.
+                     weighted (codon-optimized).
+    :type weighted: bool
 
     '''
+
     threshold_met = False
 
     while not threshold_met:
@@ -339,13 +342,12 @@ def _gen_oligo(prot_seq, min_score, freq_threshold, weighted, conc):
                                                     material='pep')
             new_oligo = choice.generate()
         else:
-            ft = freq_threshold
             choice = random_codons.RandomCodons(prot_seq,
-                                                threshold=ft)
+                                                threshold=freq_threshold)
             new_oligo = choice.generate()
 
         # Check oligo for self-self binding and mfe
-        oligo_monomer = _monomers_concentration(([new_oligo, new_oligo], conc))
+        oligo_monomer = _monomers_concentration([new_oligo, new_oligo], conc)
         oligo_np = Nupack([new_oligo], 'dna')
         oligo_mfe = oligo_np.mfe(0)
         oligo_np.close()
@@ -355,48 +357,17 @@ def _gen_oligo(prot_seq, min_score, freq_threshold, weighted, conc):
     return new_oligo
 
 
-def _multiprocessing_progress(mp_iterator, total_jobs, interval=1):
-    '''
-    Reports progress of running multiprocessing command.
-
-    :param mp_iterator: Multiprocessing instance.
-    :type mp_iterator: instance.
-    :total_jobs: Total number of jobs the multiprocessing instance will run.
-    :type total_jobs: int.
-    :param interval: Length of time between updates.
-    :type interval: float.
-
-    '''
-
-    time_start = time.time()
-    while (True):
-        completed = mp_iterator._index
-        if (completed == total_jobs):
-            print '\n'
-            break
-        if completed > 0 & completed % 20 == 0:
-            time.sleep(interval)
-            remaining = total_jobs - completed
-            time_current = time.time()
-            rate_current = float(completed) / (time_current - time_start)
-            time_remaining = remaining / rate_current
-            m = int(time_remaining) / 60  # minutes
-            s = time_remaining - 60 * m  # seconds
-            print "Remaining: %s:%.2f min(s)\r" % (m, s)
-        else:
-            time.sleep(.1)
-
-
 def remove_redundant(seq_list, oligo_params):
     '''
     Removes and regenerates sequences that appear more than once in a list.
 
     :param seq_list: Sequences.
-    :type seq_list: str.
+    :type seq_list: str
     :param oligo_params: parameters to be passed to _gen_oligo.
-    :type oligo_params: tuple.
+    :type oligo_params: tuple
 
     '''
+
     while True:
         counted = collections.Counter(seq_list)
         redundant = []
@@ -406,9 +377,9 @@ def remove_redundant(seq_list, oligo_params):
                 for i in range(value - 1):
                     redundant.append(key)
         if redundant:
-            for x in redundant:
+            for sequence in redundant:
                 # Remove redundant entry - the one towards the end of the list
-                r_index = len(seq_list) - 1 - seq_list[::-1].index(x)
+                r_index = len(seq_list) - 1 - seq_list[::-1].index(sequence)
                 seq_list.pop(r_index)
                 new_oligos.append(_gen_oligo(*oligo_params))
             seq_list += new_oligos
@@ -417,21 +388,23 @@ def remove_redundant(seq_list, oligo_params):
     return seq_list
 
 
-def unflatten(input_list, n):
+def unflatten(input_list, size):
     '''
-    Given a flat list, makes a new list of n-length lists out of it, in order.
+    Given a flat list, makes a new list of 'size'-length lists out of it, in
+    order.
 
     :param input_list: List to flatten.
-    :type input_list: list.
-    :param n: Group size.
-    :type n: int.
+    :type input_list: list
+    :param size: Group size.
+    :type size: int
 
     '''
+
     list_copy = [x for x in input_list]
     unflattened = []
-    for i in range(len(list_copy) / n):
+    for i in range(len(list_copy) / size):
         temp_list = []
-        for j in range(n):
+        for j in range(size):
             temp_list.append(list_copy.pop(0))
         unflattened.append(temp_list)
     return unflattened
@@ -447,23 +420,23 @@ if __name__ == "__main__":
     config.read(config_path)
 
     # Parse config into parameters
-    sequence = config.get('Main Settings', 'protein sequence')
+    s = config.get('Main Settings', 'protein sequence')
     n = config.getint('Main Settings', 'n sequences')
     m = config.getint('Main Settings', 'm sequences')
     T = config.getfloat('Main Settings', 'temperature')
-    min_score = config.getfloat('Main Settings', 'min unbound monomer score')
+    score_thresh = config.getfloat('Main Settings',
+                                   'min unbound monomer score')
     con = config.getfloat('Main Settings', 'species concentration')
-    wholemat = config.getboolean('Main Settings', 'whole matrix')
     nm = config.getfloat('Main Settings', 'no increase limit')
-    resume = config.get('Main Settings', 'resume')
+    res = config.get('Main Settings', 'resume')
 
     # Run OrthoSeq.orthogonal_sequences
-    o_seq = OrthoSeq(sequence, T=T, min_score=min_score, n_attempt=nm)
-    if resume == 'False':
-        o_seq.start(n, m=m, wholemat=wholemat)
+    o_seq = OrthoSeq(s, T=T, min_score=score_thresh, n_attempt=nm)
+    if res == 'False':
+        o_seq.start(n, m=m)
     else:
-        resfile = open(resume, 'r')
-        resume = resfile.readlines()
+        resfile = open(res, 'r')
+        res = resfile.readlines()
         resfile.close()
-        resume = [x.strip() for x in resume]
-        o_seq.start(n, m=m, wholemat=wholemat, resume=resume)
+        res = [r.strip() for r in res]
+        o_seq.start(n, m=m, resume=res)

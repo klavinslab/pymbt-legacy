@@ -1,12 +1,16 @@
+'''Sanger sequencing alignment tools.'''
+
 import os
 import math
-
 from matplotlib import pyplot
 from matplotlib import cm
 from Bio import SeqIO
-
-from pymbt.alignment.needle import needle
+from pymbt.sequence_analysis.needle import needle
 from pymbt.sequence_manipulation import reverse_complement
+
+# TODO:
+# consensus / master sequence for plotting / report / analysis
+# too much work is done initializing Sanger. Move calculations to methods.
 
 
 class Sanger:
@@ -14,11 +18,12 @@ class Sanger:
     def __init__(self, ref, res):
         '''
         :param ref: Reference sequence.
-        :type ref: str.
+        :type ref: str
         :param res: Sequencing result string. A list of strings is also valid.
-        :type res: str.
+        :type res: str
 
         '''
+
         # make results a list if there's just one
         if type(res) == str:
             res = [res]
@@ -35,17 +40,15 @@ class Sanger:
         self.needle = [needle(ref, x) for x in res]
         self.alignments = [x[0] for x in self.needle]
         self.scores = [x[1] for x in self.needle]
-        for i, x in enumerate(self.scores):
-            if x < 1000:
+        print self.scores
+        for i, score in enumerate(self.scores):
+            if score < 1300:
                 new_needle = needle(ref, reverse_complement(res[i]))
                 self.alignments[i] = new_needle[0]
                 self.scores[i] = new_needle[1]
         self.needle = []
-        for i, x in enumerate(self.alignments):
-            self.needle.append((self.alignments[i], self.scores[i]))
-
-        # TODO:
-        # 3. consensus / master sequence for plotting / report / analysis
+        for i, alignment in enumerate(self.alignments):
+            self.needle.append((alignment, self.scores[i]))
 
         # Extract aligned sequences
         # Actually, need n ref sequences in case of insertions
@@ -53,16 +56,16 @@ class Sanger:
         a_refs = [x[0].seq.tostring().upper() for x in self.alignments]
         a_res = [x[1].seq.tostring().upper() for x in self.alignments]
 
-        for i, x in enumerate(a_refs):
+        for i, reference in enumerate(a_refs):
             frontcount = 0
             backcount = 0
             while True:
-                if x[-backcount - 1] == '-':
+                if reference[-backcount - 1] == '-':
                     backcount += 1
                 else:
                     break
             while True:
-                if x[frontcount] == '-':
+                if reference[frontcount] == '-':
                     frontcount += 1
                 else:
                     break
@@ -78,22 +81,23 @@ class Sanger:
 
         # degapping
         self.gaps = []
-        for i, x in enumerate(a_res):
-            self.gaps.append(''.join([_findgap([z]) for j, z in enumerate(x)]))
+        for i, result in enumerate(a_res):
+            new_gap = ''.join([_findgap([z]) for j, z in enumerate(result)])
+            self.gaps.append(new_gap)
         self.ranges = []
-        for x in self.gaps:
-            first = x.find('X')
-            last = (len(x) - x[::-1].find('X'))
+        for gap in self.gaps:
+            first = gap.find('X')
+            last = (len(gap) - gap[::-1].find('X'))
             self.ranges.append((first, last))
 
         #mismatches
         self.mismatches = {}
         self.insertions = {}
         self.deletions = {}
-        for i, x in enumerate(a_refs):
+        for i, reference in enumerate(a_refs):
             curkey = str(i)
             #curkey = str(i) + ':' + self.resnames[i]
-            for j, y in enumerate(x):
+            for j in range(len(reference)):
                 if a_refs[i][j] != '-' and a_res[i][j] != '-':
                     if a_refs[i][j] != a_res[i][j]:
                         if curkey in self.mismatches:
@@ -113,19 +117,33 @@ class Sanger:
                         else:
                             self.deletions[curkey] = [(j, j)]
 
+        # Group deletions that happen all in a row.
         for key, value in self.deletions.iteritems():
             last = (-2, -2)
             newlist = []
-            for j, y in enumerate(value):
-                if y[0] == last[1] + 1:
-                    newlist[-1] = (last[0], y[1])
+            for j, deletion in enumerate(value):
+                if deletion[0] == last[1] + 1:
+                    newlist[-1] = (last[0], deletion[1])
                 else:
-                    newlist.append(y)
+                    newlist.append(deletion)
                 last = newlist[-1]
             self.deletions[key] = newlist
 
+        # Group insertions that happen all in a row.
+        for key, value in self.insertions.iteritems():
+            last = (-2, -2)
+            newlist = []
+            for j, deletion in enumerate(value):
+                if deletion[0] == last[1] + 1:
+                    newlist[-1] = (last[0], deletion[1])
+                else:
+                    newlist.append(deletion)
+                last = newlist[-1]
+            self.insertions[key] = newlist
+
     def report(self):
         '''Report deletions, mismatches, and insertions.'''
+
         print 'mismatches: ' + str(self.mismatches)
         print 'insertions: ' + str(self.insertions)
         print 'deletions: ' + str(self.deletions)
@@ -136,9 +154,11 @@ class Sanger:
             for key, value in self.mismatches.iteritems():
                 index = int(key)
                 print '  ' + self.resnames[index]
-                for i, x in enumerate(value):
+                for mismatch in value:
                     print ''
-                    _sequences_display([self.ref[index], self.res[index]], x)
+                    refi = self.ref[index]
+                    resi = self.res[index]
+                    _sequences_display([refi, resi], mismatch)
                     print ''
         if len(self.insertions) > 0:
             print '----------------------'
@@ -147,9 +167,11 @@ class Sanger:
             for key, value in self.insertions.iteritems():
                 index = int(key)
                 print '  ' + self.resnames[index]
-                for i, x in enumerate(value):
+                for insertion in value:
                     print ''
-                    _sequences_display([self.ref[index], self.res[index]], x)
+                    refi = self.ref[index]
+                    resi = self.res[index]
+                    _sequences_display([refi, resi], insertion)
                     print ''
         if len(self.deletions) > 0:
             print '---------------------'
@@ -158,109 +180,125 @@ class Sanger:
             for key, value in self.deletions.iteritems():
                 index = int(key)
                 print '  ' + self.resnames[index]
-                for i, x in enumerate(value):
+                for deletion in value:
                     print ''
-                    _sequences_display([self.ref[index], self.res[index]], x)
+                    refi = self.ref[index]
+                    resi = self.res[index]
+                    _sequences_display([refi, resi], deletion)
                     print ''
 
     def plot(self):
         '''Plot visualization of results using matplotlib.'''
+
         # Step 1: turn results into ranges, bin those ranges for displaying
-        ga = self.gaps
         bins = _disjoint_bins(self.ranges)
 
         # Step 2: plot 'reference' bar
         fig = pyplot.figure()
-        ax = fig.add_subplot(111)
+        sub1 = fig.add_subplot(111)
         gr0 = (0, len(self.aligned[0][0]))
-        ax.broken_barh([gr0],
-                       (13, 3),
-                       facecolors='black',
-                       edgecolors='none')
+        sub1.broken_barh([gr0], (13, 3), facecolors='black', edgecolors='none')
 
         # Plot and color features
         max_len = len(self.ref_raw.features)
-        for i, x in enumerate(self.ref_raw.features):
-            print i
-            try:
-                qual = x.qualifiers['label']
-            except:
-                qual = ''
-            mid = int(math.ceil((x.location.start + x.location.end) / 2))
-            locations = (x.location.start, x.location.end, mid, qual)
-            ax.broken_barh([(locations[0], locations[1])],
-                           (10, 9),
-                           facecolors=cm.Set3(float(i) / max_len),
-                           edgecolors='black')
-            ax.text(locations[2] + 40,
-                    15,
-                    locations[3][0],
-                    rotation=90)
+        for i, feature in enumerate(self.ref_raw.features):
+            #try:
+            qual = feature.qualifiers['label']
+            #except:
+            #    qual = ''
+            feature_start = feature.location.start
+            feature_end = feature.location.end
+            mid = int(math.ceil((feature_start + feature_end) / 2))
+            locations = (feature_start, feature_end, mid, qual)
+            sub1.broken_barh([(locations[0], locations[1])], (10, 9),
+                             facecolors=cm.Set3(float(i) / max_len),
+                             edgecolors='black')
+            sub1.text(locations[2] + 40, 15, locations[3][0], rotation=90)
 
-        def add_discrepancies(index, bin):
-            ax.plot(1000, 25)
+        def add_discrepancies(index, bin_index):
+            '''
+            Add insertions, deletions, and mismatches to plot.
+
+            :param bin_index: Index of the bin to annotate.
+            :type bin_index: int
+
+            '''
+
+            sub1.plot(1000, 25)
             index = str(index)
-            height = 22 + bin * 10
+            height = 22 + bin_index * 10
 
             for key, value in self.insertions.iteritems():
                 if key == index:
-                    for i, x in enumerate(value):
-                        ax.plot(x[0], height, marker='o', color='k')
+                    for insertion in value:
+                        sub1.plot(insertion[0], height, marker='o', color='k')
             for key, value in self.deletions.iteritems():
                 if key == index:
-                    for i, x in enumerate(value):
-                        ax.plot(x[0], height, marker='^', color='k')
+                    for deletion in value:
+                        sub1.plot(deletion[0], height, marker='^', color='k')
             for key, value in self.mismatches.iteritems():
                 if key == index:
-                    for i, x in enumerate(value):
-                        ax.plot(x[0], height, marker='*', color='k')
+                    for mismatch in value:
+                        sub1.plot(mismatch[0], height, marker='*', color='k')
 
-        def wrap_name(str_in):
-            n = 10
-            out = [str_in[i:i + n] for i in range(0, len(str_in), n)]
-            str_out = '\n'.join(out)
-            return str_out
+        def wrap_name(str_in, wrap_len=10):
+            '''
+            Wrap plotted text to avoid overlaps (not perfect).
+
+            :param str_in: Input string.
+            :type str_in: str
+            :param wrap_len: Length at which to wrap lines.
+            :type wrap_len: str
+
+            '''
+
+            wrap_positions = range(0, len(str_in), wrap_len)
+            out = [str_in[i:i + wrap_len] for i in wrap_positions]
+            return '\n'.join(out)
 
         # Step 3: plot results ranges
-        for i, x in enumerate(bins):
-            for y in x:
-                index = y[2]
-                gai = ga[index]
-                gai_ind = gai.find('X')
-                xy = (gai_ind, (len(gai) - gai[::-1].find('X')) - gai_ind)
-                ax.broken_barh([xy],
-                               (i * 10 + 20, 9),
-                               facecolors='pink',
-                               edgecolors='black')
-                ax.text(xy[0] + 10,
-                        i * 10 + 28,
-                        wrap_name(self.resnames[y[2]]),
-                        verticalalignment='top')
+        for i, current_bin in enumerate(bins):
+            for vals in current_bin:
+                index = vals[2]
+                gap = self.gaps[index]
+                gap_index = gap.find('X')
+                ends = (gap_index, len(gap) - gap[::-1].find('X') - gap_index)
+                sub1.broken_barh([ends], (i * 10 + 20, 9), facecolors='pink',
+                                 edgecolors='black')
+                sub1.text(ends[0] + 10, i * 10 + 28,
+                          wrap_name(self.resnames[vals[2]]),
+                          verticalalignment='top')
                 add_discrepancies(index, i)
 
-        #ax.set_ylim(5,35)
-        ax.set_xlim(0, gr0[1])
-        ax.set_xlabel('Base pairs from origin')
-        ax.set_yticks([15, 25])
-        ax.set_yticklabels(['Reference', 'Results'])
-        ax.grid(True)
-        ax.xaxis.grid(False)
-        ax.yaxis.grid(False)
+        sub1.set_xlim(0, gr0[1])
+        sub1.set_xlabel('Base pairs from origin')
+        sub1.set_yticks([15, 25])
+        sub1.set_yticklabels(['Reference', 'Results'])
+        sub1.grid(True)
+        sub1.xaxis.grid(False)
+        sub1.yaxis.grid(False)
 
         pyplot.title('Alignment gap summary', fontstyle='normal')
         pyplot.show()
 
-    def write_alignment():
-        # TODO: custom format or standard (e.g. FASTA)? Implement both?
+    def write_alignment(self):
+        '''
+        Write alignment results to file - allows reanalysis and processing
+        by other programs.
+
+        '''
+
+        # custom format or standard (e.g. FASTA)? Implement both?
         pass
 
-    def write_plot():
+    def write_plot(self):
+        '''Save plot to image (png or svg).'''
+
         pass
 
-    def fixmismatch(result, position, newvalue):
-        pass
+    def fix_disrepancy(self, result, position, newvalue):
+        '''Fix mismatch, deletion, or insertion manually.'''
 
-    def fixindel():
         pass
 
 
@@ -269,11 +307,12 @@ def readref(filepath, ftype='genbank'):
     Read reference genbank file.
 
     :param filepath: Path to the file (typically genbank).
-    :type filepath: str.
+    :type filepath: str
     :param ftype: Valid filetype readable by Bio.SeqIO.
-    :type ftype: str.
+    :type ftype: str
 
     '''
+
     sequence = SeqIO.read(filepath, ftype)
     return sequence
 
@@ -283,9 +322,10 @@ def readres(dirpath):
     Read .seq results files from a dir.
 
     :param dirpath: Path to directory containing sequencing files.
-    :type dirtpath: str.
+    :type dirtpath: str
 
     '''
+
     seq_paths = [x for x in os.listdir(dirpath) if x.endswith('.seq')]
     abi_paths = [x for x in os.listdir(dirpath) if x.endswith('.abi')]
     abi_paths += [x for x in os.listdir(dirpath) if x.endswith('.ab1')]
@@ -300,11 +340,12 @@ def _findgap(list_in):
     Iterate over string list, return 'X' if has non-\'-\' value.
 
     :param list_in: String list.
-    :type list_in: list.
+    :type list_in: list
 
     '''
-    for x in list_in:
-        if x != '-':
+
+    for base in list_in:
+        if base != '-':
             return 'X'
     return '-'
 
@@ -315,14 +356,14 @@ def _sequences_display(seqs, start_stop, context=10, indent=4):
     regions.
 
     :param seqs: Sequences to display.
-    :type seqs: list.
+    :type seqs: list
     :param start_stop: Indices to display.
-    :type start_stop: tuple.
+    :type start_stop: tuple
     :param context: Extra context to add on either side of the displayed
-    sequences.
-    :type context: int.
+                    sequences.
+    :type context: int
     :param indent: Indentation of the displayed text.
-    :type indent: int.
+    :type indent: int
 
     '''
 
@@ -343,10 +384,10 @@ def _sequences_display(seqs, start_stop, context=10, indent=4):
     # No bars for non-matching sequences
     top = ''.join(seq_list_1)
     bottom = ''.join(seq_list_2)
-    middle = ['|' if top[i] == bottom[i] else ' ' for i, x in enumerate(top)]
+    middle = ['|' if top[i] == bottom[i] else ' ' for i in range(len(top))]
     middle = ''.join(middle)
 
-    indent = ''.join([' ' for x in range(indent)])
+    indent = ' ' * indent
     if start != stop:
         print indent + 'Positions %i to %i:' % (start, stop)
     else:
@@ -361,9 +402,10 @@ def _disjoint_bins(range_tuple_list):
     Construct disjoint bins given a list of range tuples.
 
     :param range_tuple_list: A list of tuples containing range values.
-    :type range_tuple_list: list.
+    :type range_tuple_list: list
 
     '''
+
     rtl = range_tuple_list
     # number the ranges (third value in tuple)
     rtl = [(x[0], x[1], i) for i, x in enumerate(rtl)]
@@ -373,7 +415,6 @@ def _disjoint_bins(range_tuple_list):
     remaining = rtl
 
     done_binning = False
-    n = 1
     binned = []
     while not done_binning:
         current_bin = []
@@ -388,6 +429,5 @@ def _disjoint_bins(range_tuple_list):
             done_binning = True
         else:
             remaining = nextbin
-            n += 1
 
     return binned

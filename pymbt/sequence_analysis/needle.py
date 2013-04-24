@@ -1,4 +1,5 @@
 '''Needleman-Wunsch alignment using emboss needle.'''
+
 from tempfile import mkdtemp
 from shutil import rmtree
 from Bio.Emboss.Applications import NeedleCommandline
@@ -11,9 +12,9 @@ def needle(seq1, seq2):
     Do Needleman-Wunsch alignment.
 
     :param seq1: First sequence.
-    :type seq1: str.
+    :type seq1: str
     :param seq2: Second sequence.
-    :type seq2: str.
+    :type seq2: str
 
     '''
 
@@ -44,17 +45,17 @@ def needle(seq1, seq2):
     return align, score
 
 
-# TODO: figure out what this function was supposed to do
 def needleall(seq1, seq2s):
     '''
     Do Needleman-Wunsch alignment using EMBOSS NeedleAll.
 
     :param seq1: First sequence.
-    :type seq1: str.
+    :type seq1: str
     :param seq2s: List of second sequences to align with the seq1.
-    :type seq2s: list.
+    :type seq2s: list
 
     '''
+
     workdir = mkdtemp()
     aseq_handle = open(workdir + '/aseq.fasta', 'w')
     aseq_handle.write('>seq1\n')
@@ -67,9 +68,9 @@ def needleall(seq1, seq2s):
         pass
     else:
         raise ValueError('second input must be list of sequences')
-    for i, x in enumerate(seq2s):
+    for i, sequence in enumerate(seq2s):
         bseq_handle.write('>seq' + str(i + 2) + '\n')
-        bseq_handle.write(x + '\n')
+        bseq_handle.write(sequence + '\n')
     bseq_handle.close()
 
     cline = NeedleallCommandline(cmd='needleall')

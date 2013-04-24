@@ -62,29 +62,78 @@ To increase size, need to optimize search method and take steps to reduce
 memory usage (write to files and iterate/queue)</p>
 <dl class="class">
 <dt id="pymbt.sequence_generation.orthogonal_sequences.OrthoSeq">
-<em class="property">class </em><tt class="descclassname">pymbt.sequence_generation.orthogonal_sequences.</tt><tt class="descname">OrthoSeq</tt><big>(</big><em>prot_seq</em>, <em>T=50</em>, <em>min_score=0.95</em>, <em>n_attempt=100000.0</em><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/orthogonal_sequences.html#OrthoSeq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.orthogonal_sequences.OrthoSeq" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
+<em class="property">class </em><tt class="descclassname">pymbt.sequence_generation.orthogonal_sequences.</tt><tt class="descname">OrthoSeq</tt><big>(</big><em>prot_seq</em>, <em>oligo_n</em>, <em>candidates=0</em>, <em>temp=50</em>, <em>min_score=0.95</em>, <em>n_attempt=100000.0</em><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/orthogonal_sequences.html#OrthoSeq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.orthogonal_sequences.OrthoSeq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class to calculate, store, and write orthogonality-optimized peptide
+sequences.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>prot_seq</strong> (<em>str</em>) &#8211; Input protein sequence.</li>
+<li><strong>oligo_n</strong> (<em>int</em>) &#8211; The final number of orthogonal sequences to output.</li>
+<li><strong>candidates</strong> (<em>int</em>) &#8211; The number of new sequences to try out on each
+iteration.</li>
+<li><strong>temp</strong> (<em>float</em>) &#8211; Temperature at which to evaluate for orthogonality.</li>
+<li><strong>min_score</strong> (<em>float</em>) &#8211; Score setpoint - stop optimization once this score
+has been reched.</li>
+<li><strong>n_attempt</strong> &#8211; Attempt timeout - sets maximum number of times to
+attempt optimization without seeing an improvement in
+score</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
 <dt id="pymbt.sequence_generation.orthogonal_sequences.OrthoSeq.log">
-<tt class="descname">log</tt><big>(</big><em>loop_count</em>, <em>n_attempted</em>, <em>mean_score</em>, <em>min_score</em>, <em>met</em>, <em>timer</em>, <em>oligo_list</em><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/orthogonal_sequences.html#OrthoSeq.log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.orthogonal_sequences.OrthoSeq.log" title="Permalink to this definition">¶</a></dt>
-<dd><p>provides data trail and allows resuming/passing along
-an extended attempt</p>
+<tt class="descname">log</tt><big>(</big><em>loop_count</em>, <em>n_attempted</em>, <em>score_mean</em>, <em>score_min</em>, <em>met</em>, <em>timer</em>, <em>oligo_list</em><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/orthogonal_sequences.html#OrthoSeq.log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.orthogonal_sequences.OrthoSeq.log" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provides data trail and allows resuming/passing along an extended
+attempt.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>loop_count</strong> (<em>int</em>) &#8211; Current loop number.</li>
+<li><strong>n_attempted</strong> (<em>int</em>) &#8211; Number of times optimization has been consecutively
+attempted without improving the score.</li>
+<li><strong>score_mean</strong> (<em>float</em>) &#8211; Mean of the unboundedness score.</li>
+<li><strong>score_min</strong> (<em>float</em>) &#8211; Min of the unboundedness score.</li>
+<li><strong>met</strong> (<em>int</em>) &#8211; Number of oligos that have met the score threshold.</li>
+<li><strong>timer</strong> (<em>float</em>) &#8211; Length of time for the calculation so far in seconds.</li>
+<li><strong>oligo_list</strong> (<em>list</em>) &#8211; List of the current best oligos.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="pymbt.sequence_generation.orthogonal_sequences.OrthoSeq.start">
-<tt class="descname">start</tt><big>(</big><em>n</em>, <em>m=0</em>, <em>resume=False</em>, <em>wholemat=False</em>, <em>report=True</em>, <em>weighted=True</em>, <em>freq_threshold=0.5</em><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/orthogonal_sequences.html#OrthoSeq.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.orthogonal_sequences.OrthoSeq.start" title="Permalink to this definition">¶</a></dt>
-<dd><p>n: is the final number of orthogonal sequences to output.
-m: is the number of new sequences to try out on each iteration.
-resume: specifies a path to a dir from a previous run, and will
-cause start() to pick up where it left off.
-wholemat: if True, m worst oligos are thrown out on each iteration.</p>
-<blockquote>
-<div>if False, single best is kept. There is a difference
-but it should be better documented.</div></blockquote>
-<p>weighted: boolean for whether codons should be weighted.
-freq_threshold: relative frequency threshold below which codons</p>
-<blockquote>
-<div>should not be used.</div></blockquote>
+<tt class="descname">start</tt><big>(</big><em>resume=False</em>, <em>wholemat=False</em>, <em>report=True</em>, <em>weighted=True</em>, <em>freq_threshold=0.5</em>, <em>oligo_conc=5e-07</em><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/orthogonal_sequences.html#OrthoSeq.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.orthogonal_sequences.OrthoSeq.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start the optimization.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>resume</strong> (<em>str</em>) &#8211; A path to a dir from a previous run, and will
+cause start() to pick up where it left off.</li>
+<li><strong>wholemat</strong> (<em>bool</em>) &#8211; if True, m worst oligos are thrown out on each
+iteration. if False, single best is kept. There is a
+difference but it should be better documented.</li>
+<li><strong>weighted</strong> (<em>bool</em>) &#8211; Determines whether codons generated should be
+weighted (codon-optimized).</li>
+<li><strong>freq_threshold</strong> (<em>float</em>) &#8211; relative frequency threshold below which codons
+should not be used. Enables avoidance of very
+rare codons (codon optimization).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
@@ -92,65 +141,135 @@ freq_threshold: relative frequency threshold below which codons</p>
 <dl class="function">
 <dt id="pymbt.sequence_generation.orthogonal_sequences.remove_redundant">
 <tt class="descclassname">pymbt.sequence_generation.orthogonal_sequences.</tt><tt class="descname">remove_redundant</tt><big>(</big><em>seq_list</em>, <em>oligo_params</em><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/orthogonal_sequences.html#remove_redundant"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.orthogonal_sequences.remove_redundant" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Removes and regenerates sequences that appear more than once in a list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>seq_list</strong> (<em>str</em>) &#8211; Sequences.</li>
+<li><strong>oligo_params</strong> (<em>tuple</em>) &#8211; parameters to be passed to _gen_oligo.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="pymbt.sequence_generation.orthogonal_sequences.unflatten">
-<tt class="descclassname">pymbt.sequence_generation.orthogonal_sequences.</tt><tt class="descname">unflatten</tt><big>(</big><em>input_list</em>, <em>n</em><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/orthogonal_sequences.html#unflatten"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.orthogonal_sequences.unflatten" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<tt class="descclassname">pymbt.sequence_generation.orthogonal_sequences.</tt><tt class="descname">unflatten</tt><big>(</big><em>input_list</em>, <em>size</em><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/orthogonal_sequences.html#unflatten"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.orthogonal_sequences.unflatten" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a flat list, makes a new list of &#8216;size&#8217;-length lists out of it, in
+order.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>input_list</strong> (<em>list</em>) &#8211; List to flatten.</li>
+<li><strong>size</strong> (<em>int</em>) &#8211; Group size.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </div>
 <div class="section" id="module-pymbt.sequence_generation.random_bases">
 <span id="random-bases-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">random_bases</span></tt> Module<a class="headerlink" href="#module-pymbt.sequence_generation.random_bases" title="Permalink to this headline">¶</a></h2>
+<p>Generate random DNA or RNA sequences.</p>
 <dl class="class">
 <dt id="pymbt.sequence_generation.random_bases.RandomBases">
-<em class="property">class </em><tt class="descclassname">pymbt.sequence_generation.random_bases.</tt><tt class="descname">RandomBases</tt><big>(</big><em>n</em><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/random_bases.html#RandomBases"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.random_bases.RandomBases" title="Permalink to this definition">¶</a></dt>
-<dd><p>Provides a generator class for random DNA or RNA sequence</p>
+<em class="property">class </em><tt class="descclassname">pymbt.sequence_generation.random_bases.</tt><tt class="descname">RandomBases</tt><big>(</big><em>size</em><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/random_bases.html#RandomBases"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.random_bases.RandomBases" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate random DNA or RNA sequences.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>size</strong> (<em>int</em>) &#8211; Output sequence length.</td>
+</tr>
+</tbody>
+</table>
 <dl class="method">
 <dt id="pymbt.sequence_generation.random_bases.RandomBases.generate">
 <tt class="descname">generate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/random_bases.html#RandomBases.generate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.random_bases.RandomBases.generate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Generate the sequence.</p>
+</dd></dl>
 
 </dd></dl>
 
 </div>
 <div class="section" id="module-pymbt.sequence_generation.random_codons">
 <span id="random-codons-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">random_codons</span></tt> Module<a class="headerlink" href="#module-pymbt.sequence_generation.random_codons" title="Permalink to this headline">¶</a></h2>
+<p>Generate random codons.</p>
 <dl class="class">
 <dt id="pymbt.sequence_generation.random_codons.RandomCodons">
 <em class="property">class </em><tt class="descclassname">pymbt.sequence_generation.random_codons.</tt><tt class="descname">RandomCodons</tt><big>(</big><em>sequence</em>, <em>material='pep'</em>, <em>freq_table='sc'</em>, <em>threshold=0.0</em><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/random_codons.html#RandomCodons"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.random_codons.RandomCodons" title="Permalink to this definition">¶</a></dt>
-<dd><p>Provides a generator class for random DNA or RNA sequence.
-sequence: sequence for which to generate randomized codons.
-material: &#8216;dna&#8217; for DNA or &#8216;pep&#8217; for amino acid sequence.</p>
+<dd><p>Generator class for random DNA or RNA sequence.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>sequence</strong> (<em>str</em>) &#8211; Sequence for which to generate randomized codons.</li>
+<li><strong>material</strong> (<em>str</em>) &#8211; &#8216;dna&#8217; for DNA or &#8216;pep&#8217; for amino acid sequence.</li>
+<li><strong>freq_table</strong> (<em>dict</em>) &#8211; Codon frequency table to use.</li>
+<li><strong>threshold</strong> (<em>float between 0 and 1</em>) &#8211; relative threshold cutoff for codon frequencies.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 <dl class="method">
 <dt id="pymbt.sequence_generation.random_codons.RandomCodons.generate">
 <tt class="descname">generate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/random_codons.html#RandomCodons.generate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.random_codons.RandomCodons.generate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Generate the sequence.</p>
+</dd></dl>
 
 </dd></dl>
 
 </div>
 <div class="section" id="module-pymbt.sequence_generation.weighted_codons">
 <span id="weighted-codons-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">weighted_codons</span></tt> Module<a class="headerlink" href="#module-pymbt.sequence_generation.weighted_codons" title="Permalink to this headline">¶</a></h2>
+<p>Generate random, but usage frequency-weighted codons (i.e. codon optimization).</p>
 <dl class="class">
 <dt id="pymbt.sequence_generation.weighted_codons.WeightedCodons">
 <em class="property">class </em><tt class="descclassname">pymbt.sequence_generation.weighted_codons.</tt><tt class="descname">WeightedCodons</tt><big>(</big><em>sequence</em>, <em>frequency_table='sc'</em>, <em>material='pep'</em><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/weighted_codons.html#WeightedCodons"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.weighted_codons.WeightedCodons" title="Permalink to this definition">¶</a></dt>
-<dd><p>Provides a generator class for random DNA or RNA sequence.
-sequence: sequence for which to generate randomized codons.
-frequency_table: specifies which codon frequency dictionary to use.
-material: input material.</p>
-<blockquote>
-<div>&#8216;dna&#8217; for DNA or
-&#8216;pep&#8217; for amino acid sequence (default).</div></blockquote>
+<dd><p>Provides a generator class for random, weighted DNA or RNA sequences.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>sequence</strong> (<em>str</em>) &#8211; Input sequence.</li>
+<li><strong>frequency_table</strong> (<em>dict</em>) &#8211; The codon frequency dictionary to use.</li>
+<li><strong>material</strong> (<em>str</em>) &#8211; &#8216;dna&#8217; for DNA or &#8216;pep&#8217; for amino acid sequence
+(default).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 <dl class="method">
 <dt id="pymbt.sequence_generation.weighted_codons.WeightedCodons.generate">
 <tt class="descname">generate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/weighted_codons.html#WeightedCodons.generate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.weighted_codons.WeightedCodons.generate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Generate the sequence.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="pymbt.sequence_generation.weighted_codons.WeightedCodons.weighted">
 <tt class="descname">weighted</tt><big>(</big><em>pep</em><big>)</big><a class="reference internal" href="_modules/pymbt/sequence_generation/weighted_codons.html#WeightedCodons.weighted"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymbt.sequence_generation.weighted_codons.WeightedCodons.weighted" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Take an amino acid, select a codon at random, weighted by frequency.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pep</strong> (<em>str</em>) &#8211; Peptide sequence.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 

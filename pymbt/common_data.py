@@ -1,14 +1,14 @@
 '''Defines data and parameters in an easily resuable format.'''
 
-# Common sequence alphabets
-alphabets = {
-    'dna': 'ATGCatgc',
-    'rna': 'AUGCaugc',
+# Common sequence alphabets.
+ALPHABETS = {
+    'dna': 'ATGCNatgcn',
+    'rna': 'AUGCNaugcn',
     'pep': 'ACDEFGHIKLMNPQRSTVWYacdefghiklmnpqrstvwy'}
 
 
-# The standard codon table
-codon_table = {
+# The standard codon table.
+CODON_TABLE = {
     'A': ['GCG', 'GCA', 'GCT', 'GCC'],
     'R': ['AGG', 'AGA', 'CGG', 'CGA', 'CGT', 'CGC'],
     'N': ['AAT', 'AAC'],
@@ -32,12 +32,10 @@ codon_table = {
     'V': ['GTG', 'GTA', 'GTT', 'GTC']}
 
 
-'''
-Saccharomyces cerevisiae
-source: http://www.kazusa.or.jp/codon/
-(which cites GenBank, i.e. yeast genome project CDS database)
-'''
-codon_freq = {
+# Saccharomyces cerevisiae
+# source: http://www.kazusa.or.jp/codon/
+# (which cites GenBank, i.e. yeast genome project CDS database)
+CODON_FREQ = {
     'sc': {
         'GCG': 0.109972396541529,
         'GCA': 0.288596474496094,
@@ -105,7 +103,7 @@ codon_freq = {
         'GTC': 0.208837466820824}}
 
 # Codon usage for S cerevisiae
-codon_freq_sc_nested = {
+CODON_FREQ_SC_NESTED = {
     'A': {'GCG': 0.109972396541529,
           'GCA': 0.288596474496094,
           'GCT': 0.377014739102356,
@@ -171,7 +169,8 @@ codon_freq_sc_nested = {
           'GTT': 0.391481704636128,
           'GTC': 0.208837466820824}}
 
-codons = {'AAA': 'K',
+# Complete list of codons.
+CODONS = {'AAA': 'K',
           'AAC': 'N',
           'AAG': 'K',
           'AAT': 'N',

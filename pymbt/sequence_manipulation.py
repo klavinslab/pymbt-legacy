@@ -1,8 +1,8 @@
-from string import maketrans
-from string import translate
+'''Helper functions for manipulating DNA, RNA, and peptide sequences.'''
 
-from pymbt.common_data import alphabets
-from pymbt.common_data import codons
+from string import maketrans
+from pymbt.common_data import ALPHABETS
+from pymbt.common_data import CODONS
 
 
 def reverse_complement(sequence):
@@ -10,14 +10,15 @@ def reverse_complement(sequence):
     Reverse complement a DNA sequence.
 
     :param sequence: DNA sequence.
-    :type sequence: str.
+    :type sequence: str
 
     '''
+
     check_alphabet(sequence, material='dna')
     submat = maketrans('ATGCNatgcn', 'TACGNtacgn')
-    sub_sequence = translate(sequence, submat)
-    rev_sequence = sub_sequence[::-1]
-    return rev_sequence
+    complemented = sequence.translate(submat)
+    reverse_complemented = complemented[::-1]
+    return reverse_complemented
 
 
 def check_alphabet(sequence, material='dna'):
@@ -25,14 +26,15 @@ def check_alphabet(sequence, material='dna'):
     Verify that a given string is made only of DNA, RNA, or peptide characters.
 
     :param sequence: DNA, RNA, or peptide sequence.
-    :type sequence: str.
+    :type sequence: str
     :param material: Input material - 'dna', 'rna', or 'pep'.
-    :type sequence: str.
+    :type sequence: str
 
     '''
+
     errs = {'dna': 'DNA', 'rna': 'RNA', 'pep': 'peptide'}
     if material == 'dna' or material == 'rna' or material == 'pep':
-        alphabet = alphabets[material]
+        alphabet = ALPHABETS[material]
         err_msg = errs[material]
     else:
         msg = 'Input material must be \'dna\', \'rna\', or \'pep\'.'
@@ -48,9 +50,10 @@ def translate_seq(sequence):
     Translate a DNA sequence into peptide sequence.
 
     :param sequence: DNA sequence.
-    :type sequence: str.
+    :type sequence: str
 
     '''
+
     # Split into 3-letter chunks
     sequence = check_alphabet(sequence, material='dna')
     # Make sure it's divisible by 3
@@ -65,8 +68,10 @@ def translate_seq(sequence):
         base_2 = sequence.pop(0)
         base_3 = sequence.pop(0)
         codon = ''.join(base_1 + base_2 + base_3).upper()
-        aa = codons[codon]
-        peptide.append(aa)
+        amino_acid = CODONS[codon]
+        peptide.append(amino_acid)
+    while peptide[-1] == '*':
+        peptide.pop()
     peptide = ''.join(peptide)
 
     return peptide

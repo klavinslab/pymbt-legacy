@@ -1,20 +1,25 @@
+'''Generate random DNA or RNA sequences.'''
+
 import random
 
 
 class RandomBases:
-    '''Provides a generator class for random DNA or RNA sequence'''
-    def __init__(self, n):
+    '''Generate random DNA or RNA sequences.'''
+
+    def __init__(self, size):
         '''
-        :param n: Output sequence length.
-        :type n: int.
+        :param size: Output sequence length.
+        :type size: int
 
         '''
-        self.n = n
+
+        self.size = size
 
     def __repr__(self):
-        return 'RandomBases generator for %s bases of DNA' % self.n
+        return 'RandomBases generator for %s bases of DNA' % self.size
 
     def generate(self):
         '''Generate the sequence.'''
-        random_seq = ''.join([random.choice('ATGC') for x in range(self.n)])
+
+        random_seq = ''.join([random.choice('ATGC') for x in range(self.size)])
         return random_seq

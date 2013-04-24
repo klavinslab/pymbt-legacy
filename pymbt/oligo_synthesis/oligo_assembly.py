@@ -1,6 +1,8 @@
-'''Module supplying methods/classes for generating
-   overlapping oligo sequences from a gene sequence.'''
+'''
+Module supplying methods/classes for generating overlapping oligo sequences
+from a gene sequence.
 
+'''
 
 import csv
 from math import floor
@@ -12,18 +14,20 @@ from pymbt.primer_design import design_primer_gene
 class OligoAssembly(object):
     '''Split a sequence into overlapping oligonucleotides with equal-Tm
     overlaps. Contains results and output methods.'''
+
     def __init__(self, seq, primers=False, primer_tm=60, **kwargs):
         '''
         :param seq: Input sequence (DNA).
-        :type seq: str.
+        :type seq: str
         :param primers: Design cloning primers that bind the termini of the
-        input sequence.
-        :type primers: bool.
+                        input sequence.
+        :type primers: bool
         :param primer_tm: Ideal Tm for the cloning primers, if applicable.
-        :type primer_tm: float.
-        :param **kwargs: Keyword arguments to pass to oligo_calc.
+        :type primer_tm: float
+        :param kwargs: Keyword arguments to pass to oligo_calc.
 
         '''
+
         assembly_dict = oligo_calc(seq=seq, **kwargs)
         self.oligos = assembly_dict['oligos']
         self.overlaps = assembly_dict['overlaps']
@@ -38,15 +42,15 @@ class OligoAssembly(object):
         Write results out to a csv (comma-separated) file.
 
         :param outpath: path to csv file, including .csv extension.
-        :type outpath: str.
+        :type outpath: str
 
         '''
+
         oligo_writer = csv.writer(open(outpath, 'wb'), delimiter=',',
                                   quoting=csv.QUOTE_MINIMAL)
         oligo_writer.writerow(['name', 'oligo', 'notes'])
-        for i, x in enumerate(self.oligos):
+        for i, oligo in enumerate(self.oligos):
             name = 'oligo %i' % (i + 1)
-            oligo = self.oligos[i]
             if i != len(self.oligos) - 1:
                 o_tm = self.overlap_tms[i]
                 len_tm = (len(oligo), o_tm)
@@ -77,17 +81,18 @@ def oligo_calc(seq, tm=72, oligo_size=120, require_even=True, start_5=True):
     overlaps.
 
     :param seq: Input sequence (DNA).
-    :type seq: str.
+    :type seq: str
     :param tm: Ideal Tm of the overlaps, in degrees C.
-    :type tm: float.
+    :type tm: float
     :param oligo_size: Maximum oligo size (e.g. price-point jump size).
-    :type oligo_size: int.
+    :type oligo_size: int
     :param require_even: Require that the number of oligonucleotides is even.
-    :type require_even: bool.
+    :type require_even: bool
     :param start_5: Require that the first oligo's terminal side is 5\'.
-    :type start_5: bool.
+    :type start_5: bool
 
     '''
+
     if len(seq) < oligo_size:
         raise ValueError('Oligo size must be smaller than input sequence')
     oligo_n = int(floor(float(len(seq)) / oligo_size) + 1)
@@ -141,9 +146,11 @@ def oligo_calc(seq, tm=72, oligo_size=120, require_even=True, start_5=True):
             lowest_tm_overlap_right = len(oligos[lowest_index + 1])
 
             def increase_right_oligo():
+                '''Increase oligo to the right.'''
                 oligo_e[lowest_index] += 1
 
             def increase_left_oligo():
+                '''Increase oligo to the left.'''
                 oligo_start[lowest_index + 1] -= 1
 
             # If one of the oligos is max size, increase the other one

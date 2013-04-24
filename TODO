@@ -1,4 +1,3 @@
-Unit tests
 Sequence repeat detector - fuzzy matching / alignments 
 Alignment module - batch processing of Sanger sequencing files
 Use Biopython Seq and SeqRecord objects for all sequences? 
@@ -16,3 +15,6 @@ Nupack script - check primers to see if they act as desired - e.g. Gibson, FastC
         as long primers can overlap in the wrong place (see David's experience with
         inserting an Sso1 transmembrane domain into AtFLS2)
         Should at least give a warning if the primer1-primer2 complex generates structure at the 3' end
+
+Ideas in general:
+    web frontend for sequence analysis (pymbt would be backend)
