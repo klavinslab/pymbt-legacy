@@ -15,7 +15,6 @@ config = {
                  'biopython',
                  'matplotlib'],
     'packages': ['pymbt',
-                 'pymbt.alignment',
                  'pymbt.oligo_synthesis',
                  'pymbt.sequence_analysis',
                  'pymbt.sequence_generation'],
