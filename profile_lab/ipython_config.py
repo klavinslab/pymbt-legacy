@@ -74,8 +74,7 @@ c = get_config()
 # lines of code to run at IPython startup.
 c.TerminalIPythonApp.exec_lines = ['from pymbt.sequence_manipulation import *',
                                    'from pymbt.primer_design import *',
-                                   'from pymbt.tm_calc import *',
-                                   'import pandas']
+                                   'from pymbt.tm_calc import *']
 
 # Enable GUI event loop integration ('qt', 'wx', 'gtk', 'glut', 'pyglet',
 # 'osx').
