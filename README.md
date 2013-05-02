@@ -1,15 +1,15 @@
 # pymbt
 
-Tools for molecular (and synthetic) biologists
+## Tools for molecular (and synthetic) biologists
 
 # Installation
 
-Requirements:
+## Requirements:
 > numpy
 > biopython
 > pandas
 > matplotlib
 
-Clone pymbt into your current directory, then:
+## Clone pymbt into your current directory, then:
 > cd pymbt
 > pip install .
