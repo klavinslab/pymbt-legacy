@@ -5,11 +5,11 @@
 # Installation
 
 ## Requirements:
-> numpy
-> biopython
-> pandas
-> matplotlib
+> numpy  
+> biopython  
+> pandas  
+> matplotlib  
 
 ## Clone pymbt into your current directory, then:
-> cd pymbt
-> pip install .
+> cd pymbt  
+> pip install .  
