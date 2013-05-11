@@ -40,7 +40,7 @@ class Sanger:
         self.needle = [needle(ref, x) for x in res]
         self.alignments = [x[0] for x in self.needle]
         self.scores = [x[1] for x in self.needle]
-        print self.scores
+        #print self.scores
         for i, score in enumerate(self.scores):
             if score < 1300:
                 new_needle = needle(ref, reverse_complement(res[i]))
@@ -197,36 +197,46 @@ class Sanger:
         fig = pyplot.figure()
         sub1 = fig.add_subplot(111)
         gr0 = (0, len(self.aligned[0][0]))
-        sub1.broken_barh([gr0], (13, 3), facecolors='black', edgecolors='none')
+        sub1.broken_barh([gr0], (14.25, 1), facecolors='black',
+                         edgecolors='none')
 
         # Plot and color features
         max_len = len(self.ref_raw.features)
+
+        # Bin the features for plotting
+        features = self.ref_raw.features
+        # + 1 to start since it seems to be indexed starting with 0
+        feature_ranges = [(feature.location.start.position + 1,
+                           feature.location.end.position)
+                          for feature in features]
+        feature_bins = _disjoint_bins(feature_ranges)
+        feature_nbin = max(feature_bins)
+
         for i, feature in enumerate(self.ref_raw.features):
-            #try:
-            qual = feature.qualifiers['label']
-            #except:
-            #    qual = ''
-            feature_start = feature.location.start
-            feature_end = feature.location.end
+            feature_bin = feature_bins[i]
+            qual = feature.qualifiers['label'][0]
+            feature_start = feature.location.start.position
+            feature_end = feature.location.end.position
             mid = int(math.ceil((feature_start + feature_end) / 2))
-            locations = (feature_start, feature_end, mid, qual)
-            sub1.broken_barh([(locations[0], locations[1])], (10, 9),
+            centered = (feature_bin + 1) * 10
+            sub1.broken_barh([(feature_start, feature_end-feature_start)],
+                             (centered, 9),
                              facecolors=cm.Set3(float(i) / max_len),
                              edgecolors='black')
-            sub1.text(locations[2] + 40, 15, locations[3][0], rotation=90)
+            sub1.text(mid, centered + 7, qual,
+                      rotation=90)
 
-        def add_discrepancies(index, bin_index):
+        def add_discrepancies(index, height):
             '''
             Add insertions, deletions, and mismatches to plot.
 
-            :param bin_index: Index of the bin to annotate.
+            :param height: height of the annotation (on plot).
             :type bin_index: int
 
             '''
 
             sub1.plot(1000, 25)
             index = str(index)
-            height = 22 + bin_index * 10
 
             for key, value in self.insertions.iteritems():
                 if key == index:
@@ -257,22 +267,22 @@ class Sanger:
             return '\n'.join(out)
 
         # Step 3: plot results ranges
-        for i, current_bin in enumerate(bins):
-            for vals in current_bin:
-                index = vals[2]
-                gap = self.gaps[index]
+        for i, current_range in enumerate(self.ranges):
+            for vals in current_range:
+                gap = self.gaps[i]
                 gap_index = gap.find('X')
                 ends = (gap_index, len(gap) - gap[::-1].find('X') - gap_index)
-                sub1.broken_barh([ends], (i * 10 + 20, 9), facecolors='pink',
+                centered = (bins[i] + 1) * 10 + 10 + 10 * feature_nbin
+                sub1.broken_barh([ends], (centered, 9), facecolors='pink',
                                  edgecolors='black')
-                sub1.text(ends[0] + 10, i * 10 + 28,
-                          wrap_name(self.resnames[vals[2]]),
+                sub1.text(ends[0] + 10, centered + 8,
+                          wrap_name(self.resnames[i]),
                           verticalalignment='top')
-                add_discrepancies(index, i)
+                add_discrepancies(i, centered + 2)
 
         sub1.set_xlim(0, gr0[1])
         sub1.set_xlabel('Base pairs from origin')
-        sub1.set_yticks([15, 25])
+        sub1.set_yticks([15, 15 + 10 * (feature_nbin + 1)])
         sub1.set_yticklabels(['Reference', 'Results'])
         sub1.grid(True)
         sub1.xaxis.grid(False)
@@ -412,6 +422,7 @@ def _disjoint_bins(range_tuple_list):
 
     # sort by range start
     rtl = sorted(rtl, key=lambda starts: starts[0])
+    rtl_len = len(rtl)
     remaining = rtl
 
     done_binning = False
@@ -430,4 +441,9 @@ def _disjoint_bins(range_tuple_list):
         else:
             remaining = nextbin
 
-    return binned
+    bin_list = [0] * rtl_len
+    for i, bin_ranges in enumerate(binned):
+        for bin_range in bin_ranges:
+            bin_list[bin_range[2]] = i
+
+    return bin_list
