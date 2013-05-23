@@ -5,10 +5,16 @@
 # Installation
 
 ## Requirements:
+# python:
 > numpy  
 > biopython  
-> pandas  
 > matplotlib  
+# system:
+> for matplotlib:
+>  libpng dev headers
+>  libfreetype dev headers
+>  backend headers (e.g. tk-dev, tcl-dev)
+> emboss (for needleman-wunsch alignment)
 
 ## Clone pymbt into your current directory, then:
 > cd pymbt  
