@@ -7,3 +7,6 @@ Nupack:
         Part of Primers object
     Gibson object:
         Should check whether the desired overlap is a high-probability structure
+    Replace / add optional RNAFold or equivalent function. Nupack is
+    proprietary
+Implement santa lucia and sugimoto params. Why are these so hard to figure out?
