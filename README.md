@@ -1,8 +1,8 @@
 # pymbt
 
-## Tools for molecular (and synthetic) biologists
+Tools for molecular (and synthetic) biologists
 
-## Requirements:
+### Requirements:
 python:
 > numpy  
 > biopython  
@@ -15,6 +15,6 @@ system:
 >  backend headers (e.g. tk-dev, tcl-dev)
 > emboss (for needleman-wunsch alignment)
 
-## Clone pymbt into your current directory, then:
+### Clone pymbt into your current directory, then:
 > cd pymbt  
 > pip install .  
