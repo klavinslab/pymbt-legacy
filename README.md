@@ -9,8 +9,7 @@ python:
 > matplotlib  
 
 system:
-
-for matplotlib:
+> for matplotlib:
 > libpng dev headers
 > libfreetype dev headers
 > backend headers (e.g. tk-dev, tcl-dev)
