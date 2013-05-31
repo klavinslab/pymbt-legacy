@@ -10,6 +10,12 @@ from pymbt.sequence_manipulation import reverse_complement
 from pymbt.tm_calc import calc_tm
 from pymbt.primer_design import design_primer_gene
 
+from Bio.SeqFeature import SeqFeature, FeatureLocation, ExactPosition
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
+from Bio import SeqIO
+from Bio.Alphabet.IUPAC import unambiguous_dna
+
 
 class OligoAssembly(object):
     '''Split a sequence into overlapping oligonucleotides with equal-Tm
@@ -71,13 +77,19 @@ class OligoAssembly(object):
         except AttributeError:
             pass
 
-    def write_map(self):
-        primary_seq = self.seq
-        overlap_starts = [primary_seq.find(overlap) for overlap in
+    def write_map(self, path):
+        overlap_starts = [self.seq.find(overlap) for overlap in
                           self.overlaps]
         overlap_lens = [len(overlap) for overlap in self.overlaps]
-        overlap_starts
-        overlap_lens
+        features = []
+        for i, start in enumerate(overlap_starts):
+            location = FeatureLocation(ExactPosition(start),
+                                       ExactPosition(start + overlap_lens[i]),
+                                       strand=1)
+            features.append(SeqFeature(location, type='misc_feature',
+                            qualifiers={'label': ['overlap {}'.format(i)]}))
+        seq_map = SeqRecord(Seq(self.seq, unambiguous_dna), features=features)
+        SeqIO.write(seq_map, path, 'genbank')
 
     def __repr__(self):
         str1 = "An OligoAssembly consisting of "
@@ -121,7 +133,7 @@ def oligo_calc(seq, tm=72, length_range=(80, 200), require_even=True,
 
     if oligo_number:
         # Make first attempt using length_range[0] and see what happens
-        step = 5
+        step = 3
         length_max = length_range[1]
         current_oligo_n = oligo_number + 1
         while current_oligo_n != oligo_number and length_max > length_range[0]:
@@ -159,6 +171,12 @@ def oligo_calc(seq, tm=72, length_range=(80, 200), require_even=True,
 
 
 def grow_overlaps(seq, tm, require_even, length_max):
+    # TODO: prevent growing overlaps from bumping into each other -
+    # should halt when it happens, give warning, let user decide if they still
+    # want the current construct
+    # Another option would be to start over, moving the starting positions
+    # near the problem region a little farther from each other - this would
+    # put the AT-rich region in the middle of the spanning oligo
     oligo_n = int(floor(float(len(seq)) / length_max) + 1)
 
     if require_even:
@@ -253,7 +271,5 @@ def grow_overlaps(seq, tm, require_even, length_max):
             maxed = [len(x) == length_max for x in oligos]
             threshold_unmet = any([x <= tm for x in overlap_tms])
 
-        print oligos
-        print overlap_tms
         oligo_n += oligo_increment
     return oligos, overlaps, overlap_tms
