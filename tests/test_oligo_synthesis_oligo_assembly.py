@@ -50,7 +50,7 @@ def test_oligo_assembly():
           'ggcatggatgaactatacaaaaggcctgctgcaaacgacgaaaactacgctttagtagcttaa'
     designed = oligo_assembly.OligoAssembly(seq,
                                             tm=72,
-                                            length_range=(120, 200),
+                                            length_range=(120, 120),
                                             require_even=True,
                                             start_5=True)
 
