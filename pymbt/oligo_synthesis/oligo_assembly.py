@@ -29,6 +29,7 @@ class OligoAssembly(object):
         '''
 
         assembly_dict = oligo_calc(seq=seq, **kwargs)
+        self.seq = seq
         self.oligos = assembly_dict['oligos']
         self.overlaps = assembly_dict['overlaps']
         self.overlap_tms = assembly_dict['overlap_tms']
@@ -70,6 +71,14 @@ class OligoAssembly(object):
         except AttributeError:
             pass
 
+    def write_map(self):
+        primary_seq = self.seq
+        overlap_starts = [primary_seq.find(overlap) for overlap in
+                          self.overlaps]
+        overlap_lens = [len(overlap) for overlap in self.overlaps]
+        overlap_starts
+        overlap_lens
+
     def __repr__(self):
         str1 = "An OligoAssembly consisting of "
         str2 = str(len(self.oligos)) + ' oligos.'
@@ -86,7 +95,8 @@ def oligo_calc(seq, tm=72, length_range=(80, 200), require_even=True,
     :param tm: Ideal Tm of the overlaps, in degrees C.
     :type tm: float
     :param length_range: Maximum oligo size (e.g. 60bp price point cutoff)
-                         range.
+                         range - lower bound only matters if oligo_number
+                         parameter is set.
     :type length_range: int 2-tuple
     :param require_even: Require that the number of oligonucleotides is even.
     :type require_even: bool
@@ -112,18 +122,21 @@ def oligo_calc(seq, tm=72, length_range=(80, 200), require_even=True,
     if oligo_number:
         # Make first attempt using length_range[0] and see what happens
         step = 5
-        length_max = length_range[0]
+        length_max = length_range[1]
         current_oligo_n = oligo_number + 1
-        while current_oligo_n != oligo_number and length_max < length_range[1]:
+        while current_oligo_n != oligo_number and length_max > length_range[0]:
             # Make oligos until target number is met. If impossible, make next
             # best thing
-            if current_oligo_n < oligo_number:
-                break
+            # Tried starting with low range and going up - using too low
+            # a 'max' results in bad things for longer sequences (overlaps
+            # become longer than 80)
 
             # TODO: first run is redundant. fix it
             grown_overlaps = grow_overlaps(seq, tm, require_even, length_max)
             current_oligo_n = len(grown_overlaps[0])
-            length_max += step
+            if current_oligo_n > oligo_number:
+                break
+            length_max -= step
     else:
         grown_overlaps = grow_overlaps(seq, tm, require_even, length_range[1])
 
@@ -240,5 +253,7 @@ def grow_overlaps(seq, tm, require_even, length_max):
             maxed = [len(x) == length_max for x in oligos]
             threshold_unmet = any([x <= tm for x in overlap_tms])
 
+        print oligos
+        print overlap_tms
         oligo_n += oligo_increment
     return oligos, overlaps, overlap_tms

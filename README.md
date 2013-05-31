@@ -2,14 +2,13 @@
 
 ## Tools for molecular (and synthetic) biologists
 
-# Installation
-
 ## Requirements:
-# python:
+python:
 > numpy  
 > biopython  
 > matplotlib  
-# system:
+
+system:
 > for matplotlib:
 >  libpng dev headers
 >  libfreetype dev headers
