@@ -1,12 +1,13 @@
 Sequence repeat detector - fuzzy matching / alignments 
     integrate into OrthoSeq
-Store sequences as objects - similar to Biopython Seq but geared towards
-simplicity and extensibility
-Nupack:
+DNA object model, design object model, reaction simulation object model,
+analysis object model
+Nupack / RNA folding:
     Check cloning primers for self-self, pair structure using Nupack
         Part of Primers object
     Gibson object:
         Should check whether the desired overlap is a high-probability structure
     Replace / add optional RNAFold or equivalent function. Nupack is
     proprietary
-Implement santa lucia and sugimoto params. Why are these so hard to figure out?
+Drop emboss dependency by using pycogent / pycogent approach for needleman-wunsch
+Implement santa lucia and sugimoto params. 

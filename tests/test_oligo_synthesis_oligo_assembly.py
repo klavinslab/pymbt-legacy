@@ -55,4 +55,4 @@ def test_oligo_assembly():
                                             start_5=True)
 
     assert_equals(designed.oligos, expected_oligos)
-    assert_equals(designed.overlap_tms, expected_tms)
+    assert_equals(designed.overlaps_tms, expected_tms)
