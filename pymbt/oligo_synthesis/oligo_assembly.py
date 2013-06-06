@@ -39,10 +39,18 @@ class OligoAssembly(object):
         self.oligos = assembly_dict['oligos']
         self.overlaps = assembly_dict['overlaps']
         self.overlaps_tms = assembly_dict['overlaps_tms']
+        self.overlaps_indices = assembly_dict['overlaps_indices']
         if primers:
             primers = design_primer_gene(seq, tm=primer_tm)
             self.primers = [x[0].upper() for x in primers]
             self.primer_tms = [x[1] for x in primers]
+
+        # TODO: fix this problem automatically rather than warning
+        for i in range(len(self.overlaps_indices) - 1):
+            current_start = self.overlaps_indices[i + 1]
+            current_end = self.overlaps_indices[i]
+            if current_start <= current_end:
+                print 'warning: overlapping overlaps!'
 
     def write(self, outpath):
         '''
@@ -98,7 +106,7 @@ class OligoAssembly(object):
 
 
 def oligo_calc(seq, tm=72, length_range=(80, 200), require_even=True,
-               start_5=True, oligo_number=None):
+               start_5=True, oligo_number=None, overlap_min=20):
     '''Split a sequence into overlapping oligonucleotides with equal-Tm
     overlaps.
 
@@ -118,7 +126,8 @@ def oligo_calc(seq, tm=72, length_range=(80, 200), require_even=True,
                          starting with length_range min and incrementing by 10
                          up to length_range max.
     :type oligo_number: bool
-
+    :param overlap_min: Minimum overlap size.
+    :type overlap_min: int
     '''
 
     if len(seq) < length_range[0]:
@@ -144,15 +153,17 @@ def oligo_calc(seq, tm=72, length_range=(80, 200), require_even=True,
             # become longer than 80)
 
             # TODO: first run is redundant. fix it
-            grown_overlaps = grow_overlaps(seq, tm, require_even, length_max)
+            grown_overlaps = grow_overlaps(seq, tm, require_even, length_max,
+                                           overlap_min)
             current_oligo_n = len(grown_overlaps[0])
             if current_oligo_n > oligo_number:
                 break
             length_max -= step
     else:
-        grown_overlaps = grow_overlaps(seq, tm, require_even, length_range[1])
+        grown_overlaps = grow_overlaps(seq, tm, require_even, length_range[1],
+                                       overlap_min)
 
-    oligos, overlaps, overlaps_tms = grown_overlaps
+    oligos, overlaps, overlaps_tms, overlaps_indices = grown_overlaps
 
     if start_5:
         for i in [x for x in range(len(oligos)) if x % 2 == 1]:
@@ -166,11 +177,12 @@ def oligo_calc(seq, tm=72, length_range=(80, 200), require_even=True,
     oligos = [x.upper() for x in oligos]
     assembly_dict = {'oligos': oligos,
                      'overlaps': overlaps,
-                     'overlaps_tms': overlaps_tms}
+                     'overlaps_tms': overlaps_tms,
+                     'overlaps_indices': overlaps_indices}
     return assembly_dict
 
 
-def grow_overlaps(seq, tm, require_even, length_max, overlap_min=20):
+def grow_overlaps(seq, tm, require_even, length_max, overlap_min):
     '''
     :param seq: Input sequence (DNA).
     :type seq: str
@@ -181,8 +193,8 @@ def grow_overlaps(seq, tm, require_even, length_max, overlap_min=20):
     :param length_max: Maximum oligo size (e.g. 60bp price point cutoff)
                        range.
     :type length_range: int
-    :param overlap_min: Minimum overlap size e.g. 20bp.
-    :type length_range: int
+    :param overlap_min: Minimum overlap size.
+    :type overlap_min: int
 
     '''
     # TODO: prevent growing overlaps from bumping into each other -
@@ -217,6 +229,8 @@ def grow_overlaps(seq, tm, require_even, length_max, overlap_min=20):
 
     # Loop until all overlaps meet minimum Tm
     tm_met = all([x >= tm for x in overlaps_tms])
+    # TODO: len_unmet can loop forever or be exceedingly slow - e.g. generate
+    # 900bp gene, tell it to do oligo_min of 50 and see what happens.
     len_met = False
     while(not tm_met or not len_met):
         # Calculate initial number of overlaps
@@ -284,7 +298,10 @@ def grow_overlaps(seq, tm, require_even, length_max, overlap_min=20):
             len_met = all([len(x) >= overlap_min for x in overlaps])
 
         oligo_n += oligo_increment
-    return oligos, overlaps, overlaps_tms
+    overlaps_indices = [(oligo_starts[x + 1], oligo_ends[x]) for x in
+                        range(overlap_n)]
+
+    return oligos, overlaps, overlaps_tms, overlaps_indices
 
 
 def _increase_right_oligo(positions_list, index):
