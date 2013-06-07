@@ -86,8 +86,7 @@ class OligoAssembly(object):
             pass
 
     def write_map(self, path):
-        starts = [self.seq.find(overlap) for overlap in
-                  self.overlaps]
+        starts = [index[0] for index in self.overlaps_indices]
         overlap_lens = [len(overlap) for overlap in self.overlaps]
         features = []
         for i, start in enumerate(starts):
