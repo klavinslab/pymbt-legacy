@@ -41,7 +41,7 @@ def check_alphabet(sequence, material='dna'):
         raise ValueError(msg)
     for char in sequence:
         if char not in alphabet:
-            raise ValueError('Sequence has a non-%s character' % err_msg)
+            raise ValueError('Sequence has a non-{} character'.format(err_msg))
     return sequence
 
 

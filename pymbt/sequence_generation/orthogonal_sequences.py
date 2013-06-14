@@ -18,7 +18,7 @@ from pymbt.sequence_manipulation import reverse_complement as r_c
 from pymbt.sequence_manipulation import check_alphabet
 
 
-class OrthoSeq:
+class OrthoSeq(object):
     '''Class to calculate, store, and write orthogonality-optimized peptide
     sequences.'''
 
@@ -232,7 +232,7 @@ class OrthoSeq:
             host = socket.gethostname()
             cur_id = current_date + '-' + host + '-' + self.prot_seq
             cur_dir = os.getcwd()
-            file_prefix = '%s/%s-oligo_calc_' % (cur_dir, cur_id)
+            file_prefix = '{0}/{1}-oligo_calc_'.format(cur_dir, cur_id)
 
             # Write out setup info file
             info_file = open(file_prefix + 'info.txt', 'w')

@@ -47,8 +47,8 @@ class OligoAssembly(object):
 
         # TODO: fix this problem automatically rather than warning
         for i in range(len(self.overlaps_indices) - 1):
-            current_start = self.overlaps_indices[i + 1]
-            current_end = self.overlaps_indices[i]
+            current_start = self.overlaps_indices[i + 1][0]
+            current_end = self.overlaps_indices[i][1]
             if current_start <= current_end:
                 print 'warning: overlapping overlaps!'
 
@@ -65,23 +65,24 @@ class OligoAssembly(object):
                                   quoting=csv.QUOTE_MINIMAL)
         oligo_writer.writerow(['name', 'oligo', 'notes'])
         for i, oligo in enumerate(self.oligos):
-            name = 'oligo %i' % (i + 1)
+            name = 'oligo {}'.format(i + 1)
+            oligo_len = len(oligo)
             if i != len(self.oligos) - 1:
-                o_tm = self.overlaps_tms[i]
-                len_tm = (len(oligo), o_tm)
-                notes = 'oligo length: %d, overlap Tm: %.2f' % len_tm
+                oligo_tm = self.overlaps_tms[i]
+                notes = 'oligo length: {}, '.format(oligo_len) + \
+                        'overlap Tm: {:.2f}'.format(oligo_tm)
             else:
-                notes = 'oligo length: %d' % len(oligo)
+                notes = 'oligo length: {}'.format(oligo_len)
             oligo_writer.writerow([name,
                                    oligo,
                                    notes])
         try:
             oligo_writer.writerow(['primer 1',
                                   self.primers[0],
-                                  'Tm: %.2f' % self.primer_tms[0]])
+                                  'Tm: {:.2f}'.format(self.primer_tms[0])])
             oligo_writer.writerow(['primer 2',
                                   self.primers[1],
-                                  'Tm: %.2f' % self.primer_tms[1]])
+                                  'Tm: {:.2f}'.format(self.primer_tms[1])])
         except AttributeError:
             pass
 
@@ -93,8 +94,9 @@ class OligoAssembly(object):
             location = FeatureLocation(ExactPosition(start),
                                        ExactPosition(start + overlap_lens[i]),
                                        strand=1)
+            overlap_name = 'overlap {}'.format(i + 1)
             features.append(SeqFeature(location, type='misc_feature',
-                            qualifiers={'label': ['overlap {}'.format(i)]}))
+                            qualifiers={'label': [overlap_name]}))
         seq_map = SeqRecord(Seq(self.seq, unambiguous_dna), features=features)
         SeqIO.write(seq_map, path, 'genbank')
 

@@ -6,7 +6,7 @@ from pymbt.sequence_manipulation import check_alphabet
 from pymbt.sequence_manipulation import translate_seq
 
 
-class RandomCodons:
+class RandomCodons(object):
     '''Generator class for random DNA or RNA sequence.'''
 
     def __init__(self, sequence, material='pep', freq_table='sc',
@@ -30,7 +30,7 @@ class RandomCodons:
         self.threshold = threshold
 
     def __repr__(self):
-        return 'RandomCodons generator for %s' % self.sequence
+        return 'RandomCodons generator for {}'.format(self.sequence)
 
     def generate(self):
         '''Generate the sequence.'''

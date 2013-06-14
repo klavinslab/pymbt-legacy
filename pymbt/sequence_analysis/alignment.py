@@ -13,7 +13,7 @@ from pymbt.sequence_manipulation import reverse_complement
 # too much work is done initializing Sanger. Move calculations to methods.
 
 
-class Sanger:
+class Sanger(object):
     '''Align and analyze Sanger sequencing results.'''
     def __init__(self, ref, res):
         '''
@@ -399,9 +399,9 @@ def _sequences_display(seqs, start_stop, context=10, indent=4):
 
     indent = ' ' * indent
     if start != stop:
-        print indent + 'Positions %i to %i:' % (start, stop)
+        print indent + 'Positions {0} to {1}:'.format(start, stop)
     else:
-        print indent + 'Position %i:' % start
+        print indent + 'Position {}:'.format(start)
     print indent + top
     print indent + middle
     print indent + bottom

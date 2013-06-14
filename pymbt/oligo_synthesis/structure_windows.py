@@ -9,7 +9,7 @@ from pymbt.sequence_manipulation import reverse_complement
 from pymbt.nupack import nupack_multiprocessing
 
 
-class ContextWalker:
+class ContextWalker(object):
     '''
     Evaluate sequences in-context using Nupack's ppairs in windows along
     the sequence.

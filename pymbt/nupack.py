@@ -16,7 +16,7 @@ else:
     raise EnvironmentError('NUPACKHOME environment variable must be set')
 
 
-class Nupack:
+class Nupack(object):
     '''Contain sequence inputs and use NUPACK computation methods.'''
 
     def __init__(self, sequence, material):
@@ -261,8 +261,8 @@ class Nupack:
             raise ValueError('Command must be one of the following:' + known)
 
         env_line = "export NUPACKHOME=" + self.nupack_home + ' && '
-        command_prefix = '%s/bin/%s ' % (self.nupack_home, cmd)
-        command_line = 'cd %s && ' % (self.outdir) + command_prefix
+        command_prefix = '{0}/bin/{1} '.format(self.nupack_home, cmd)
+        command_line = 'cd {} && '.format(self.outdir) + command_prefix
         arguments_line = arguments + ' ' + self.outdir + '/nupack'
 
         run_command = env_line + command_line + arguments_line
@@ -300,7 +300,7 @@ def nupack_multiprocessing(inputs, material, cmd, arguments, report=True):
                 break
             else:
                 if passed >= 4:
-                    print '(%s/%s) ' % (completed, total) + msg
+                    print '({0}/{1}) '.format(completed, total) + msg
                     passed = 0
                 passed += 1
                 time.sleep(1)

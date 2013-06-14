@@ -16,7 +16,7 @@ from pymbt.oligo_synthesis.structure_windows import context_walk
 #       right off the bat, store it, and try making spanning combinations
 
 
-class GeneSplitter:
+class GeneSplitter(object):
     '''
     Split a large (~<10kb) sequence into smaller ones that are easier to clone,
     either via oligo assembly or PCR. Store and write the results.
@@ -104,7 +104,7 @@ class GeneSplitter:
 
         walked_raw = []
         for i, overlap in enumerate(olaps_w_context):
-            print 'Analyzing %i of %i overlap(s).' % (i + 1, len(olaps))
+            print 'Analyzing {0} of {1} overlap(s).'.format(i + 1, len(olaps))
             window = context_walk(overlap, core, context, step)
             walked_raw.append(window)
 
@@ -268,14 +268,14 @@ def optimal_overlap(walked, max_len, force_exhaustive=False):
             if n_combos > 10000000 and not force_exhaustive:
                 exhaustive = False
                 break
-            print 'Trying %s combination(s) of top-scoring sites' % n_combos
+            print 'Trying {} combination(s) of sites'.format(n_combos)
             combos = itertools.product(*current)
 
             useable = []
             time_init = time.time()
             for i, combo in enumerate(combos):
                 if (time.time() - time_init) > 10:
-                    print '%.3f percent complete' % (float(i) / n_combos)
+                    print '{:.3f} percent complete'.format(float(i) / n_combos)
                     time_init = time.time()
                 if check_useable(combo):
                     useable.append(combo)

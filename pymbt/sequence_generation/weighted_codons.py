@@ -10,7 +10,7 @@ from pymbt.sequence_manipulation import check_alphabet
 from pymbt.sequence_manipulation import translate_seq
 
 
-class WeightedCodons:
+class WeightedCodons(object):
     '''Provides a generator class for random, weighted DNA or RNA sequences.'''
 
     def __init__(self, sequence, frequency_table='sc', material='pep'):
@@ -33,7 +33,7 @@ class WeightedCodons:
         self.codon_freq = CODON_FREQ[frequency_table]
 
     def __repr__(self):
-        return 'RandomCodons generator for %s' % self.sequence
+        return 'RandomCodons generator for {}'.format(self.sequence)
 
     def weighted(self, pep):
         '''
