@@ -25,7 +25,9 @@ tcl-dev
 ```
 
 for needleman-wunsch alignment
-```emboss```
+```
+emboss
+```
 
 ### Clone and install:
 ```
