@@ -14,9 +14,10 @@ system:
 -------
 for matplotlib
 
-> libpng dev headers
-> libfreetype dev headers
-> backend headers (e.g. tk-dev, tcl-dev)
+> libpng-dev
+> libfreetype-dev 
+> tk-dev
+> tcl-dev
 
 for needleman-wunsch alignment
 > emboss
