@@ -3,19 +3,22 @@
 Tools for molecular (and synthetic) biologists
 
 ### Requirements:
-python:
+
+python (pip-compatible):
+------------------------
 > numpy  
 > biopython  
 > matplotlib  
 
 system:
-> for matplotlib:
-
+-------
+for matplotlib
 > libpng dev headers
 > libfreetype dev headers
 > backend headers (e.g. tk-dev, tcl-dev)
 
-> emboss (for needleman-wunsch alignment)
+for needleman-wunsch alignment
+> emboss
 
 ### Clone pymbt into your current directory, then:
 > cd pymbt  
