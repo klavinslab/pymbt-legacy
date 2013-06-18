@@ -1,20 +1,20 @@
 # pymbt
 
-Tools for molecular (and synthetic) biologists
+PyMBT: Python molecular biology tools.
 
-### Requirements:
+## Requirements:
 
-python (pip-compatible):
-------------------------
+###python (pip-compatible):
+
 ```
 numpy  
 biopython  
 matplotlib  
 ```
 
-system:
--------
+###system:
 
+```
 for matplotlib
 
 ```
@@ -29,7 +29,8 @@ for needleman-wunsch alignment
 emboss
 ```
 
-### Clone and install:
+## Clone and install:
+
 ```
 git clone https://github.com/klavinslab/pymbt.git
 cd pymbt  
