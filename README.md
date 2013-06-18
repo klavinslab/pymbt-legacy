@@ -6,22 +6,30 @@ Tools for molecular (and synthetic) biologists
 
 python (pip-compatible):
 ------------------------
-> numpy  
-> biopython  
-> matplotlib  
+```
+numpy  
+biopython  
+matplotlib  
+```
 
 system:
 -------
+
 for matplotlib
 
-> libpng-dev
-> libfreetype-dev 
-> tk-dev
-> tcl-dev
+```
+libpng-dev
+libfreetype-dev 
+tk-dev
+tcl-dev
+```
 
 for needleman-wunsch alignment
-> emboss
+```emboss```
 
-### Clone pymbt into your current directory, then:
-> cd pymbt  
-> pip install .  
+### Clone and install:
+```
+git clone https://github.com/klavinslab/pymbt.git
+cd pymbt  
+pip install .
+```
