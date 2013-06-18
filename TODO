@@ -1,13 +1,8 @@
-Sequence repeat detector - fuzzy matching / alignments 
-    integrate into OrthoSeq
-DNA object model, design object model, reaction simulation object model,
-analysis object model
-Nupack / RNA folding:
-    Check cloning primers for self-self, pair structure using Nupack
-        Part of Primers object
-    Gibson object:
-        Should check whether the desired overlap is a high-probability structure
-    Replace / add optional RNAFold or equivalent function. Nupack is
-    proprietary
+integrate repeat detection into OrthoSeq, OligoAssembly
+check cloning primers for self-self, pair structure using Nupack
+Check Gibson object for whether the desired overlap is a high-probability structure
+Add RNAfold / RNAStructure / Vienna as drop-in NUPACK replacements
 Drop emboss dependency by using pycogent / pycogent approach for needleman-wunsch
-Implement santa lucia and sugimoto params. 
+    - pycogent method (pure python) is significantly slower than emboss
+    - try numpy and / or c
+Implement santa lucia and sugimoto params in Tm

@@ -5,27 +5,27 @@ from collections import Counter
 
 
 class FindRepeats(object):
-    def __init__(self, dna_object, length):
+    def __init__(self, dna_object, size):
         self.template = dna_object
-        self.length = length
+        self.size = size
 
     def run(self):
-        check = repeat_check(str(self.template), self.length)
+        check = repeat_check(str(self.template), self.size)
         return check
 
 
-def repeat_check(sequence, length):
+def repeat_check(sequence, size):
     '''
     Evaluate sequence repeats in a given sequence.
 
     :param seq: Input sequence.
     :type seq: str
-    :param length: Length of the repeat to count.
-    :type length: int
+    :param size: Size of the repeat to count.
+    :type size: int
 
     '''
 
-    n_mers = [sequence[i:i + length] for i in range(len(sequence) - length)]
+    n_mers = [sequence[i:i + size] for i in range(len(sequence) - size + 1)]
     counted = Counter(n_mers)
     repeats = [(key, value) for key, value in counted.iteritems() if value > 1]
     return repeats

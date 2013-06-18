@@ -79,3 +79,12 @@ def test_finnzymes():
 
     melt = analysis.Tm(dna.DNA('ATGCGATAGCGATAGC'), method='finnzymes').run()
     assert_equal(melt, 55.237003002075255)
+
+
+def test_find_repeats():
+    reference_seq = 'atgatgccccgatagtagtagtag'
+    reference_result = [('atg', 2), ('gat', 2), ('tag', 4), ('gta', 3),
+                        ('agt', 3), ('ccc', 2)]
+
+    output_result = analysis.FindRepeats(reference_seq, 3).run()
+    assert_equal(output_result, reference_result)
