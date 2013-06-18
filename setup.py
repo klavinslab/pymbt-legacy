@@ -1,13 +1,13 @@
 try:
-    from setuptools import setup, find_packages
+    from setuptools import setup
 except ImportError:
-    from distutils.core import setup, find_packages
+    from distutils.core import setup
 
 config = {
     'description': 'pymbt',
     'author': 'Nick Bolten',
-    'url': 'URL to get it at.',
-    'download_url': 'Where to download it.',
+    'url': 'https://github.com/klavinslab/pymbt',
+    'download_url': 'https://github.com/klavinslab/pymbt.git',
     'author_email': 'nbolten _at_ gmail',
     'version': '0.1',
     'install_requires': ['nose'],
@@ -15,12 +15,15 @@ config = {
                  'biopython',
                  'matplotlib'],
     'packages': ['pymbt',
-                 'pymbt.oligo_synthesis',
-                 'pymbt.sequence_analysis',
-                 'pymbt.sequence_generation'],
+                 'pymbt.analysis',
+                 'pymbt.design',
+                 'pymbt.io',
+                 'pymbt.reaction',
+                 'pymbt.sequence'],
     'scripts': [],
     'name': 'pymbt',
     'license': 'GPLv3'
 }
 
-setup(**config)
+setup(test_suite='nose.collector',
+      **config)
