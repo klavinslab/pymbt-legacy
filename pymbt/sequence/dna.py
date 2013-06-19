@@ -5,8 +5,31 @@ from pymbt import sequence_utils
 
 
 class DNA(object):
+    '''
+    Core DNA sequence object.
+
+    '''
     def __init__(self, sequence, bottom=None, type='linear', stranded='ds',
-                 features=[]):
+                 features=[], check_alphabet=True):
+        '''
+        :param sequence: Input sequence (DNA).
+        :type sequence: str
+        :param bottom: Manual input of bottom-strand sequence. Enables both
+                       mismatches and initializing ssDNA.
+        :type bottom: str
+        :param type: Type of DNA - 'linear' or 'circular'.
+        :type type: str
+        :param stranded: Strandednes of DNA - 'ss' for single-stranded or
+                         'ds' for double-stranded.
+        :type stranded: str
+        :param features: List of annotated features.
+        :type features: list
+        :param check_alphabet: Check that input is DNA or not (runs much faster
+                               when disabled)..
+        :type check_alphabet: bool
+
+        '''
+
         sequence_utils.check_alphabet(sequence)
         self.type = type
         self.top = sequence.lower()
@@ -17,7 +40,8 @@ class DNA(object):
         self.name = ''
 
         if bottom:
-            sequence_utils.check_alphabet(bottom)
+            if check_alphabet:
+                sequence_utils.check_alphabet(bottom)
             self.bottom = bottom
             # TODO: check for complementation between top/bottom if allowing
             # manual bottom strand input. Mismatched complexes should
@@ -30,6 +54,7 @@ class DNA(object):
     def reverse_complement(self):
         '''
         Reverse complement top and bottom strands.
+
         '''
         new_instance = self.copy()
         if self.stranded == 'ds':
@@ -43,6 +68,7 @@ class DNA(object):
     def circularize(self):
         '''
         Circularize linear DNA.
+
         '''
         # Currently does nothing other than changing an attribute
         new_instance = self.copy()
@@ -53,6 +79,11 @@ class DNA(object):
     def linearize(self, index=0):
         '''
         Linearize circular DNA at a specific index.
+
+        :param index: index at which to linearize.
+        :type index: int
+
+
         '''
         # TODO: collections.deque makes this easier.
         if self.type == 'linear':
@@ -80,6 +111,12 @@ class DNA(object):
     def five_resect(self, n_bases=None):
         '''
         Remove bases from 5' end of top strand.
+
+
+        :param n_bases: Number of bases cut back. Defaults to removing entire
+                        top strand
+        :type n_bases: int
+
         '''
         n_blanks = len(self.top) - len(self.top.lstrip('-'))
         if n_bases and n_bases < len(self.top):
@@ -98,6 +135,11 @@ class DNA(object):
     def three_resect(self, n_bases=None):
         '''
         Remove bases from 3' end of top strand.
+
+        :param n_bases: Number of bases cut back. Defaults to removing entire
+                        top strand
+        :type n_bases: int
+
         '''
         n_blanks = len(self.top) - len(self.top.rstrip('-'))
         if n_bases and n_bases < len(self.top):
@@ -114,6 +156,15 @@ class DNA(object):
         return new_instance
 
     def locate(self, pattern):
+        '''
+        Find sequences matching a pattern.
+
+        :param pattern: Sequence for which to find matches.
+        :type pattern: str
+
+        '''
+
+        # TODO: pattern should itself be a DNA object to ensure valid alphabet
         pattern = pattern.lower()
         if self.type == 'circular':
             # TODO: this probably doesn't account for gaps
@@ -156,16 +207,22 @@ class DNA(object):
         return (indices_top, indices_bottom)
 
     def copy(self):
-        # Making a new instance this way is slow. It's just as slow if
-        # initialized with an empty string '' due to alphabet checking
+        '''
+        Create a copy of the current instance.
+
+        '''
+
+        # Note: alphabet checking disabled on copy to improve preformance -
+        # will bottleneck many workflows that rely on slicing otherwise
         new_instance = DNA(self.top, bottom=self.bottom, type=self.type,
-                           stranded=self.stranded, features=self.features)
-#        new_instance = copy.deepcopy(self)
+                           stranded=self.stranded, features=self.features,
+                           check_alphabet=False)
         return new_instance
 
     def _remove_end_gaps(self):
         '''
         Removes double-stranded gaps from ends of the sequence.
+
         '''
         top = self.top
         bottom = self.bottom
@@ -191,6 +248,10 @@ class DNA(object):
     def __getitem__(self, key):
         '''
         Indexing and slicing of sequences.
+
+        :param key: int or slice object for subsetting.
+        :type key: int or slice object
+
         '''
         # TODO: throw proper error when index is out of range
         new_instance = self.copy()
@@ -212,6 +273,7 @@ class DNA(object):
     def __repr__(self):
         '''
         String to print when object is called directly.
+
         '''
         show_bases = 40
         bottom = self.bottom[::-1]
@@ -232,6 +294,7 @@ class DNA(object):
         '''
         Coerce DNA object to string. Only works for ungapped dsDNA
         and top-strand ssDNA.
+
         '''
         # TODO: implement bottom-only strand ssDNA as well?
         gaps = sum([1 for x in self.top if x == '-'])
@@ -250,6 +313,7 @@ class DNA(object):
         '''
         Return length of all DNA (including gaps) in object when built-in
         len function is used.
+
         '''
         return len(self.top)
 
@@ -257,6 +321,10 @@ class DNA(object):
         '''
         Defines adding with + for DNA objects. Only works for ungapped dsDNA
         and top-only ssDNA.
+
+        :param other: instance to be added to.
+        :type other: compatible sequence object (currently only DNA).
+
         '''
 
         # Check self for terminal gap at the right:
@@ -283,9 +351,23 @@ class DNA(object):
 
 
 class RestrictionSite(object):
+    '''
+    Defines the recognition site and properties of a restriction endonuclease.
+
+    '''
     def __init__(self, recognition_site, cut_site, name=None):
+        '''
+        :param recognition_site: Input sequence (DNA).
+        :type recognition_site: DNA object.
+        :param cut_site: 0-indexed indices where DNA is nicked (top, then
+                         bottom strand). For an n-sized recognition site, there
+                         are n + 1 positions at which to cut.
+        :type cut_site: 2-tuple.
+        :param name: Identifier of this restriction site
+        :type name: str
+
+        '''
         # TODO: input checking / equivalent
-        # FIXME: cut_site is 0-indexed for first entry, 1-index for second
         self.recognition_site = recognition_site  # require DNA object
         # cutsite is indexed to leftmost base of restriction site
         self.cut_site = cut_site  # tuple of where top/bottom strands are cut
@@ -293,6 +375,11 @@ class RestrictionSite(object):
         self.name = name
 
     def __repr__(self):
+        '''
+        Restriction site representation / string coercion.
+
+        '''
+
         site = self.recognition_site
         cut = self.cut_site
         cut_symbols = ('|', '|')
