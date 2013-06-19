@@ -4,8 +4,8 @@ Generate random, but usage frequency-weighted codons (i.e. codon optimization).
 '''
 
 import random
-from pymbt.data.common_data import CODON_TABLE, CODON_FREQ
-from pymbt.sequence_utils import translate_seq
+from pymbt.data.common import CODON_TABLE, CODON_FREQ
+from pymbt.sequence.utils import translate_seq
 from pymbt import sequence
 
 

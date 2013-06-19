@@ -6,7 +6,7 @@ from a gene sequence.
 
 import csv
 from math import floor
-from pymbt.sequence_utils import reverse_complement
+from pymbt.sequence.utils import reverse_complement
 from pymbt import analysis
 from pymbt.design import DesignPrimerGene
 

@@ -2,8 +2,8 @@
 
 from pymbt import sequence
 from pymbt import analysis
-from pymbt.sequence_utils import check_alphabet
-from pymbt.sequence_utils import reverse_complement
+from pymbt.sequence.utils import check_alphabet
+from pymbt.sequence.utils import reverse_complement
 
 
 class DesignPrimer(object):

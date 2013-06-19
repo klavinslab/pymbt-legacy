@@ -1,7 +1,7 @@
 '''Tests sequence_manipulation module.'''
 
 from nose.tools import assert_equals
-from pymbt import sequence_utils
+from pymbt.sequence import utils
 
 
 def test_reverse_complement():
@@ -9,7 +9,7 @@ def test_reverse_complement():
 
     seq = 'ATGCNatgcn'
     rev_seq = 'ngcatNGCAT'
-    assert_equals(sequence_utils.reverse_complement(seq), rev_seq)
+    assert_equals(utils.reverse_complement(seq), rev_seq)
 
 
 def test_translate_seq():
@@ -31,5 +31,5 @@ def test_translate_seq():
            'TTFGYGLQCFARYPDHMKQHDFFKSAMPEGYVQERTIFFKDDGNYKTRAEVKFEGDTLVNRI' + \
            'ELKGIDFKEDGNILGHKLEYNYNSHNVYIMADKQKNGIKVNFKIRHNIEDGSVQLADHYQQN' + \
            'TPIGDGPVLLPDNHYLSYQSALSKDPNEKRDHMVLLEFVTAAGITLGMDELYK'
-    trans = sequence_utils.translate_seq(seq)
+    trans = utils.translate_seq(seq)
     assert_equals(trans, prot)

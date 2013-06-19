@@ -1,4 +1,7 @@
-'''Sanger sequencing alignment tools.'''
+'''
+Sanger sequencing alignment tools.
+
+'''
 
 import os
 import math
@@ -7,7 +10,7 @@ from matplotlib import cm
 
 from pymbt import io
 from pymbt.analysis.sequencing.needle import needle
-from pymbt.sequence_utils import reverse_complement
+from pymbt.sequence.utils import reverse_complement
 
 # TODO:
 # consensus / master sequence for plotting / report / analysis

@@ -1,7 +1,7 @@
 import math
 import re
 
-from pymbt import sequence_utils
+from pymbt.sequence import utils
 
 
 class DNA(object):
@@ -30,7 +30,7 @@ class DNA(object):
 
         '''
 
-        sequence_utils.check_alphabet(sequence)
+        utils.check_alphabet(sequence)
         self.type = type
         self.top = sequence.lower()
         self.features = features
@@ -41,7 +41,7 @@ class DNA(object):
 
         if bottom:
             if check_alphabet:
-                sequence_utils.check_alphabet(bottom)
+                utils.check_alphabet(bottom)
             self.bottom = bottom
             # TODO: check for complementation between top/bottom if allowing
             # manual bottom strand input. Mismatched complexes should
@@ -49,7 +49,7 @@ class DNA(object):
         elif stranded == 'ss':
             self.bottom = ''.join('-' for x in self.top)
         elif stranded == 'ds':
-            self.bottom = sequence_utils.reverse_complement(self.top)
+            self.bottom = utils.reverse_complement(self.top)
 
     def reverse_complement(self):
         '''
@@ -61,7 +61,7 @@ class DNA(object):
             new_instance.top = self.bottom
             new_instance.bottom = self.top
         elif self.stranded == 'ss':
-            new_instance.top = sequence_utils.reverse_complement(self.top)
+            new_instance.top = utils.reverse_complement(self.top)
 
         return new_instance
 
@@ -192,7 +192,7 @@ class DNA(object):
             else:
                 l_wing = pattern[0: wing]
                 r_wing = pattern[wing:]
-            if l_wing == sequence_utils.reverse_complement(r_wing):
+            if l_wing == utils.reverse_complement(r_wing):
                 return True
             else:
                 return False

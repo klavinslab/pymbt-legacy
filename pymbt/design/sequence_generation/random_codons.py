@@ -1,8 +1,8 @@
 '''Generate random codons.'''
 
 import random
-from pymbt.data.common_data import CODON_FREQ_SC_NESTED
-from pymbt.sequence_utils import translate_seq
+from pymbt.data.common import CODON_FREQ_SC_NESTED
+from pymbt.sequence.utils import translate_seq
 from pymbt import sequence
 # TODO: implement peptide sequence object
 

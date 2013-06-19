@@ -1,2 +1,1 @@
-
 from restriction import Restriction

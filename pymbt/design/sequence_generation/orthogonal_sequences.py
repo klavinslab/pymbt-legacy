@@ -10,11 +10,11 @@ from itertools import combinations
 import os
 import socket
 import time
-from pymbt.design import Nupack, nupack_multiprocessing
+from pymbt.analysis import Nupack, nupack_multiprocessing
 from pymbt.design import RandomCodons
 from pymbt.design import WeightedCodons
-from pymbt.sequence_utils import reverse_complement as r_c
-from pymbt.sequence_utils import check_alphabet
+from pymbt.sequence.utils import reverse_complement as r_c
+from pymbt.sequence.utils import check_alphabet
 
 # TODO: allow OrthoSeq to take config file and previous run as keyword inputs.
 # then the config file can be placed in a separate dir

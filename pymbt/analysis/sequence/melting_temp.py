@@ -2,7 +2,7 @@
 using the Finnzymes modified Breslauer 1986 parameters.'''
 
 from math import log
-from pymbt.sequence_utils import reverse_complement
+from pymbt.sequence.utils import reverse_complement
 
 # TODO: Add Breslauer, SantaLucia98, and Sugimoto methods
 # See doi: 10.1093/bioinformatics/bti066 for good comparison

@@ -2,8 +2,8 @@
 
 import re
 from string import maketrans
-from pymbt.data.common_data import ALPHABETS
-from pymbt.data.common_data import CODONS
+from pymbt.data.common import ALPHABETS
+from pymbt.data.common import CODONS
 
 
 def reverse_complement(sequence):
