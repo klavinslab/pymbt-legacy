@@ -7,7 +7,6 @@ from tempfile import mkdtemp
 from shutil import rmtree
 from os.path import isdir
 from os import environ
-from pymbt.sequence_utils import check_alphabet
 
 
 if 'NUPACKHOME' in environ:
@@ -44,15 +43,14 @@ class Nupack(object):
         self.outdir = mkdtemp()
 
         self.material = material
-        if self.material == 'rna' or self.material == 'rna1999':
-            mat = 'rna'
-        elif material == 'dna':
-            mat = 'dna'
-        else:
-            raise ValueError("material must be 'dna', 'rna', or 'rna1999'.")
-
-        for sequence in self.dna_list:
-            check_alphabet(sequence, material=mat)
+        # TODO: implement RNA functionality automatically - requires
+        # RNA object (not yet implemented)
+#        if self.material == 'rna' or self.material == 'rna1999':
+#            mat = 'rna'
+#        elif material == 'dna':
+#            mat = 'dna'
+#        else:
+#            raise ValueError("material must be 'dna', 'rna', or 'rna1999'.")
 
         # Track whether complexes has been run
         self.complexes_run = False
