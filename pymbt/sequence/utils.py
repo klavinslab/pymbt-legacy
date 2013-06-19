@@ -4,6 +4,7 @@ import re
 from string import maketrans
 from pymbt.data.common import ALPHABETS
 from pymbt.data.common import CODONS
+import pymbt.sequence
 
 
 def reverse_complement(sequence):
@@ -76,3 +77,9 @@ def translate_seq(sequence):
     peptide = ''.join(peptide)
 
     return peptide
+
+
+def check_instance(sequence_in):
+    valid = isinstance(sequence_in, pymbt.sequence.DNA)
+    if not valid:
+        raise Exception('Input must be an instance of pymbt.sequence.DNA.')

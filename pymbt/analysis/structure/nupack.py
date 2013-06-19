@@ -7,6 +7,7 @@ from tempfile import mkdtemp
 from shutil import rmtree
 from os.path import isdir
 from os import environ
+from pymbt.sequence.utils import check_instance
 
 
 if 'NUPACKHOME' in environ:
@@ -18,31 +19,35 @@ else:
 class Nupack(object):
     '''Contain sequence inputs and use NUPACK computation methods.'''
 
-    def __init__(self, dna_list, material):
+    def __init__(self, dna_list):
         '''
         :param dna_list: Input sequences. Can also be list of sequences.
         :type dna_list: str
-        :param material: Input material type - 'dna' or 'rna'.
-        :type material: str
 
         '''
 
         # TODO: automatically figure out material based on input
+        # Hard-coded to 'dna' for now.
+        self.material = 'dna'
+
         # Set up nupack environment variable
         self.nupack_home = NUPACKHOME
-        # Store reused information
-        # TODO: force input to be ssDNA list
+
+        # Hard-coded to 'dna' for now.
+        self.material = 'dna'
         if type(dna_list) != list:
-            # TODO: type check for DNA object
             dna_list = [dna_list]
         else:
             dna_list = dna_list
+
+        for seq in dna_list:
+            check_instance(seq)
+
         # convert dna object to string
         dna_list = [str(dna) for dna in dna_list]
         self.dna_list = dna_list
         self.outdir = mkdtemp()
 
-        self.material = material
         # TODO: implement RNA functionality automatically - requires
         # RNA object (not yet implemented)
 #        if self.material == 'rna' or self.material == 'rna1999':
@@ -324,7 +329,7 @@ def run_nupack(kwargs):
 
     '''
 
-    run = Nupack(kwargs['seq'], material=kwargs['material'])
+    run = Nupack(kwargs['seq'])
     output = getattr(run, kwargs['cmd'])(**kwargs['arguments'])
     run.close()
     return output

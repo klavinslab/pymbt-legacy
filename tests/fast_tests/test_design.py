@@ -2,7 +2,7 @@
 
 from nose.tools import assert_equals
 from pymbt import design
-from pymbt.sequence import dna
+from pymbt import sequence
 
 
 def test_design_primer():
@@ -20,10 +20,12 @@ def test_design_primer():
           'ggcgacggccccgtgctgctgcccgacaaccactacctgagctaccagtccgccctgagcaaa' + \
           'gaccccaacgagaagcgcgatcacatggtcctgctggagttcgtgaccgccgccgggatcact' + \
           'ctcggcatggacgagctgtacaagtaa'
-    primer1 = design.DesignPrimer(seq, tm=72, min_len=10, tm_undershoot=1,
-                                  tm_overshoot=3, end_gc=False,
-                                  tm_method='finnzymes', overhang='').run()
-    assert_equals(str(primer1), 'atggtgagcaagggcgaggag')
+    dna_seq = sequence.DNA(seq)
+    primer, tm = design.DesignPrimer(dna_seq, tm=72, min_len=10,
+                                     tm_undershoot=1, tm_overshoot=3,
+                                     end_gc=False, tm_method='finnzymes',
+                                     overhang='').run()
+    assert_equals(str(primer), 'atggtgagcaagggcgaggag')
 
 
 def test_design_primer_gene():
@@ -41,13 +43,14 @@ def test_design_primer_gene():
           'ggcgacggccccgtgctgctgcccgacaaccactacctgagctaccagtccgccctgagcaaa' + \
           'gaccccaacgagaagcgcgatcacatggtcctgctggagttcgtgaccgccgccgggatcact' + \
           'ctcggcatggacgagctgtacaagtaa'
-    primers = design.DesignPrimerGene(seq, tm=72, min_len=10, tm_undershoot=1,
-                                      tm_overshoot=3, end_gc=False,
-                                      tm_method='finnzymes',
-                                      overhangs='').run()
-    output_primers = [str(oligo) for oligo in primers]
-    assert_equals(output_primers, ['atggtgagcaagggcgaggag',
-                                   'ttacttgtacagctcgtccatgccg'])
+    dna_seq = sequence.DNA(seq)
+    primers_list = design.DesignPrimerGene(dna_seq, tm=72, min_len=10,
+                                           tm_undershoot=1, tm_overshoot=3,
+                                           end_gc=False, tm_method='finnzymes',
+                                           overhangs='').run()
+    primers = [str(x[0]) for x in primers_list]
+    assert_equals(primers, ['atggtgagcaagggcgaggag',
+                            'ttacttgtacagctcgtccatgccg'])
 
 
 def test_oligo_assembly():
@@ -94,7 +97,7 @@ def test_oligo_assembly():
           'gatggccctgtccttttaccagacaaccattacctgtccacacaatctgccctttcgaaagat' + \
           'cccaacgaaaagagagaccacatggtccttcttgagtttgtaacagctgctgggattacacat' + \
           'ggcatggatgaactatacaaaaggcctgctgcaaacgacgaaaactacgctttagtagcttaa'
-    dna_seq = dna.DNA(seq)
+    dna_seq = sequence.DNA(seq)
     designed = design.OligoAssembly(dna_seq,
                                     tm=72,
                                     length_range=(120, 120),

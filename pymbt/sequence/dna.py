@@ -3,6 +3,9 @@ import re
 
 from pymbt.sequence import utils
 
+# TODO: get / set methods for strandedness/topology?
+# TODO: method for converting ungapped dsDNA to top-strand ssDNA?
+
 
 class DNA(object):
     '''
@@ -327,9 +330,15 @@ class DNA(object):
 
         '''
 
-        # Check self for terminal gap at the right:
-        self_gaps = (self.top[-1] == '-', self.bottom[1] == '-')
-        other_gaps = (other.top[1] == '-', other.bottom[-1] == '-')
+        # Check self for terminal gaps:
+        if len(self):
+            self_gaps = (self.top[-1] == '-', self.bottom[1] == '-')
+        else:
+            self_gaps = (False, False)
+        if len(other):
+            other_gaps = (other.top[1] == '-', other.bottom[-1] == '-')
+        else:
+            other_gaps = (False, False)
 
         # Only time this should fail is when there's a discontinuity. A
         # discontinuity appears when the first and second entries for the gaps

@@ -3,21 +3,16 @@ Sanger sequencing alignment tools.
 
 '''
 
-import os
 import math
 from matplotlib import pyplot
 from matplotlib import cm
 
-from pymbt import io
 from pymbt.analysis.sequencing.needle import needle
-from pymbt.sequence.utils import reverse_complement
+from pymbt.sequence.utils import reverse_complement, check_instance
 
 # TODO:
 # consensus / master sequence for plotting / report / analysis
 # too much work is done initializing Sanger. Move calculations to methods.
-
-# TODO: remove readref and readres from this section - use io module
-# TODO: have to implement features in order to plot them
 
 
 class Sanger(object):
@@ -30,7 +25,11 @@ class Sanger(object):
         :type res: DNA object
 
         '''
-        # TODO: type checking on input
+
+        # Check input types
+        check_instance(ref)
+        for seq in res:
+            check_instance(seq)
 
         # make results a list if there's just one
         if type(res) != list:
@@ -199,6 +198,7 @@ class Sanger(object):
     def plot(self):
         '''Plot visualization of results using matplotlib.'''
 
+        # FIXME: have to implement features in order to plot them
         # Step 1: turn results into ranges, bin those ranges for displaying
         bins = _disjoint_bins(self.ranges)
 
@@ -319,39 +319,6 @@ class Sanger(object):
         '''Fix mismatch, deletion, or insertion manually.'''
 
         pass
-
-
-def read_ref(filepath, ftype='genbank'):
-    '''
-    Read reference genbank file.
-
-    :param filepath: Path to the file (typically genbank).
-    :type filepath: str
-    :param ftype: Valid filetype readable by Bio.SeqIO.
-    :type ftype: str
-
-    '''
-
-    sequence = io.read_dna(filepath, ftype)
-    return sequence
-
-
-def read_res(dirpath):
-    '''
-    Read .seq results files from a dir.
-
-    :param dirpath: Path to directory containing sequencing files.
-    :type dirtpath: str
-
-    '''
-
-    seq_paths = [x for x in os.listdir(dirpath) if x.endswith('.seq')]
-    abi_paths = [x for x in os.listdir(dirpath) if x.endswith('.abi')]
-    abi_paths += [x for x in os.listdir(dirpath) if x.endswith('.ab1')]
-    seq_seqs = [io.read_dna(dirpath + x, 'fasta') for x in seq_paths]
-    abi_seqs = [io.read_dna(dirpath + x, 'abi') for x in abi_paths]
-    sequences = seq_seqs + abi_seqs
-    return sequences
 
 
 def _findgap(list_in):

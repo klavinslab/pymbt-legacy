@@ -1,20 +1,23 @@
 '''Check sequences for repeats that may impact cloning efficiency.'''
 
 from collections import Counter
+
+from pymbt.sequence.utils import check_instance
 # TODO: implement version that works for circular DNA?
 
 
 class FindRepeats(object):
     def __init__(self, dna_object, size):
         self.template = dna_object
+        check_instance(self.template)
         self.size = size
 
     def run(self):
-        check = repeat_check(str(self.template), self.size)
+        check = _repeat_check(str(self.template), self.size)
         return check
 
 
-def repeat_check(sequence, size):
+def _repeat_check(sequence, size):
     '''
     Evaluate sequence repeats in a given sequence.
 

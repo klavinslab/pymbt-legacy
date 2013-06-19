@@ -9,6 +9,7 @@ from math import floor
 from pymbt.sequence.utils import reverse_complement
 from pymbt import analysis
 from pymbt.design import DesignPrimerGene
+from pymbt.sequence.utils import check_instance
 
 from Bio.SeqFeature import SeqFeature, FeatureLocation, ExactPosition
 from Bio.Seq import Seq
@@ -38,8 +39,10 @@ class OligoAssembly(object):
 
         '''
 
-        assembly_dict = oligo_calc(seq=seq, **kwargs)
-        self.seq = seq
+        self.template = seq
+        check_instance(self.template)
+        assembly_dict = oligo_calc(seq=self.template, **kwargs)
+
         self.oligos = assembly_dict['oligos']
         self.overlaps = assembly_dict['overlaps']
         self.overlaps_tms = assembly_dict['overlaps_tms']
@@ -101,7 +104,8 @@ class OligoAssembly(object):
             overlap_name = 'overlap {}'.format(i + 1)
             features.append(SeqFeature(location, type='misc_feature',
                             qualifiers={'label': [overlap_name]}))
-        seq_map = SeqRecord(Seq(self.seq, unambiguous_dna), features=features)
+        seq_map = SeqRecord(Seq(self.template, unambiguous_dna),
+                            features=features)
         SeqIO.write(seq_map, path, 'genbank')
 
     def __repr__(self):

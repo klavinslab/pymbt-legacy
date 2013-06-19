@@ -6,6 +6,7 @@ structure.
 
 from matplotlib import pylab
 from pymbt.analysis import nupack_multiprocessing
+from pymbt.sequence.utils import check_instance
 
 # TODO: haven't really changed much to make this integrate with new
 # data model
@@ -26,6 +27,8 @@ class StructureWindows(object):
         '''
 
         self.template = dna_object
+        check_instance(self.template)
+
         self.walked = []
         self.core_starts = []
         self.core_ends = []
@@ -46,7 +49,7 @@ class StructureWindows(object):
 
         '''
 
-        self.walked = context_walk(self.template, core_len, context_len, step)
+        self.walked = _context_walk(self.template, core_len, context_len, step)
         self.core_starts = [x[0] for x in self.walked]
         self.core_ends = [x[1] for x in self.walked]
         self.scores = [x[2] for x in self.walked]
@@ -66,7 +69,7 @@ class StructureWindows(object):
                    \nplot!'
 
 
-def context_walk(dna_object, core_len, context_len, step):
+def _context_walk(dna_object, core_len, context_len, step):
     '''
     Generate context-dependent 'non-boundedness' series of scores for a given
     DNA sequence. Uses NUPACK's pair probabilities to derive the score.

@@ -4,7 +4,7 @@
 from nose.tools import assert_equal
 # pylint: enable-msg=E0611
 from pymbt import analysis
-from pymbt.sequence import dna
+from pymbt import sequence
 
 
 def test_nupack():
@@ -12,8 +12,9 @@ def test_nupack():
     Test all functional NUPACK command methods for two arbitary sequences.
 
     '''
-    np_instance = analysis.Nupack(['ATGCGCATGGGAAATAGC', 'ATGCATGCATGCATGC'],
-                                  material='dna')
+    seq1 = sequence.DNA('ATGCGCATGGGAAATAGC')
+    seq2 = sequence.DNA('ATGCATGCATGCATGC')
+    np_instance = analysis.Nupack([seq1, seq2])
     complexes = np_instance.complexes(2)
     concentrations = np_instance.concentrations(2)
     mfe_0 = np_instance.mfe(0)
@@ -77,12 +78,13 @@ def test_nupack():
 def test_finnzymes():
     '''Tests finnzymes method output.'''
 
-    melt = analysis.Tm(dna.DNA('ATGCGATAGCGATAGC'), method='finnzymes').run()
+    melt = analysis.Tm(sequence.DNA('ATGCGATAGCGATAGC'),
+                       method='finnzymes').run()
     assert_equal(melt, 55.237003002075255)
 
 
 def test_find_repeats():
-    reference_seq = 'atgatgccccgatagtagtagtag'
+    reference_seq = sequence.DNA('atgatgccccgatagtagtagtag')
     reference_result = [('atg', 2), ('gat', 2), ('tag', 4), ('gta', 3),
                         ('agt', 3), ('ccc', 2)]
 

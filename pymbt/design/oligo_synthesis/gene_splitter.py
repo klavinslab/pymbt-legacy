@@ -4,6 +4,7 @@ import csv
 import itertools
 import time
 from pymbt.analysis import StructureWindows
+from pymbt.sequence.utils import check_instance
 
 # TODO: circular (e.g. plasmid) version.
 #   1. Convert plasmid to 'linear' version - add 60bp from front to end
@@ -31,6 +32,8 @@ class GeneSplitter(object):
         '''
 
         self.template = dna_object
+        check_instance(self.template)
+
         self.overlaps = []
         self.scores = []
         self.split_sequences = []
@@ -122,8 +125,8 @@ class GeneSplitter(object):
 
         scores = [[y[2] for y in x] for x in walked]
 
-        best_overlaps = optimal_overlap(walked, max_len,
-                                        force_exhaustive=force_exhaustive)
+        best_overlaps = _optimal_overlap(walked, max_len,
+                                         force_exhaustive=force_exhaustive)
         olap_starts = [x[0] for x in best_overlaps]
         olap_stops = [x[1] for x in best_overlaps]
         scores = [x[2] for x in best_overlaps]
@@ -161,7 +164,7 @@ class GeneSplitter(object):
         handle.close()
 
 
-def optimal_overlap(walked, max_len, force_exhaustive=False):
+def _optimal_overlap(walked, max_len, force_exhaustive=False):
     '''
     Search for the optimal overlap combination.
 
@@ -264,7 +267,7 @@ def optimal_overlap(walked, max_len, force_exhaustive=False):
         if not spannable(current):
             position += 1
         else:
-            remove_nonspanning(current, max_len)
+            _remove_nonspanning(current, max_len)
             n_combos = 1
             for combo in current:
                 n_combos *= len(combo)
@@ -300,7 +303,7 @@ def optimal_overlap(walked, max_len, force_exhaustive=False):
     return useable[best]
 
 
-def trim_directionally(pre_combo_list, max_len, direction):
+def _trim_directionally(pre_combo_list, max_len, direction):
     '''
     Traverse list of lists of (start, end, score) tuples of the type
     returned by StructureWindows. Removes any entries that cannot bridge the
@@ -346,7 +349,7 @@ def trim_directionally(pre_combo_list, max_len, direction):
     return False
 
 
-def remove_nonspanning(pre_combo_list, max_len):
+def _remove_nonspanning(pre_combo_list, max_len):
     '''
     Trims list of lists of (start, end, score) tuples to those
     that actually have a chance of spanning the sequence
@@ -362,10 +365,10 @@ def remove_nonspanning(pre_combo_list, max_len):
 
     count = 1
     while True:
-        left = trim_directionally(pre_combo_list, max_len=max_len,
-                                  direction='right')
-        right = trim_directionally(pre_combo_list, max_len=max_len,
-                                   direction='left')
+        left = _trim_directionally(pre_combo_list, max_len=max_len,
+                                   direction='right')
+        right = _trim_directionally(pre_combo_list, max_len=max_len,
+                                    direction='left')
         if not left and not right:
             break
 
