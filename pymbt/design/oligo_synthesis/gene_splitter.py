@@ -77,66 +77,63 @@ class GeneSplitter(object):
             return self.template
         elif overlap_n > 1:
             while True:
-                # Generate overlap indices.
-                # If overlaps smaller than min_context, increment n
-                # Incrementing n in this way can lead to huge areas
-                # for potential overlaps - may want to trim down for
-                # redundant nupack usage
+                # Find stop indices
                 stops = []
                 for i in range(overlap_n - 1):
                     stops.append((i + 1) * max_len - i * core)
                 stops = [x if x < seq_len else seq_len for x in stops]
+                stops = [min(stop + context, seq_len) for stop in stops]
+
+                # Find start indices
                 starts = [seq_len - x for x in stops]
                 starts = [x if x > 0 else 0 for x in starts]
                 starts.reverse()
-                olap_start_stop = [[starts[i], x] for i, x in enumerate(stops)]
-                olaps = [self.template[x[0]:x[1]] for x in olap_start_stop]
-                with_context = []
-                for ends in olap_start_stop:
-                    start_i = max(ends[0] - context, 0)
-                    stop_i = min(ends[1] + context, seq_len)
-                    with_context.append([start_i, stop_i, seq_len])
-                olaps_w_context = [self.template[x[0]:x[1]] for x in
-                                   with_context]
-                olap_w_context_lens = [x[1] - x[0] for x in with_context]
-                if not any([x < min_context for x in olap_w_context_lens]):
+                starts = [max(start - context, 0) for start in starts]
+
+                # Generate overlaps
+                olaps_w_context = [self.template[start:stop] for start, stop in
+                                   zip(starts, stops)]
+
+                # If they're all large enough, there's enough overlaps
+                if all([len(olap) >= min_context for olap in olaps_w_context]):
                     break
+
+                # If overlaps smaller than min_context, increment n
                 overlap_n += 1
+
         else:
-            raise ValueError('Number of pieces is somehow zero.\
+            raise ValueError('Number of pieces is zero.\
                              That shouldn\'t happen.')
 
-        walked_raw = []
+        window_runs = []
         for i, overlap in enumerate(olaps_w_context):
-            print 'Analyzing {0} of {1} overlap(s).'.format(i + 1, len(olaps))
-            walker = StructureWindows(overlap)
-            window = walker.run(core_len=core, context_len=context, step=step)
-            walked_raw.append(window)
+            print 'Analyzing {0} of {1} overlap(s).'.format(i + 1, len(starts))
+            win = StructureWindows(overlap)
+            run = win.run(window_size=core, context_len=context, step=step)
+            window_runs.append(run)
 
-        walked = []
-        for i, window_raw in enumerate(walked_raw):
+        windows = []
+        for start, window_raw in zip(starts, window_runs):
             new_window = []
-            for w_vals in window_raw:
-                w_vals0 = w_vals[0] + with_context[i][0]
-                w_vals1 = w_vals[1] + with_context[i][0]
-                w_vals2 = w_vals[2]
-                new_window.append((w_vals0, w_vals1, w_vals2))
-            walked.append(new_window)
+            for win_start, win_end, win_score in window_raw:
+                new_window.append((win_start + start, win_end + start,
+                                   win_score))
+            windows.append(new_window)
 
-        scores = [[y[2] for y in x] for x in walked]
+        scores = [[y[2] for y in x] for x in windows]
 
-        best_overlaps = _optimal_overlap(walked, max_len,
+        best_overlaps = _optimal_overlap(windows, max_len,
                                          force_exhaustive=force_exhaustive)
         olap_starts = [x[0] for x in best_overlaps]
         olap_stops = [x[1] for x in best_overlaps]
         scores = [x[2] for x in best_overlaps]
-        olap_start_stop = [(x, olap_stops[i]) for i, x in
-                           enumerate(olap_starts)]
+        olap_start_stop = [(o_start, o_stop) for o_start, o_stop in
+                           zip(olap_starts, olap_stops)]
 
         best_starts = [0] + [x[0] for x in best_overlaps]
         best_stops = [x[1] for x in best_overlaps] + [seq_len]
-        final_seqs = [self.template[best_starts[i]:best_stops[i]] for i in
-                      range(len(best_starts))]
+        final_seqs = [self.template[x:y] for x, y in
+                      zip(best_starts, best_stops)]
         self.split_sequences = final_seqs
         self.overlaps = olap_start_stop
         self.scores = scores
@@ -231,20 +228,6 @@ def _optimal_overlap(walked, max_len, force_exhaustive=False):
             return False
         return True
 
-#        current_start = starts_list[0][-1]
-#        for i, starts in enumerate(starts_list):
-#            working_stops = []
-#            next_starts = []
-#            for j, stop in enumerate(stops_list[i]):
-#                if (stop - current_start) <= max_len:
-#                    working_stops.append(stop)
-#                    next_starts.append(starts[j])
-#            if not working_stops:
-#                return False
-#            else:
-#                current_start = next_starts[-1]
-#        return True
-
     def check_useable(tuple_in):
         '''
         Test whether a set of coordinates is smaller than the max_len.
@@ -259,7 +242,7 @@ def _optimal_overlap(walked, max_len, force_exhaustive=False):
                 return False
         return True
 
-    sorted_walked = [sort_tuple(x) for i, x in enumerate(walked)]
+    sorted_walked = [sort_tuple(x) for x in walked]
 
     position = 1
     while exhaustive:

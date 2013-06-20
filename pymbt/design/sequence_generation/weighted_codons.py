@@ -45,14 +45,14 @@ class WeightedCodons(object):
         frequencies = [self.codon_freq[x] for x in codons]
         cumsum = []
         running_sum = 0
-        for i, frequency in enumerate(frequencies):
+        for frequency in frequencies:
             running_sum += frequency
             cumsum.append(running_sum)
         # Using max val instead of 1 - might sum to slightly less than 1
         random_num = random.uniform(0, max(cumsum))
-        for i, value in enumerate(cumsum):
+        for codon, value in zip(codons, cumsum):
             if value > random_num:
-                return codons[i]
+                return codon
 
     def generate(self):
         '''Generate the sequence.'''

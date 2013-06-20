@@ -94,12 +94,12 @@ class DNA(object):
         top_list = [base for base in self.top]
         bottom_list = [base for base in self.bottom]
         if index > 0:
-            for x in range(index):
+            for i in range(index):
                 top_pop = top_list.pop(0)
                 top_list.append(top_pop)
                 bottom_list = [bottom_list.pop()] + bottom_list
         elif index < 0:
-            for x in range(abs(index)):
+            for i in range(abs(index)):
                 top_list = [top_list.pop()] + top_list
                 bottom_pop = bottom_list.pop(0)
                 bottom_list.append(bottom_pop)

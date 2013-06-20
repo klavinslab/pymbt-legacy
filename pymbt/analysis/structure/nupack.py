@@ -48,15 +48,6 @@ class Nupack(object):
         self.dna_list = dna_list
         self.outdir = mkdtemp()
 
-        # TODO: implement RNA functionality automatically - requires
-        # RNA object (not yet implemented)
-#        if self.material == 'rna' or self.material == 'rna1999':
-#            mat = 'rna'
-#        elif material == 'dna':
-#            mat = 'dna'
-#        else:
-#            raise ValueError("material must be 'dna', 'rna', or 'rna1999'.")
-
         # Track whether complexes has been run
         self.complexes_run = False
 
@@ -177,26 +168,21 @@ class Nupack(object):
                 'concentration': eq_results_conc,
                 'energy': eq_results_en}
 
-    def mfe(self, strand=0, temp=50):
+    def mfe(self, index=0, temp=50):
         '''
         Run 'mfe'.
 
-        :param strand: Index of strand to analyze.
-        :tyep strand: int
+        :param index: Index of strand to analyze.
+        :tyep index: int
         :param temp: Temperature in degrees C.
         :type temp: float
 
         '''
+        # TODO: should return multiple mfe results by unless index is specified
 
-        # TODO: make strand keyword optional
         self._open()  # Recreate temp dir if it was removed
 
-        if type(strand) != int:
-            raise TypeError('strand value must be integer')
-        elif strand > len(self.dna_list):
-            raise ValueError('strand value exceeds the number of sequences')
-
-        sequence = self.dna_list[strand]
+        sequence = self.dna_list[index]
         # Prepare input file
         handle = open(self.outdir + '/nupack.in', 'w')
         handle.write(sequence)
@@ -210,7 +196,7 @@ class Nupack(object):
         mfe_raw = open(self.outdir + '/nupack.mfe', 'r+').readlines()[14]
         mfe = float(mfe_raw.strip())
 
-        # Return the mfe of the designated strand
+        # Return the mfe
         return mfe
 
     def pairs(self, strand, temp=50):

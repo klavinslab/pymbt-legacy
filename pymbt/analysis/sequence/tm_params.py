@@ -1,3 +1,9 @@
+'''
+Nearest-neighbor method Tm calculation parameters.
+
+'''
+
+
 FINNZYMES_PARAMS = {
     'delta_h': {
         'AA': 9.1,

@@ -254,7 +254,7 @@ def grow_overlaps(seq, tm, require_even, length_max, overlap_min):
 
         # Fencepost for while loop
         # Initial overlaps (1 base) and their tms
-        overlaps = [seq[start:ends[i]] for i, start in enumerate(starts)]
+        overlaps = [seq[start:end] for start, end in zip(starts, ends)]
         overlaps_tms = [analysis.Tm(overlap).run() for overlap in overlaps]
         lowest_overlap_tm = min(overlaps_tms)
         lowest_index = overlaps_tms.index(lowest_overlap_tm)
@@ -263,8 +263,8 @@ def grow_overlaps(seq, tm, require_even, length_max, overlap_min):
         # complementation of every other one happens later
         oligo_starts = [0] + starts
         oligo_ends = ends + [len(seq)]
-        oligos = [seq[oligo_start:oligo_ends[i]] for i, oligo_start in
-                  enumerate(oligo_starts)]
+        oligos = [seq[start:end] for start, end in
+                  zip(oligo_starts, oligo_ends)]
 
         # Initialize loop conditions
         maxed = [False for i in range(oligo_n)]

@@ -90,7 +90,7 @@ def needleall(seq1, seq2s):
         score = [float(x.strip()[9:]) for x in score]
     else:
         score = float(score[0].strip()[9:])
-    to_return = [(align[i], score[i]) for i, x in enumerate(align)]
+    to_return = [(a, s) for a, s in zip(align, score)]
 
     rmtree(workdir)
     return to_return

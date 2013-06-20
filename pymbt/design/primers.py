@@ -164,12 +164,18 @@ def _design_primer(dna_object, tm=72, min_len=10, tm_undershoot=1,
     terr = tm - tm_undershoot
     #print terr
     #print tms
-    primers = [primers[i] for i, x in enumerate(tms) if x >= terr]
-    tms = [x for i, x in enumerate(tms) if x >= terr]
+    primers = [primer for primer, melt in zip(primers, tms) if melt >= terr]
+    tms = [melt for melt in tms if melt >= terr]
 
     if end_gc:
-        primers = [x for x in primers if x.endswith(('C', 'G'))]
-        tms = [tms[i] for i, x in enumerate(primers) if x.endswith(('C', 'G'))]
+        gc_primers = []
+        gc_tms = []
+        for primer, tm in zip(primers, tms):
+            if primer.endswith(('C', 'G')):
+                gc_primers.append(primer)
+                gc_tms.append(tm)
+        primers = gc_primers
+        tms = gc_tms
 
     if not primers:
         raise Exception('No primers could be generated using these settings')
@@ -221,11 +227,11 @@ def _design_primer_gene(dna_object, tm=72, min_len=10, tm_undershoot=1,
     templates = [dna_object, dna_object.reverse_complement()]
     primer_list = []
 
-    for i, template in enumerate(templates):
+    for template, overhang in zip(templates, overhangs):
         primer, tm = _design_primer(template, tm=tm, min_len=min_len,
                                     tm_undershoot=tm_undershoot,
                                     tm_overshoot=tm_overshoot, end_gc=end_gc,
                                     tm_method=tm_method,
-                                    overhang=overhangs[i])
+                                    overhang=overhang)
         primer_list.append((primer, tm))
     return primer_list

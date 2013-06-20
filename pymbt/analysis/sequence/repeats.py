@@ -7,12 +7,28 @@ from pymbt.sequence.utils import check_instance
 
 
 class FindRepeats(object):
+    '''
+    Count repeats in a DNA sequence.
+
+    '''
     def __init__(self, dna_object, size):
+        '''
+        param dna_object: DNA sequence.
+        type dna_object: DNA
+        param size: size of repeat to detect (in bp).
+        type size: int
+
+        '''
+
         self.template = dna_object
         check_instance(self.template)
         self.size = size
 
     def run(self):
+        '''
+        Execute function.
+
+        '''
         check = _repeat_check(str(self.template), self.size)
         return check
 

@@ -308,7 +308,7 @@ def _monomers_concentration(sequences, conc):
     types = concentrations['types']
 
     # Isolate the unbound monomer concentrations
-    free_conc = sum([concs[i] for i, x in enumerate(types) if sum(x) == 1])
+    free_conc = sum([c for c, x in zip(concs, types) if sum(x) == 1])
     free_fraction = free_conc / (2 * conc)
     nupack.close()  # Delete temp dir
 
