@@ -108,4 +108,4 @@ def test_oligo_assembly():
     reference_oligos = [oligo.lower() for oligo in reference_oligos]
 
     assert_equals(output_oligos, reference_oligos)
-    assert_equals(designed.overlaps_tms, reference_tms)
+    assert_equals(designed.overlap_tms, reference_tms)

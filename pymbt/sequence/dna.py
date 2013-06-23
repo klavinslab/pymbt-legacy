@@ -1,3 +1,8 @@
+'''
+DNA object classes.
+
+'''
+
 import math
 import re
 
@@ -12,40 +17,53 @@ class DNA(object):
     Core DNA sequence object.
 
     '''
-    def __init__(self, sequence, bottom=None, type='linear', stranded='ds',
-                 features=[], check_alphabet=True):
+    def __init__(self, sequence, bottom=None, topology='linear', stranded='ds',
+                 features=None, run_checks=True):
         '''
         :param sequence: Input sequence (DNA).
         :type sequence: str
         :param bottom: Manual input of bottom-strand sequence. Enables both
                        mismatches and initializing ssDNA.
         :type bottom: str
-        :param type: Type of DNA - 'linear' or 'circular'.
-        :type type: str
+        :param topology: Topology of DNA - 'linear' or 'circular'.
+        :type topology: str
         :param stranded: Strandednes of DNA - 'ss' for single-stranded or
                          'ds' for double-stranded.
         :type stranded: str
         :param features: List of annotated features.
         :type features: list
-        :param check_alphabet: Check that input is DNA or not (runs much faster
-                               when disabled)..
-        :type check_alphabet: bool
+        :param run_checks: Check inputs / formats (disabling increases speed):
+                           alphabet check
+                           case
+        :type run_checks: bool
 
         '''
 
-        utils.check_alphabet(sequence)
-        self.type = type
-        self.top = sequence.lower()
-        self.features = features
+        def check_seq(seq):
+            '''Do input checks / string processing.'''
+            utils.check_alphabet(seq)
+            seq = seq.lower()
+            return seq
+
+        self.top = sequence
+        if run_checks:
+            self.top = check_seq(sequence)
+
+        self.topology = topology
+        if not features:
+            self.features = []
+        else:
+            self.features = features
         # TODO: eliminate this attribute - just let it be implicit / checkable
         # with a method e.g. DNA.stranded()
         self.stranded = stranded
         self.name = ''
 
         if bottom:
-            if check_alphabet:
-                utils.check_alphabet(bottom)
             self.bottom = bottom
+            if run_checks:
+                self.bottom = check_seq(bottom)
+
             # TODO: check for complementation between top/bottom if allowing
             # manual bottom strand input. Mismatched complexes should
             # not be implemented yet
@@ -75,7 +93,7 @@ class DNA(object):
         '''
         # Currently does nothing other than changing an attribute
         new_instance = self.copy()
-        new_instance.type = 'circular'
+        new_instance.topology = 'circular'
 
         return new_instance
 
@@ -89,7 +107,7 @@ class DNA(object):
 
         '''
         # TODO: collections.deque makes this easier.
-        if self.type == 'linear':
+        if self.topology == 'linear':
             raise Exception('Cannot relinearize linear DNA.')
         top_list = [base for base in self.top]
         bottom_list = [base for base in self.bottom]
@@ -107,7 +125,7 @@ class DNA(object):
         new_instance = self.copy()
         new_instance.top = ''.join(top_list)
         new_instance.bottom = ''.join(bottom_list)
-        new_instance.type = 'linear'
+        new_instance.topology = 'linear'
 
         return new_instance
 
@@ -131,7 +149,7 @@ class DNA(object):
 
         new_instance = self.copy()
         new_instance.top = new_top
-        new_instance._remove_end_gaps()
+        new_instance.remove_end_gaps()
 
         return new_instance
 
@@ -154,7 +172,7 @@ class DNA(object):
 
         new_instance = self.copy()
         new_instance.top = new_top
-        new_instance._remove_end_gaps()
+        new_instance.remove_end_gaps()
 
         return new_instance
 
@@ -169,7 +187,7 @@ class DNA(object):
 
         # TODO: pattern should itself be a DNA object to ensure valid alphabet
         pattern = pattern.lower()
-        if self.type == 'circular':
+        if self.topology == 'circular':
             # TODO: this probably doesn't account for gaps
             max_len = min(len(self.top), len(pattern)) + len(self.top) - 1
             template_top = self.top + self.top[0:max_len]
@@ -187,6 +205,12 @@ class DNA(object):
         # fail if there's gaps
 
         def check_inv(pattern):
+            '''
+            Check whether pattern is palindrome.
+            :param pattern: pattern to test.
+            :type pattern: str
+
+            '''
             p_len = len(pattern)
             wing = int(math.floor(p_len / 2))
             if p_len % 2 != 0:
@@ -217,12 +241,12 @@ class DNA(object):
 
         # Note: alphabet checking disabled on copy to improve preformance -
         # will bottleneck many workflows that rely on slicing otherwise
-        new_instance = DNA(self.top, bottom=self.bottom, type=self.type,
-                           stranded=self.stranded, features=self.features,
-                           check_alphabet=False)
+        new_instance = DNA(self.top, bottom=self.bottom,
+                           topology=self.topology, stranded=self.stranded,
+                           features=self.features, run_checks=False)
         return new_instance
 
-    def _remove_end_gaps(self):
+    def remove_end_gaps(self):
         '''
         Removes double-stranded gaps from ends of the sequence.
 
@@ -269,9 +293,35 @@ class DNA(object):
             new_instance.bottom = bottom_rev.__getitem__(key)[::-1]
             return new_instance
 
-        if new_instance.type == 'circular' and len(new_instance) != len(self):
-            new_instance.type = 'linear'
+        circ = new_instance.topology == 'circular'
+
+        if circ and len(new_instance) != len(self):
+            new_instance.topology = 'linear'
             return new_instance
+
+    def __delitem__(self, index):
+        '''
+        Deletes sequence at index.
+
+        param index: index to delete
+        type index: int
+
+        '''
+
+        new = self[0:index] + self[index + 1:]
+        self.top = new.top
+        self.bottom = new.bottom
+
+    def __setitem__(self, index, new_value):
+        '''
+        Sets index value to new value.
+
+        '''
+
+        insert = DNA(new_value)
+        new = self[0:index] + insert + self[index + 1:]
+        self.top = new.top
+        self.bottom = new.bottom
 
     def __repr__(self):
         '''
@@ -288,7 +338,7 @@ class DNA(object):
             bottom = ''.join([bottom[0:show_bases], ' ... ',
                               bottom[-show_bases:]])
             to_print = [top, bottom]
-        first_line = '{} {}DNA:'.format(self.type, self.stranded)
+        first_line = '{} {}DNA:'.format(self.topology, self.stranded)
         to_print = [first_line] + to_print
 
         return '\n'.join(to_print)
@@ -332,11 +382,11 @@ class DNA(object):
 
         # Check self for terminal gaps:
         if len(self):
-            self_gaps = (self.top[-1] == '-', self.bottom[1] == '-')
+            self_gaps = (self.top[-1] == '-', self.bottom[0] == '-')
         else:
             self_gaps = (False, False)
         if len(other):
-            other_gaps = (other.top[1] == '-', other.bottom[-1] == '-')
+            other_gaps = (other.top[0] == '-', other.bottom[-1] == '-')
         else:
             other_gaps = (False, False)
 
@@ -357,6 +407,37 @@ class DNA(object):
         new_instance.bottom = bottoms
 
         return new_instance
+
+    def __mul__(self, multiplier):
+        '''
+        Multiply DNA by an integer to create concatenation.
+
+        :param multiply: Factor by which to multiply the sequence.
+        :type multiply: int
+
+        '''
+
+        # Input checking
+        if multiplier != int(multiplier):
+            msg = 'can\'t multiply sequence by non-int of type \'list\''
+            raise TypeError(msg)
+        if self.topology == 'circular':
+            raise ValueError('Can\'t multiply circular DNA')
+
+        # Try adding once as a test. This is slow for low values of b
+        # but very fast for higher values
+        try:
+            self + self
+        except:
+            raise Exception('Failed to add, so cannot multiply.')
+
+        # If addition check passes, just isolate top and bottom strands, do
+        # multiplication to the strings (fast), and recreate DNA
+        tops = self.top * multiplier
+        bottoms = self.bottom * multiplier
+
+        return DNA(tops, bottom=bottoms, topology=self.topology,
+                   stranded=self.stranded, run_checks=False)
 
 
 class RestrictionSite(object):

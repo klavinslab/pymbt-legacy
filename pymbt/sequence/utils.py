@@ -1,7 +1,6 @@
 '''Helper functions for manipulating DNA, RNA, and peptide sequences.'''
 
 import re
-from string import maketrans
 from pymbt.data.common import ALPHABETS
 from pymbt.data.common import CODONS
 import pymbt.sequence
@@ -16,8 +15,8 @@ def reverse_complement(sequence):
 
     '''
 
-    submat = maketrans('ATGCNatgcn-', 'TACGNtacgn-')
-    complemented = sequence.translate(submat)
+    code = dict(zip('ATGCNatgcn-', 'TACGNtacgn-'))
+    complemented = ''.join(code.get(k, k) for k in sequence)
     reverse_complemented = complemented[::-1]
     return reverse_complemented
 
@@ -80,6 +79,13 @@ def translate_seq(sequence):
 
 
 def check_instance(sequence_in):
+    '''
+    Validates a DNA sequence instance.
+
+    :param sequence_in: input DNA sequence.
+    :type sequence_in: DNA
+
+    '''
     valid = isinstance(sequence_in, pymbt.sequence.DNA)
     if not valid:
         raise Exception('Input must be an instance of pymbt.sequence.DNA.')

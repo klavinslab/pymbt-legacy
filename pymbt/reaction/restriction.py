@@ -1,10 +1,31 @@
+'''
+Restriction endonuclease reactions.
+
+'''
+
+
 class Restriction(object):
+    '''
+    Restriction endonuclease reaction.
+
+    '''
     def __init__(self, template_dna, restriction_site):
+        '''
+        :param template_dna: DNA template to cut.
+        :type template_dna: DNA
+        :param restriction_site: Restriction site to use.
+        :type restriction_site: RestrictionSite
+
+        '''
         self.template_dna = template_dna
         self.restriction_site = restriction_site
         self.output = []
 
     def run(self):
+        '''
+        Execute Restriction and return results.
+
+        '''
         # TODO: search for top *and* bottom strand match - currently succeeds
         # if only one matches, but enzymes don't work that way
         # TODO: Figure out what to do with ambiguities.
@@ -36,6 +57,10 @@ class Restriction(object):
         # Resect correct amount to generate sticky ends
 
     def _cut(self, index):
+        '''
+        Cuts template once at the specified index.
+
+        '''
         dna_list = []
 
         cut_site = self.restriction_site.cut_site

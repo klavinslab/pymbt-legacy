@@ -1,4 +1,7 @@
-'''Split genes or arbitrary DNA sequences into chunks for optimal assembly.'''
+'''
+Split genes or arbitrary DNA sequences into chunks for optimal assembly.
+
+'''
 
 import csv
 import itertools
@@ -305,15 +308,12 @@ def _trim_directionally(pre_combo_list, max_len, direction):
 
     pcl = [x for x in pre_combo_list]
     pcl_range = range(len(pcl) - 1)
-    starts_list_list = [[y[0] for y in x] for x in pcl]
-    for starts_list in starts_list_list:
-        starts_list.sort()
-    stops_list_list = [[y[1] for y in x] for x in pcl]
-    for stops_list in stops_list_list:
-        stops_list.sort()
+    starts_list_list = [[y[0] for y in x].sort() for x in pcl]
+    stops_list_list = [[y[1] for y in x].sort() for x in pcl]
 
     if direction == 'left':
         pcl_range.reverse()
+
     for i in pcl_range:
         starts_list = starts_list_list[i]
         stops_list = stops_list_list[i + 1]
@@ -346,7 +346,6 @@ def _remove_nonspanning(pre_combo_list, max_len):
 
     '''
 
-    count = 1
     while True:
         left = _trim_directionally(pre_combo_list, max_len=max_len,
                                    direction='right')
@@ -354,5 +353,3 @@ def _remove_nonspanning(pre_combo_list, max_len):
                                     direction='left')
         if not left and not right:
             break
-
-        count += 1

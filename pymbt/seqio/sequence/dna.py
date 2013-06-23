@@ -1,10 +1,22 @@
-# Get rid of this dependency?
+'''
+Read and write DNA sequences.
+
+'''
+
 import os
 from Bio import SeqIO
 from pymbt import sequence
 
 
 def read_dna(path, file_format):
+    '''
+    Read DNA from file. Uses BioPython's tools and coerces to pymbt format.
+
+    :param path: Full path to input file.
+    :type path: str
+    :param file_format: BioPython-compatible format string.
+    :type file_format: str
+    '''
     # This needs to be cleaned up - is only barely working for now
     seq = SeqIO.read(path, file_format)
     dna = sequence.DNA(seq.seq.tostring())
@@ -12,14 +24,12 @@ def read_dna(path, file_format):
     return dna
 
 
-def read_dnas(dirpath, file_format):
+def read_sequencing(dirpath):
     '''
     Read .seq results files from a dir.
 
     :param dirpath: Path to directory containing sequencing files.
     :type dirpath: str
-    :param file_format: Format of file. e.g. genbank, fasta, abi, seq
-    :type file_format: str
 
     '''
 

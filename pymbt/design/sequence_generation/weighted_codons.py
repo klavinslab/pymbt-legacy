@@ -10,7 +10,10 @@ from pymbt import sequence
 
 
 class WeightedCodons(object):
-    '''Provides a generator class for random, weighted DNA or RNA sequences.'''
+    '''
+    Provides a generator class for random, weighted DNA or RNA sequences.
+
+    '''
 
     def __init__(self, dna_object, frequency_table='sc', material='dna'):
         '''
@@ -30,6 +33,11 @@ class WeightedCodons(object):
         self.codon_freq = CODON_FREQ[frequency_table]
 
     def __repr__(self):
+        '''
+        Printed representation of WeightedCodons object.
+
+        '''
+
         return 'RandomCodons generator for {}'.format(self.pep)
 
     def weighted(self, pep):
@@ -55,7 +63,10 @@ class WeightedCodons(object):
                 return codon
 
     def generate(self):
-        '''Generate the sequence.'''
+        '''
+        Generate the sequence.
+
+        '''
 
         coding_sequence = [self.weighted(x) for x in self.pep]
         coding_sequence = sequence.DNA(''.join(coding_sequence))

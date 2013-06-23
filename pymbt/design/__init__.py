@@ -1,3 +1,8 @@
+'''
+Cloning design classes and functions.
+
+'''
+
 from pymbt.design.primers import DesignPrimer, DesignPrimerGene
 from pymbt.design.sequence_generation.random_bases import RandomBases
 from pymbt.design.sequence_generation.random_codons import RandomCodons

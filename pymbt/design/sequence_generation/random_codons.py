@@ -1,4 +1,7 @@
-'''Generate random codons.'''
+'''
+Generate random codons.
+
+'''
 
 import random
 from pymbt.data.common import CODON_FREQ_SC_NESTED
@@ -8,15 +11,15 @@ from pymbt import sequence
 
 
 class RandomCodons(object):
-    '''Generator class for random DNA or RNA sequence.'''
+    '''
+    Generator class for random DNA or RNA sequence.
 
-    def __init__(self, dna_object, material='dna', freq_table='sc',
-                 threshold=0.0):
+    '''
+
+    def __init__(self, dna_object, threshold=0.0):
         '''
         :param sequence: Sequence for which to generate randomized codons.
         :type sequence: str
-        :param material: 'dna' for DNA.
-        :type material: str
         :param freq_table: Codon frequency table to use.
         :type freq_table: dict
         :param threshold: relative threshold cutoff for codon frequencies.
@@ -30,10 +33,17 @@ class RandomCodons(object):
         self.threshold = threshold
 
     def __repr__(self):
+        '''
+        Printed representation of RandomCodons object.
+
+        '''
         return 'RandomCodons generator for {}'.format(self.pep)
 
     def generate(self):
-        '''Generate the sequence.'''
+        '''
+        Generate the sequence.
+
+        '''
 
         new_table = {}
         for key, value in self.frequencies.iteritems():

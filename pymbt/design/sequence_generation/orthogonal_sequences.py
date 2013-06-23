@@ -1,7 +1,10 @@
-'''Generates a set of orthogonal DNA sequences for a given protein sequence
-   Currently limited by the size of the protein sequence - ~10 residues max
-   To increase size, need to optimize search method and take steps to reduce
-   memory usage (write to files and iterate/queue)'''
+'''
+Generates a set of orthogonal DNA sequences for a given protein sequence
+Currently limited by the size of the protein sequence - ~10 residues max
+To increase size, need to optimize search method and take steps to reduce
+memory usage (write to files and iterate/queue).
+
+'''
 
 import csv
 import collections
@@ -142,13 +145,13 @@ class OrthoSeq(object):
             np_types = [x['types'] for x in np_concs_raw]
             # the monomer concentrations from each entry
             mon_concs = []
-            for i, np_type in enumerate(np_types):
+            for np_conc, np_type in zip(np_concs, np_types):
                 # if sum of the list is 1, that means it's a monomer conc
                 # (e.g. [1, 0, 0, 0])
                 temp_list = []
                 for j, vals in enumerate(np_type):
                     if sum(vals) == 1:
-                        temp_list.append(np_concs[i][j])
+                        temp_list.append(np_conc[j])
                 mon_concs.append(temp_list)
 
             # Group by combo
@@ -418,29 +421,29 @@ if __name__ == "__main__":
     import ConfigParser
 
     # Read config
-    current_path = os.path.abspath(os.path.dirname(__file__))
-    config_path = current_path + '/orthogonal_sequences.cfg'
     config = ConfigParser.RawConfigParser()
-    config.read(config_path)
+    config.read(os.path.abspath(os.path.dirname(__file__) +
+                '/orthogonal_sequences.cfg'))
 
     # Parse config into parameters
-    s = config.get('Main Settings', 'protein sequence')
-    n = config.getint('Main Settings', 'n sequences')
-    m = config.getint('Main Settings', 'm sequences')
+    S = config.get('Main Settings', 'protein sequence')
+    N = config.getint('Main Settings', 'n sequences')
+    M = config.getint('Main Settings', 'm sequences')
     T = config.getfloat('Main Settings', 'temperature')
     score_thresh = config.getfloat('Main Settings',
                                    'min unbound monomer score')
-    con = config.getfloat('Main Settings', 'species concentration')
-    nm = config.getfloat('Main Settings', 'no increase limit')
-    res = config.get('Main Settings', 'resume')
+    CONC = config.getfloat('Main Settings', 'species concentration')
+    NM = config.getfloat('Main Settings', 'no increase limit')
+    RESUME = config.get('Main Settings', 'resume')
 
     # Run OrthoSeq.orthogonal_sequences
-    o_seq = OrthoSeq(s, T=T, min_score=score_thresh, n_attempt=nm)
-    if res == 'False':
-        o_seq.start(n, m=m)
+    NEW_RUN = OrthoSeq(S, N, candidates=M, T=T, min_score=score_thresh,
+                       n_attempt=NM)
+    if not RESUME:
+        NEW_RUN.start()
     else:
-        resfile = open(res, 'r')
-        res = resfile.readlines()
+        with open(RESUME, 'r') as resfile:
+            PREV = [oligos.strip() for oligos in resfile.readlines()]
         resfile.close()
-        res = [r.strip() for r in res]
-        o_seq.start(n, m=m, resume=res)
+
+        NEW_RUN.start(resume=PREV)

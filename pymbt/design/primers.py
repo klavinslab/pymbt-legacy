@@ -1,4 +1,7 @@
-'''Primer design tools.'''
+'''
+Primer design tools.
+
+'''
 
 from pymbt import analysis
 from pymbt.sequence.utils import check_instance
@@ -8,28 +11,31 @@ class DesignPrimer(object):
     '''
     Design primer to a nearest-neighbor Tm setpoint.
 
-    :param dna_object: object of type DNA.
-    :type dna_object: DNA
-    :param tm: Ideal primer Tm in degrees C.
-    :type tm: float
-    :param min_len: Minimum primer length.
-    :type min_len: int
-    :param tm_undershoot: Allowed Tm undershoot.
-    :type tm_undershoot: float
-    :param tm_overshoot: Allowed Tm overshoot.
-    :type tm_overshoot: float
-    :param end_gc: Obey the 'end on G or C' rule.
-    :type end_gc: bool
-    :param tm_method: Melting temp calculator method to use.
-    :type tm_method: string
-    :param overhang: Append the primer to this overhang sequence.
-    :type overhang: DNA
-
     '''
 
     def __init__(self, dna_object, tm=72, min_len=10, tm_undershoot=1,
                  tm_overshoot=3, end_gc=False, tm_method='finnzymes',
                  overhang=None):
+        '''
+        :param dna_object: object of type DNA.
+        :type dna_object: DNA
+        :param tm: Ideal primer Tm in degrees C.
+        :type tm: float
+        :param min_len: Minimum primer length.
+        :type min_len: int
+        :param tm_undershoot: Allowed Tm undershoot.
+        :type tm_undershoot: float
+        :param tm_overshoot: Allowed Tm overshoot.
+        :type tm_overshoot: float
+        :param end_gc: Obey the 'end on G or C' rule.
+        :type end_gc: bool
+        :param tm_method: Melting temp calculator method to use.
+        :type tm_method: string
+        :param overhang: Append the primer to this overhang sequence.
+        :type overhang: DNA
+
+        '''
+
         # TODO: deal with sticky ended inputs or require a new DNA type
         # that can't have them (dsDNA)
 
@@ -46,6 +52,10 @@ class DesignPrimer(object):
         self.overhang = overhang
 
     def run(self):
+        '''
+        Execute the design algorithm.
+
+        '''
         primer, tm = _design_primer(self.template, self.tm, self.min_len,
                                     self.tm_undershoot, self.tm_overshoot,
                                     self.end_gc, self.tm_method, self.overhang)
@@ -56,28 +66,31 @@ class DesignPrimerGene(object):
     '''
     Design primer to a nearest-neighbor Tm setpoint.
 
-    :param dna_object: object of type DNA.
-    :type dna_object: DNA
-    :param tm: Ideal primer Tm in degrees C.
-    :type tm: float
-    :param min_len: Minimum primer length.
-    :type min_len: int
-    :param tm_undershoot: Allowed Tm undershoot.
-    :type tm_undershoot: float
-    :param tm_overshoot: Allowed Tm overshoot.
-    :type tm_overshoot: float
-    :param end_gc: Obey the 'end on G or C' rule.
-    :type end_gc: bool
-    :param tm_method: Melting temp calculator method to use.
-    :type tm_method: string
-    :param overhangs: Sequences to append to the primers (2-tuple).
-    :type overhangs: tuple of DNA object
-
     '''
 
     def __init__(self, dna_object, tm=72, min_len=10, tm_undershoot=1,
                  tm_overshoot=3, end_gc=False, tm_method='finnzymes',
                  overhangs=None):
+        '''
+        :param dna_object: object of type DNA.
+        :type dna_object: DNA
+        :param tm: Ideal primer Tm in degrees C.
+        :type tm: float
+        :param min_len: Minimum primer length.
+        :type min_len: int
+        :param tm_undershoot: Allowed Tm undershoot.
+        :type tm_undershoot: float
+        :param tm_overshoot: Allowed Tm overshoot.
+        :type tm_overshoot: float
+        :param end_gc: Obey the 'end on G or C' rule.
+        :type end_gc: bool
+        :param tm_method: Melting temp calculator method to use.
+        :type tm_method: string
+        :param overhangs: Sequences to append to the primers (2-tuple).
+        :type overhangs: tuple of DNA object
+
+        '''
+
         # TODO: deal with sticky ended inputs or require a new DNA type
         # that can't have them (dsDNA)
 
@@ -99,6 +112,10 @@ class DesignPrimerGene(object):
         self.overhangs = overhangs
 
     def run(self):
+        '''
+        Execute the design algorithm.
+
+        '''
         template = self.template
         primers_list = _design_primer_gene(template, self.tm, self.min_len,
                                            self.tm_undershoot,
