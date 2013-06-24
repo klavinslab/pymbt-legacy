@@ -90,16 +90,6 @@ class RNA(object):
         new_instance = RNA(self.top, run_checks=False)
         return new_instance
 
-    def remove_end_gaps(self):
-        '''
-        Removes gaps from ends of the sequence.
-
-        '''
-
-        gaps = len(self.top.lstrip('-')), len(self.top.rstrip('-'))
-        self.top = self.top[gaps[0]:-gaps[1]]
-        self.bottom = self.bottom[gaps[0]:-gaps[1]]
-
     def __getitem__(self, key):
         '''
         Indexing and slicing of sequences.
