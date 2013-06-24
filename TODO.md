@@ -16,8 +16,6 @@
   * OrthoSeq
 
 ## Wishlist:
-* check_instance is not duck-type-ie. Proper way to remove it?
-  1. Only keep it if goal is to do things differently w/ DNA vs RNA  
 * Repeat detection for OrthoSeq, OligoAssembly
 * Check cloning primers for self-self, pair structure using Nupack
 * Check Gibson object for whether the desired overlap is a high-probability structure
