@@ -3,7 +3,6 @@ RNA object classes.
 
 '''
 
-import math
 import re
 from pymbt.sequence import utils
 
@@ -32,7 +31,7 @@ class RNA(object):
 
     def reverse_complement(self):
         '''
-        Reverse complement top and bottom strands.
+        Reverse complement sequence.
 
         '''
         new_instance = self.copy()
@@ -40,51 +39,29 @@ class RNA(object):
 
         return new_instance
 
-    def five_resect(self, n_bases=None):
+    def five_resect(self, n_bases):
         '''
         Remove bases from 5' end of top strand.
 
 
-        :param n_bases: Number of bases cut back. Defaults to removing entire
-                        top strand
+        :param n_bases: Number of bases cut back.
         :type n_bases: int
 
         '''
-        n_blanks = len(self.top) - len(self.top.lstrip('-'))
-        if n_bases and n_bases < len(self.top):
-            gap_length = n_blanks + n_bases
-            new_gap = '-' * gap_length
-            new_top = new_gap + self.top[gap_length:]
-        else:
-            new_top = '-' * len(self.top)
 
-        new_instance = self.copy()
-        new_instance.top = new_top
-        new_instance.remove_end_gaps()
-
+        new_instance = self[n_bases::]
         return new_instance
 
-    def three_resect(self, n_bases=None):
+    def three_resect(self, n_bases):
         '''
         Remove bases from 3' end of top strand.
 
-        :param n_bases: Number of bases cut back. Defaults to removing entire
-                        top strand
+        :param n_bases: Number of bases cut back.
         :type n_bases: int
 
         '''
-        n_blanks = len(self.top) - len(self.top.rstrip('-'))
-        if n_bases and n_bases < len(self.top):
-            gap_length = n_blanks + n_bases
-            new_gap = '-' * gap_length
-            new_top = self.top[:-gap_length] + new_gap
-        else:
-            new_top = '-' * len(self.top)
 
-        new_instance = self.copy()
-        new_instance.top = new_top
-        new_instance.remove_end_gaps()
-
+        new_instance = self[:-n_bases]
         return new_instance
 
     def locate(self, pattern):
@@ -97,45 +74,11 @@ class RNA(object):
         '''
 
         pattern = pattern.lower()
-        template_top = self.top
-        template_bottom = self.bottom
         re_pattern = '(?=' + pattern + ')'
         indices_top = [index.start() for index in
-                       re.finditer(re_pattern, template_top)]
-        indices_bottom = [index.start() for index in
-                          re.finditer(re_pattern, template_bottom)]
-        # TODO: if pattern is inverted repeat, throw out top/bottom redundant
-        # matches. For now will just check top strand only - but this will
-        # fail if there's gaps
+                       re.finditer(re_pattern, self.top)]
 
-        def check_inv(pattern):
-            '''
-            Check whether pattern is palindrome.
-            :param pattern: pattern to test.
-            :type pattern: str
-
-            '''
-            p_len = len(pattern)
-            wing = int(math.floor(p_len / 2))
-            if p_len % 2 != 0:
-                l_wing = pattern[0:wing + 1]
-                r_wing = pattern[wing:]
-            else:
-                l_wing = pattern[0: wing]
-                r_wing = pattern[wing:]
-            if l_wing == utils.reverse_complement(r_wing, 'rna'):
-                return True
-            else:
-                return False
-
-        inverted_repeat = check_inv(pattern)
-        if inverted_repeat:
-            # subtract all occurrences in top from bottom
-            subtract = [len(self.top) - index - len(pattern) for index in
-                        indices_top]
-            indices_bottom = [x for x in subtract if x not in indices_bottom]
-
-        return (indices_top, indices_bottom)
+        return indices_top
 
     def copy(self):
         '''
@@ -143,8 +86,7 @@ class RNA(object):
 
         '''
 
-        # Note: alphabet checking disabled on copy to improve preformance -
-        # will bottleneck many workflows that rely on slicing otherwise
+        # Alphabet checking disabled on copy to improve performance
         new_instance = RNA(self.top, run_checks=False)
         return new_instance
 
@@ -153,10 +95,10 @@ class RNA(object):
         Removes gaps from ends of the sequence.
 
         '''
-        top = self.top
-        top_nogaps = len(top.lstrip('-')), len(top.rstrip('-'))
-        self.top = top_nogaps
-        self.bottom = ''.join(['-' for x in self.top])
+
+        gaps = len(self.top.lstrip('-')), len(self.top.rstrip('-'))
+        self.top = self.top[gaps[0]:-gaps[1]]
+        self.bottom = self.bottom[gaps[0]:-gaps[1]]
 
     def __getitem__(self, key):
         '''
@@ -166,18 +108,12 @@ class RNA(object):
         :type key: int or slice object
 
         '''
-        # TODO: throw proper error when index is out of range
-        new_instance = self.copy()
-        if isinstance(key, int):
-            new_instance.top = new_instance.top[key]
-            new_instance.bottom = new_instance.bottom[::-1][key]
 
-            return new_instance
-        elif isinstance(key, slice):
-            new_instance.top = new_instance.top.__getitem__(key)
-            bottom_rev = new_instance.bottom[::-1]
-            new_instance.bottom = bottom_rev.__getitem__(key)[::-1]
-            return new_instance
+        new_instance = self.copy()
+        new_instance.top = self.top[key]
+        new_instance.bottom = self.bottom[::-1][key][::-1]
+
+        return new_instance
 
     def __delitem__(self, index):
         '''
@@ -188,9 +124,8 @@ class RNA(object):
 
         '''
 
-        new = self[0:index] + self[index + 1:]
-        self.top = new.top
-        self.bottom = new.bottom
+        self.top = self.top[0:index] + self.top[index + 1:]
+        self.bottom = self.bottom[1:]
 
     def __setitem__(self, index, new_value):
         '''
@@ -208,20 +143,21 @@ class RNA(object):
         String to print when object is called directly.
 
         '''
-        show_bases = 40
-        bottom = self.bottom[::-1]
-        if len(self.top) < 90:
-            to_print = [self.top, bottom]
-        else:
-            top = ''.join([self.top[0:show_bases], ' ... ',
-                           self.top[-show_bases:]])
-            bottom = ''.join([bottom[0:show_bases], ' ... ',
-                              bottom[-show_bases:]])
-            to_print = [top, bottom]
-        first_line = 'RNA:'
-        to_print = [first_line] + to_print
 
-        return '\n'.join(to_print)
+        show = 40
+        bottom = self.bottom[::-1]
+
+        if len(self.top) < 90:
+            top = self.top
+            bottom = '-' * len(top)
+        else:
+            top = ''.join([self.top[0:show], ' ... ', self.top[-show:]])
+            bottom = ''.join(['-' * show, ' ... ', '-' * show])
+
+        first_line = 'RNA:'
+        to_print = '\n'.join([first_line, top, bottom])
+
+        return to_print
 
     def __str__(self):
         '''
@@ -229,18 +165,8 @@ class RNA(object):
         and top-strand ssRNA.
 
         '''
-        # TODO: implement bottom-only strand ssRNA as well?
-        gaps = sum([1 for x in self.top if x == '-'])
-        #gaps += sum([1 for x in self.bottom if x == '-'])
-        if gaps:
-            # note: should really implement this - getting an error from a
-            # print line is stupid
-            msg1 = 'No string coercion method for gapped '
-            msg2 = 'sequences.'
-            print msg1 + msg2
-            return NotImplemented
-        else:
-            return self.top
+
+        return self.top
 
     def __len__(self):
         '''
@@ -248,43 +174,20 @@ class RNA(object):
         len function is used.
 
         '''
+
         return len(self.top)
 
     def __add__(self, other):
         '''
-        Defines adding with + for RNA objects. Only works for ungapped dsRNA
-        and top-only ssRNA.
+        Defines adding with + for RNA objects.
 
         :param other: instance to be added to.
-        :type other: compatible sequence object (currently only RNA).
+        :type other: RNA
 
         '''
 
-        # Check self for terminal gaps:
-        if len(self):
-            self_gaps = (self.top[-1] == '-', self.bottom[0] == '-')
-        else:
-            self_gaps = (False, False)
-        if len(other):
-            other_gaps = (other.top[0] == '-', other.bottom[-1] == '-')
-        else:
-            other_gaps = (False, False)
-
-        # Only time this should fail is when there's a discontinuity. A
-        # discontinuity appears when the first and second entries for the gaps
-        # tuples are exactly the opposite of each other
-        if self_gaps[0] != other_gaps[0] and self_gaps[1] != other_gaps[1]:
-            # TODO: pretty sure this is the wrong way to throw an exception
-            # here
-            print 'Discontinuity at ends of RNA objects - can\'t add.'
-            return NotImplemented
-
         tops = self.top + other.top
-        bottoms = other.bottom + self.bottom
-
-        new_instance = self.copy()
-        new_instance.top = tops
-        new_instance.bottom = bottoms
+        new_instance = RNA(tops, run_checks=False)
 
         return new_instance
 
@@ -299,18 +202,18 @@ class RNA(object):
 
         # Input checking
         if multiplier != int(multiplier):
-            msg = 'can\'t multiply sequence by non-int.'
+            msg = 'can\'t multiply sequence by non-integer.'
             raise TypeError(msg)
 
-        # Try adding once as a test. This is slow for low values of b
-        # but very fast for higher values
+        # Try adding once as a test. Slow for small values of b, fast for large
         try:
             self + self
         except:
             raise Exception('Failed to add, so cannot multiply.')
 
-        # If addition check passes, just isolate top and bottom strands, do
-        # multiplication to the strings (fast), and recreate RNA
+        # If addition check passes, just isolate top strand, do
+        # multiplication to the string (fast), and recreate RNA
         tops = self.top * multiplier
+        new_instance = RNA(tops, run_checks=False)
 
-        return RNA(tops, run_checks=False)
+        return new_instance

@@ -3,7 +3,6 @@ DNA object classes.
 
 '''
 
-import math
 import re
 from pymbt.sequence import utils
 
@@ -213,27 +212,8 @@ class DNA(object):
         # matches. For now will just check top strand only - but this will
         # fail if there's gaps
 
-        def check_inv(pattern):
-            '''
-            Check whether pattern is palindrome.
-            :param pattern: pattern to test.
-            :type pattern: str
+        inverted_repeat = utils.check_inv(pattern)
 
-            '''
-            p_len = len(pattern)
-            wing = int(math.floor(p_len / 2))
-            if p_len % 2 != 0:
-                l_wing = pattern[0:wing + 1]
-                r_wing = pattern[wing:]
-            else:
-                l_wing = pattern[0: wing]
-                r_wing = pattern[wing:]
-            if l_wing == utils.reverse_complement(r_wing, 'dna'):
-                return True
-            else:
-                return False
-
-        inverted_repeat = check_inv(pattern)
         if inverted_repeat:
             # subtract all occurrences in top from bottom
             subtract = [len(self.top) - index - len(pattern) for index in

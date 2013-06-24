@@ -1,5 +1,6 @@
 '''Helper functions for manipulating DNA, RNA, and peptide sequences.'''
 
+import math
 import re
 from pymbt.data.common import ALPHABETS
 from pymbt.data.common import COMPLEMENTS
@@ -109,3 +110,24 @@ def check_seq(seq, material):
     check_alphabet(seq, material=material)
     seq = seq.lower()
     return seq
+
+
+def check_inv(pattern):
+    '''
+    Check whether pattern is palindrome.
+    :param pattern: pattern to test.
+    :type pattern: str
+
+    '''
+    p_len = len(pattern)
+    wing = int(math.floor(p_len / 2))
+    if p_len % 2 != 0:
+        l_wing = pattern[0:wing + 1]
+        r_wing = pattern[wing:]
+    else:
+        l_wing = pattern[0: wing]
+        r_wing = pattern[wing:]
+    if l_wing == reverse_complement(r_wing, 'dna'):
+        return True
+    else:
+        return False

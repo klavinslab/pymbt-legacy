@@ -19,7 +19,7 @@ else:
 class Nupack(object):
     '''Contain sequence inputs and use NUPACK computation methods.'''
 
-    def __init__(self, seq_list, rna99=False):
+    def __init__(self, seq_list, rna1999=False):
         '''
         :param seq_list: Input sequences. Can also be list of sequences.
         :type seq_list: str
@@ -39,8 +39,8 @@ class Nupack(object):
         if not all([sequence_type(seq) == self.material for seq in seq_list]):
             raise ValueError('Sequence inputs were of mixed types.')
 
-        if self.material == 'rna' and rna99:
-            self.material = 'rna99'
+        if self.material == 'rna' and rna1999:
+            self.material = 'rna1999'
 
         # Convert seq object(s) to string(s)
         seq_list = [str(seq) for seq in seq_list]

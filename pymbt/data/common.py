@@ -8,7 +8,7 @@ ALPHABETS = {
 
 COMPLEMENTS = {
     'dna': ('ATGCNatgcn-', 'TACGNtacgn-'),
-    'rna': ('AUGCNaugcn-', 'UACGNuacgn-')}
+    'rna': ('AUGCNaugcn', 'UACGNuacgn')}
 
 
 # The standard codon table.
