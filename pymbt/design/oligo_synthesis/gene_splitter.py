@@ -306,8 +306,14 @@ def _trim_directionally(pre_combo_list, max_len, direction):
 
     pcl = [x for x in pre_combo_list]
     pcl_range = range(len(pcl) - 1)
-    starts_list_list = [[y[0] for y in x].sort() for x in pcl]
-    stops_list_list = [[y[1] for y in x].sort() for x in pcl]
+
+    starts_list_list = [[y[0] for y in x] for x in pcl]
+    stops_list_list = [[y[1] for y in x] for x in pcl]
+
+    for starts_list in starts_list_list:
+        starts_list.sort()
+    for stops_list in stops_list_list:
+        stops_list.sort()
 
     if direction == 'left':
         pcl_range.reverse()
