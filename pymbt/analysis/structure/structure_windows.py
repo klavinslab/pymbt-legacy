@@ -46,13 +46,15 @@ class StructureWindows(object):
 
         self.walked = _context_walk(self.template, window_size, context_len,
                                     step)
-        self.core_starts = [x[0] for x in self.walked]
-        self.core_ends = [x[1] for x in self.walked]
-        self.scores = [x[2] for x in self.walked]
+        self.core_starts, self.core_ends, self.scores = zip(*self.walked)
+
         return self.walked
 
     def plot(self):
-        '''Plot the results of ContextWalker.walk.'''
+        '''
+        Plot the results of ContextWalker.walk.
+
+        '''
         if self.walked:
             fig = pylab.figure()
             ax1 = fig.add_subplot(111)
@@ -61,8 +63,7 @@ class StructureWindows(object):
             pylab.ylabel('Score - Probability of being unbound.')
             pylab.show()
         else:
-            print 'Run ContextWalker.calculate() first so there\'s data to \
-                   \nplot!'
+            raise Exception("Run calculate() first so there\'s data to plot!")
 
 
 def _context_walk(dna_object, window_size, context_len, step):
@@ -85,7 +86,7 @@ def _context_walk(dna_object, window_size, context_len, step):
     # Generate window indices
     window_start_ceiling = len(dna_object) - context_len - window_size
     window_starts = range(context_len - 1, window_start_ceiling, step)
-    window_ends = [x + window_size for x in window_starts]
+    window_ends = [start + window_size for start in window_starts]
 
     # Generate left-context subsequences
     l_starts = [step * i for i in range(len(window_starts))]
@@ -102,7 +103,7 @@ def _context_walk(dna_object, window_size, context_len, step):
 
     # Combine and calculate nupack pair probabilities
     seqs = l_seqs + r_seqs
-    pairs_run = nupack_multiprocessing(seqs, 'dna', 'pairs', {'strand': 0})
+    pairs_run = nupack_multiprocessing(seqs, 'dna', 'pairs', {'index': 0})
     # Focus on pair probabilities that matter - those in the window
     pairs = [run['probabilities'][-window_size:] for run in pairs_run]
     # Score by average pair probability

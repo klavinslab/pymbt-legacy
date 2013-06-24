@@ -16,6 +16,7 @@
   * OrthoSeq
 
 ## Wishlist:
+* Choose best primer from database for sequencing
 * Repeat detection for OrthoSeq, OligoAssembly
 * Check cloning primers for self-self, pair structure using Nupack
 * Check Gibson object for whether the desired overlap is a high-probability structure

@@ -34,7 +34,7 @@ def test_nupack():
 
     # concentrations command
     # equilibrium complex concentrations in L
-    assert_equal(concentrations['concentration'],
+    assert_equal(concentrations['concentrations'],
                  [4.671341e-07, 2.733961e-07, 1.642973e-08, 6.386507e-12,
                   1.132988e-07])
     # free energy of each complex

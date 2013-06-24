@@ -66,30 +66,31 @@ class OligoAssembly(object):
 
         '''
 
-        oligo_writer = csv.writer(open(outpath, 'wb'), delimiter=',',
-                                  quoting=csv.QUOTE_MINIMAL)
-        oligo_writer.writerow(['name', 'oligo', 'notes'])
-        for i, oligo in enumerate(self.oligos):
-            name = 'oligo {}'.format(i + 1)
-            oligo_len = len(oligo)
-            if i != len(self.oligos) - 1:
-                oligo_tm = self.overlap_tms[i]
-                notes = 'oligo length: {}, '.format(oligo_len) + \
-                        'overlap Tm: {:.2f}'.format(oligo_tm)
-            else:
-                notes = 'oligo length: {}'.format(oligo_len)
-            oligo_writer.writerow([name,
-                                   oligo,
-                                   notes])
-        try:
-            oligo_writer.writerow(['primer 1',
-                                  self.primers[0],
-                                  'Tm: {:.2f}'.format(self.primer_tms[0])])
-            oligo_writer.writerow(['primer 2',
-                                  self.primers[1],
-                                  'Tm: {:.2f}'.format(self.primer_tms[1])])
-        except AttributeError:
-            pass
+        with open(outpath, 'wb') as oligo_file:
+            oligo_writer = csv.writer(oligo_file, delimiter=',',
+                                      quoting=csv.QUOTE_MINIMAL)
+            oligo_writer.writerow(['name', 'oligo', 'notes'])
+            for i, oligo in enumerate(self.oligos):
+                name = 'oligo {}'.format(i + 1)
+                oligo_len = len(oligo)
+                if i != len(self.oligos) - 1:
+                    oligo_tm = self.overlap_tms[i]
+                    notes = 'oligo length: {}, '.format(oligo_len) + \
+                            'overlap Tm: {:.2f}'.format(oligo_tm)
+                else:
+                    notes = 'oligo length: {}'.format(oligo_len)
+                oligo_writer.writerow([name,
+                                       oligo,
+                                       notes])
+            try:
+                oligo_writer.writerow(['primer 1',
+                                      self.primers[0],
+                                      'Tm: {:.2f}'.format(self.primer_tms[0])])
+                oligo_writer.writerow(['primer 2',
+                                      self.primers[1],
+                                      'Tm: {:.2f}'.format(self.primer_tms[1])])
+            except AttributeError:
+                pass
 
     def write_map(self, path):
         '''

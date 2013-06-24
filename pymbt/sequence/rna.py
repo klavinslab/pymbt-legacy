@@ -185,8 +185,8 @@ class RNA(object):
         '''
         Multiply RNA by an integer to create concatenation.
 
-        :param multiply: Factor by which to multiply the sequence.
-        :type multiply: int
+        :param multiplier: Factor by which to multiply the sequence.
+        :type multiplier: int
 
         '''
 
@@ -195,15 +195,31 @@ class RNA(object):
             msg = 'can\'t multiply sequence by non-integer.'
             raise TypeError(msg)
 
-        # Try adding once as a test. Slow for small values of b, fast for large
+        # Test concatenation by adding once
         try:
             self + self
         except:
             raise Exception('Failed to add, so cannot multiply.')
 
-        # If addition check passes, just isolate top strand, do
-        # multiplication to the string (fast), and recreate RNA
+        # Isolate top and bottom strands, multiply strings, recreate DNA
         tops = self.top * multiplier
         new_instance = RNA(tops, run_checks=False)
 
         return new_instance
+
+    def __eq__(self, other):
+        '''
+        Test RNA object equality.
+
+        '''
+        if vars(self) == vars(other):
+            return True
+        else:
+            return False
+
+    def __ne__(self, other):
+        '''
+        Test RNA object equality.
+
+        '''
+        return not (self == other)

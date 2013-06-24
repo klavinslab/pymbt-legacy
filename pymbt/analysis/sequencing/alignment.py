@@ -15,76 +15,86 @@ from pymbt.analysis.sequencing.needle import needle
 
 
 class Sanger(object):
-    '''Align and analyze Sanger sequencing results.'''
-    def __init__(self, ref, res):
+    '''
+    Align and analyze Sanger sequencing results.
+
+    '''
+
+    def __init__(self, reference, results):
         '''
-        :param ref: Reference sequence.
-        :type ref: DNA object
-        :param res: Sequencing result string. A list of strings is also valid.
-        :type res: DNA object
+        :param reference: Reference sequence.
+        :type reference: DNA object
+        :param results: Sequencing result string. A list of DNA objects is also
+                        valid.
+        :type results: DNA object
 
         '''
 
-        # make results a list if there's just one
-        if type(res) != list:
-            res = [str(res)]
-        self.ref_raw = str(ref)
-        self.resnames = [x.name for x in res]
-        #self.resnames = [x.description for x in res]
-#        ref = ref.seq.tostring()
-        res = [str(x) for x in res]
-        ref = str(ref)
-        # Reduce results to largest unambiguous segment and align
-        split = [x.split('N') for x in res]
-        lengths = [[len(y) for y in x] for x in split]
-        max_positions = [x.index(max(x)) for x in lengths]
-        res = [x[max_positions[i]] for i, x in enumerate(split)]
-        self.needle = [needle(ref, x) for x in res]
-        self.alignments = [x[0] for x in self.needle]
-        self.scores = [x[1] for x in self.needle]
-        #print self.scores
+        # Make results a list for consistency
+        if type(results) != list:
+            results = [results]
+
+        # Coerce inputs to string
+        results = [str(seq) for seq in results]
+        for seq in results:
+            seq = str(seq)
+        reference = str(reference)
+
+        self.ref_raw = reference
+        self.resnames = [x.name for x in results]
+
+        # Reduce results to largest non-N segment
+        for seq in results:
+            split = seq.split('N')
+            sizes = [len(x) for x in split]
+            seq = split[sizes.index(max(sizes))]
+
+        # Align
+        self.needle = [needle(reference, result) for result in results]
+        self.alignments = self.needle['alignments']
+        self.scores = self.needle['scores']
+
+        # If score is too low, try reverse complement of result
         for i, score in enumerate(self.scores):
             if score < 1300:
-                new_needle = needle(ref, res[i].reverse_complement())
-                self.alignments[i] = new_needle[0]
-                self.scores[i] = new_needle[1]
-        self.needle = []
-        for i, alignment in enumerate(self.alignments):
-            self.needle.append((alignment, self.scores[i]))
+                new_needle = needle(reference, results[i].reverse_complement())
+                self.alignments[i] = new_needle['alignments']
+                score = new_needle['scores']
 
         # Extract aligned sequences
         # Actually, need n ref sequences in case of insertions
         # - ref would have - inserted in that case.
-        a_refs = [x[0].seq.tostring().upper() for x in self.alignments]
-        a_res = [x[1].seq.tostring().upper() for x in self.alignments]
+        aligned_refs = [x[0].seq.tostring().upper() for x in self.alignments]
+        aligned_res = [x[1].seq.tostring().upper() for x in self.alignments]
 
-        for i, reference in enumerate(a_refs):
+        for a_ref, a_reses in zip(aligned_refs, aligned_res):
             frontcount = 0
             backcount = 0
             while True:
-                if reference[-backcount - 1] == '-':
+                if a_ref[-backcount - 1] == '-':
                     backcount += 1
                 else:
                     break
             while True:
-                if reference[frontcount] == '-':
+                if a_ref[frontcount] == '-':
                     frontcount += 1
                 else:
                     break
-            a_refs[i] = a_refs[i][:len(a_refs[i]) - backcount]
-            a_res[i] = a_res[i][:len(a_res[i]) - backcount]
-            a_refs[i] = a_refs[i][frontcount:]
-            a_res[i] = a_res[i][frontcount:]
+            a_ref = a_ref[:len(a_ref) - backcount]
+            a_reses = a_reses[:len(a_reses) - backcount]
+            a_ref = a_ref[frontcount:]
+            a_reses = a_reses[frontcount:]
 
-        self.ref = a_refs
-        self.res = a_res
+        self.ref = aligned_refs
+        self.res = aligned_res
 
-        self.aligned = [(a_refs[i], a_res[i]) for i, x in enumerate(a_refs)]
+        self.aligned = [(a_ref, a_reses) for a_ref, a_reses in
+                        zip(aligned_refs, aligned_res)]
 
-        # degapping
+        # Degap
         self.gaps = []
-        for i, result in enumerate(a_res):
-            new_gap = ''.join([_findgap([z]) for j, z in enumerate(result)])
+        for result in enumerate(aligned_res):
+            new_gap = ''.join([_findgap([x]) for x in result])
             self.gaps.append(new_gap)
         self.ranges = []
         for gap in self.gaps:
@@ -92,38 +102,38 @@ class Sanger(object):
             last = (len(gap) - gap[::-1].find('X'))
             self.ranges.append((first, last))
 
-        #mismatches
+        # Mismatches, Insertions, and Deletions
         self.mismatches = {}
         self.insertions = {}
         self.deletions = {}
-        for i, reference in enumerate(a_refs):
-            curkey = str(i)
-            #curkey = str(i) + ':' + self.resnames[i]
+        # TODO: This is unreadable. Rewrite it.
+        for i, reference in enumerate(aligned_refs):
+            i_key = str(i)
             for j in range(len(reference)):
-                if a_refs[i][j] != '-' and a_res[i][j] != '-':
-                    if a_refs[i][j] != a_res[i][j]:
-                        if curkey in self.mismatches:
-                            self.mismatches[curkey].append((j, j))
+                if aligned_refs[i][j] != '-' and aligned_res[i][j] != '-':
+                    if aligned_refs[i][j] != aligned_res[i][j]:
+                        if i_key in self.mismatches:
+                            self.mismatches[i_key].append((j, j))
                         else:
-                            self.mismatches[curkey] = [(j, j)]
-                elif a_refs[i][j] == '-' and a_res[i][j] != '-':
+                            self.mismatches[i_key] = [(j, j)]
+                elif aligned_refs[i][j] == '-' and aligned_res[i][j] != '-':
                     if j in range(self.ranges[i][0], self.ranges[i][1]):
-                        if curkey in self.insertions:
-                            self.insertions[curkey].append((j, j))
+                        if i_key in self.insertions:
+                            self.insertions[i_key].append((j, j))
                         else:
-                            self.insertions[curkey] = [(j, j)]
-                elif a_refs[i][j] != '-' and a_res[i][j] == '-':
+                            self.insertions[i_key] = [(j, j)]
+                elif aligned_refs[i][j] != '-' and aligned_res[i][j] == '-':
                     if j in range(self.ranges[i][0], self.ranges[i][1]):
-                        if curkey in self.deletions:
-                            self.deletions[curkey].append((j, j))
+                        if i_key in self.deletions:
+                            self.deletions[i_key].append((j, j))
                         else:
-                            self.deletions[curkey] = [(j, j)]
+                            self.deletions[i_key] = [(j, j)]
 
         # Group deletions that happen all in a row.
         for key, value in self.deletions.iteritems():
             last = (-2, -2)
             newlist = []
-            for j, deletion in enumerate(value):
+            for deletion in value:
                 if deletion[0] == last[1] + 1:
                     newlist[-1] = (last[0], deletion[1])
                 else:
@@ -144,7 +154,10 @@ class Sanger(object):
             self.insertions[key] = newlist
 
     def report(self):
-        '''Report deletions, mismatches, and insertions.'''
+        '''
+        Report deletions, mismatches, and insertions.
+
+        '''
 
         print 'mismatches: ' + str(self.mismatches)
         print 'insertions: ' + str(self.insertions)
@@ -160,7 +173,7 @@ class Sanger(object):
                     print ''
                     refi = self.ref[index]
                     resi = self.res[index]
-                    _sequences_display([refi, resi], mismatch)
+                    _sequences_display([refi, resi], mismatch[0], mismatch[1])
                     print ''
         if len(self.insertions) > 0:
             print '----------------------'
@@ -173,7 +186,8 @@ class Sanger(object):
                     print ''
                     refi = self.ref[index]
                     resi = self.res[index]
-                    _sequences_display([refi, resi], insertion)
+                    _sequences_display([refi, resi], insertion[0],
+                                       insertion[1])
                     print ''
         if len(self.deletions) > 0:
             print '---------------------'
@@ -186,13 +200,17 @@ class Sanger(object):
                     print ''
                     refi = self.ref[index]
                     resi = self.res[index]
-                    _sequences_display([refi, resi], deletion)
+                    _sequences_display([refi, resi], deletion[0], deletion[1])
                     print ''
 
     def plot(self):
-        '''Plot visualization of results using matplotlib.'''
+        '''
+        Plot visualization of results using matplotlib.
+
+        '''
 
         # FIXME: have to implement features in order to plot them
+
         # Step 1: turn results into ranges, bin those ranges for displaying
         bins = _disjoint_bins(self.ranges)
 
@@ -234,7 +252,7 @@ class Sanger(object):
             Add insertions, deletions, and mismatches to plot.
 
             :param height: height of the annotation (on plot).
-            :type bin_index: int
+            :type height: int
 
             '''
 
@@ -305,16 +323,23 @@ class Sanger(object):
         pass
 
     def write_plot(self):
-        '''Save plot to image (png or svg).'''
+        '''
+        Save plot to image (png or svg).
+
+        '''
 
         pass
 
     def fix_disrepancy(self, result, position, newvalue):
-        '''Fix mismatch, deletion, or insertion manually.'''
+        '''
+        Fix mismatch, deletion, or insertion manually.
+
+        '''
 
         pass
 
 
+# TODO: why is this necessary?
 def _findgap(list_in):
     '''
     Iterate over string list, return 'X' if has non-\'-\' value.
@@ -330,7 +355,7 @@ def _findgap(list_in):
     return '-'
 
 
-def _sequences_display(seqs, start_stop, context=10, indent=4):
+def _sequences_display(seqs, start, stop, context=10, indent=4):
     '''
     Given two sequences to compare, display them and visualize non-matching
     regions.
@@ -349,25 +374,21 @@ def _sequences_display(seqs, start_stop, context=10, indent=4):
 
     if len(seqs) != 2:
         raise ValueError('Expected two sequences')
-    start = start_stop[0]
-    stop = start_stop[1]
 
-    seq_list_1 = []
-    seq_list_2 = []
-    seq_list_1.append(seqs[0][max(start - context, 0):start])
-    seq_list_2.append(seqs[1][max(start - context, 0):start])
-    seq_list_1.append(seqs[0][start:stop + 1])
-    seq_list_2.append(seqs[1][start:stop + 1])
-    seq_list_1.append(seqs[0][stop + 1:min(stop + context, len(seqs[0]))])
-    seq_list_2.append(seqs[1][stop + 1:min(stop + context, len(seqs[0]))])
+    seq_lists = [[], []]
+
+    for seq, seq_list in zip(seqs, seq_lists):
+        seq_list.append(seq[max(start - context, 0):start])
+        seq_list.append(seq[start:stop + 1])
+        seq_list.append(seq[stop + 1:min(stop + context, len(seq))])
 
     # No bars for non-matching sequences
-    top = ''.join(seq_list_1)
-    bottom = ''.join(seq_list_2)
-    middle = ['|' if top[i] == bottom[i] else ' ' for i in range(len(top))]
+    top = ''.join(seq_list[0])
+    bottom = ''.join(seq_list[1])
+    middle = ['|' if t == b else ' ' for t, b in zip(top, bottom)]
     middle = ''.join(middle)
-
     indent = ' ' * indent
+
     if start != stop:
         print indent + 'Positions {0} to {1}:'.format(start, stop)
     else:
@@ -393,23 +414,24 @@ def _disjoint_bins(range_tuple_list):
     # sort by range start
     rtl = sorted(rtl, key=lambda starts: starts[0])
     rtl_len = len(rtl)
-    remaining = rtl
 
-    done_binning = False
+    remaining = rtl[:]
+
     binned = []
-    while not done_binning:
+    while True:
         current_bin = []
-        nextbin = []
-        while len(remaining) > 0:
+        next_bin = []
+        while remaining:
             last = remaining.pop(0)
             current_bin.append(last)
-            nextbin += [x for x in remaining if x[0] <= last[1]]
+            next_bin += [x for x in remaining if x[0] <= last[1]]
             remaining = [x for x in remaining if x[0] > last[1]]
         binned.append(current_bin)
-        if len(remaining) == 0 and len(nextbin) == 0:
-            done_binning = True
+
+        if not remaining and not next_bin:
+            break
         else:
-            remaining = nextbin
+            remaining = next_bin
 
     bin_list = [0] * rtl_len
     for i, bin_ranges in enumerate(binned):

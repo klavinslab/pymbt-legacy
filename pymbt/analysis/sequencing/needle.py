@@ -2,95 +2,67 @@
 
 from tempfile import mkdtemp
 from shutil import rmtree
-from Bio.Emboss.Applications import NeedleCommandline
 from Bio.Emboss.Applications import NeedleallCommandline
 from Bio import AlignIO
 
+# Important note: does not produce a 'consensus' reference sequence
 
-def needle(seq1, seq2):
+
+def needle(reference, targets, gapopen=10, gapextend=0.5):
     '''
     Do Needleman-Wunsch alignment.
 
-    :param seq1: First sequence.
-    :type seq1: str
-    :param seq2: Second sequence.
-    :type seq2: str
+    :param reference: Reference sequence.
+    :type reference: str
+    :param targets: Sequence(s) to align against the reference.
+    :type targets: str
+    :param gapopen: Penalty for opening a gap.
+    :type gapopen: float
+    :param gapextend: Penalty for extending a gap.
+    :type gapextend: float
 
     '''
 
+    # Make temporary dir
     workdir = mkdtemp()
-    aseq_handle = open(workdir + '/aseq.fasta', 'w')
-    aseq_handle.write('>seq1\n')
-    aseq_handle.write(seq1)
-    aseq_handle.close()
-    bseq_handle = open(workdir + '/bseq.fasta', 'w')
-    bseq_handle.write('>seq2\n')
-    bseq_handle.write(seq2)
-    bseq_handle.close()
 
-    cline = NeedleCommandline(cmd='needle')
-    cline.gapopen = 10
-    cline.gapextend = 0.5
-    cline.asequence = workdir + '/aseq.fasta'
-    cline.bsequence = workdir + '/bseq.fasta'
-    cline.outfile = workdir + '/needle.txt'
-    cline()
-    align = AlignIO.read(workdir + '/needle.txt', 'emboss')
-    align_file = open(workdir + '/needle.txt', 'r')
-    handle = align_file.readlines()
-    score = [x for x in handle if x[0:7] == '# Score']
-    score = float(score[0].strip()[9:])
+    if type(targets) != list:
+        targets = [targets]
 
-    rmtree(workdir)
-    return align, score
+    # Write input files (fasta format)
+    with open(workdir + '/ref.fasta', 'w') as ref_handle:
+        ref_handle.write('>ref\n')
+        ref_handle.write(reference)
+    with open(workdir + '/targets.fasta', 'w') as targets_handle:
+        for i, target in enumerate(targets):
+            targets_handle.write('>target{}\n'.format(i + 1))
+            targets_handle.write('{}\n'.format(target))
 
-
-def needleall(seq1, seq2s):
-    '''
-    Do Needleman-Wunsch alignment using EMBOSS NeedleAll.
-
-    :param seq1: First sequence.
-    :type seq1: str
-    :param seq2s: List of second sequences to align with the seq1.
-    :type seq2s: list
-
-    '''
-
-    workdir = mkdtemp()
-    aseq_handle = open(workdir + '/aseq.fasta', 'w')
-    aseq_handle.write('>seq1\n')
-    aseq_handle.write(seq1)
-    aseq_handle.close()
-    bseq_handle = open(workdir + '/bseq.fasta', 'w')
-    if type(seq2s) == str:
-        seq2s = [seq2s]
-    elif type(seq2s) == list:
-        pass
-    else:
-        raise ValueError('second input must be list of sequences')
-    for i, sequence in enumerate(seq2s):
-        bseq_handle.write('>seq' + str(i + 2) + '\n')
-        bseq_handle.write(sequence + '\n')
-    bseq_handle.close()
-
+    # Set up Emboss 'needle' command
     cline = NeedleallCommandline(cmd='needleall')
-    cline.gapopen = 10
-    cline.gapextend = 0.5
-    cline.asequence = workdir + '/aseq.fasta'
-    cline.bsequence = workdir + '/bseq.fasta'
-    cline.outfile = workdir + '/needle.txt'
+    cline.gapopen = gapopen
+    cline.gapextend = gapextend
+    cline.bsequence = workdir + '/ref.fasta'
+    cline.asequence = workdir + '/targets.fasta'
     cline.aformat = 'srspair'
-    cline()
-    align_handle = AlignIO.parse(workdir + '/needle.txt', 'emboss')
-    align = [x for x in align_handle]
-    align_file = open(workdir + '/needle.txt', 'r')
-    handle = align_file.readlines()
-    score = [x for x in handle if x[0:7] == '# Score']
-    if len(score) > 1:
-        score = [float(x.strip()[9:]) for x in score]
-    else:
-        score = float(score[0].strip()[9:])
-    to_return = [(a, s) for a, s in zip(align, score)]
+    cline.outfile = workdir + '/alignments.txt'
 
+    # Run 'needle'
+    cline()
+
+    # Grab the alignments using AlignIO
+    alignments = [x for x in AlignIO.parse(workdir + '/alignments.txt',
+                  'emboss')]
+
+    # Manually grab the score (AlignIO doesn't get it for some reason)
+    scores = []
+    with open(workdir + '/alignments.txt', 'r') as align_file:
+        for line in align_file.readlines():
+            if line.startswith('# Score'):
+                score = float(line.strip().lstrip('# Score: '))
+                scores.append(score)
+
+    # Delete temporary dir
     rmtree(workdir)
-    return to_return
+
+    return {'alignments': alignments, 'scores': scores}

@@ -50,6 +50,7 @@ FINNZYMES_PARAMS = {
         'symm': 0.0,
         '5termT': 0.0}}
 
+
 SANTALUCIA98_PARAMS = {
     'delta_h': {
         'AA': 7.9,

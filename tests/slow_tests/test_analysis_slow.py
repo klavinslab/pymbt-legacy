@@ -26,7 +26,7 @@ def test_contextwalker():
     walker = analysis.StructureWindows(dna_seq)
     walker.run(window_size=60, context_len=90, step=10)
     assert_equal(walker.scores,
-                 [0.578570075,
+                 (0.578570075,
                   0.5928413833333335,
                   0.5535072916666667,
                   0.5425574666666667,
@@ -74,4 +74,4 @@ def test_contextwalker():
                   0.644573625,
                   0.6644399750000001,
                   0.6716777749999999,
-                  0.6807071583333334])
+                  0.6807071583333334))

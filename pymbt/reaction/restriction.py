@@ -101,3 +101,12 @@ class Restriction(object):
                 dna_list[1] = bottom_overhang + dna_list[1]
 
         return dna_list
+
+
+# Inverted repeat checking - should be done here, not core DNA class
+#        inverted_repeat = utils.check_inv(pattern)
+#        if inverted_repeat:
+#            # subtract all occurrences in top from bottom
+#            subtract = [len(self.top) - index - len(pattern) for index in
+#                        top_starts]
+#            bottom_starts = [x for x in subtract if x not in bottom_starts]

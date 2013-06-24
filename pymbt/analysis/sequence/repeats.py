@@ -1,8 +1,11 @@
-'''Check sequences for repeats that may impact cloning efficiency.'''
+'''
+Check sequences for repeats that may impact cloning efficiency.
+
+'''
 
 from collections import Counter
 
-# TODO: implement version that works for circular DNA?
+# TODO: implement version that works for circular DNA
 
 
 class FindRepeats(object):
@@ -10,7 +13,7 @@ class FindRepeats(object):
     Count repeats in a DNA sequence.
 
     '''
-    def __init__(self, dna_object, size):
+    def __init__(self, dna, size):
         '''
         param dna_object: DNA sequence.
         type dna_object: DNA
@@ -19,7 +22,7 @@ class FindRepeats(object):
 
         '''
 
-        self.template = dna_object
+        self.template = str(dna)
         self.size = size
 
     def run(self):
@@ -27,7 +30,7 @@ class FindRepeats(object):
         Execute function.
 
         '''
-        check = _repeat_check(str(self.template), self.size)
+        check = _repeat_check(self.template, self.size)
         return check
 
 

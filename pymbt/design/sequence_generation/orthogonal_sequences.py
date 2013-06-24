@@ -242,36 +242,33 @@ class OrthoSeq(object):
             file_prefix = '{0}/{1}-oligo_calc_'.format(cur_dir, cur_id)
 
             # Write out setup info file
-            info_file = open(file_prefix + 'info.txt', 'w')
-            info_csv = csv.writer(info_file, quoting=csv.QUOTE_MINIMAL)
-            info_csv.writerow(['sequence', 'oligo_n', 'candidates'])
-            info_csv.writerow([self.prot_seq, self.oligo_n, self.candidates])
-            info_file.close()
+            with open(file_prefix + 'info.txt', 'w') as info_file:
+                info_csv = csv.writer(info_file, quoting=csv.QUOTE_MINIMAL)
+                info_csv.writerow(['sequence', 'oligo_n', 'candidates'])
+                info_csv.writerow([self.prot_seq, self.oligo_n,
+                                   self.candidates])
 
             # Set up data log file
-            data_file = open(file_prefix + 'data.csv', 'w')
-            data_csv = csv.writer(data_file, quoting=csv.QUOTE_MINIMAL)
-            cols = ['loop',
-                    'n_attempted',
-                    'score_mean',
-                    'score_min',
-                    'met',
-                    'time']
-            data_csv.writerow(cols)
-            data_file.close()
+            with open(file_prefix + 'data.csv', 'w') as data_file:
+                data_csv = csv.writer(data_file, quoting=csv.QUOTE_MINIMAL)
+                cols = ['loop',
+                        'n_attempted',
+                        'score_mean',
+                        'score_min',
+                        'met',
+                        'time']
+                data_csv.writerow(cols)
 
         # Write the current set of oligos to file (enables resuming)
-        oligo_file = open(file_prefix + 'latest.txt', 'w')
-        for i in oligo_list:
-            oligo_file.write(i + '\n')
-        oligo_file.close()
+        with open(file_prefix + 'latest.txt', 'w') as oligo_file:
+            for i in oligo_list:
+                oligo_file.write(i + '\n')
 
         # Update the data log file
-        data_file = open(file_prefix + 'data.csv', 'a')
-        data_csv = csv.writer(data_file, quoting=csv.QUOTE_MINIMAL)
-        data = [loop_count, n_attempted, score_mean, score_min, met, timer]
-        data_csv.writerow(data)
-        data_file.close()
+        with open(file_prefix + 'data.csv', 'a') as data_file:
+            data_csv = csv.writer(data_file, quoting=csv.QUOTE_MINIMAL)
+            data = [loop_count, n_attempted, score_mean, score_min, met, timer]
+            data_csv.writerow(data)
 
 
 def _n_p_nupack(sequence_list):
@@ -444,6 +441,5 @@ if __name__ == "__main__":
     else:
         with open(RESUME, 'r') as resfile:
             PREV = [oligos.strip() for oligos in resfile.readlines()]
-        resfile.close()
 
         NEW_RUN.start(resume=PREV)

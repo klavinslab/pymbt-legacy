@@ -79,9 +79,8 @@ class GeneSplitter(object):
         elif overlap_n > 1:
             while True:
                 # Find stop indices
-                stops = []
-                for i in range(overlap_n - 1):
-                    stops.append((i + 1) * max_len - i * core)
+                stops = [(i + 1) * max_len - i * core for i in
+                         range(overlap_n - 1)]
                 stops = [x if x < seq_len else seq_len for x in stops]
                 stops = [min(stop + context, seq_len) for stop in stops]
 
@@ -152,14 +151,14 @@ class GeneSplitter(object):
 
         '''
 
-        handle = open(path, 'w')
-        writer = csv.writer(handle, quoting=csv.QUOTE_MINIMAL)
-        writer.writerow(['sequence', 'olap_start', 'olap_stop', 'olap_score'])
-        sta = [x[0] for x in self.overlaps] + ['NA']
-        sto = [x[1] for x in self.overlaps] + ['NA']
-        for i, sequence in enumerate(self.split_sequences):
-            writer.writerow([sequence, sta[i], sto[i], self.scores[i]])
-        handle.close()
+        with open(path, 'w') as handle:
+            writer = csv.writer(handle, quoting=csv.QUOTE_MINIMAL)
+            writer.writerow(['sequence', 'olap_start', 'olap_stop',
+                             'olap_score'])
+            sta = [x[0] for x in self.overlaps] + ['NA']
+            sto = [x[1] for x in self.overlaps] + ['NA']
+            for i, sequence in enumerate(self.split_sequences):
+                writer.writerow([sequence, sta[i], sto[i], self.scores[i]])
 
 
 def _optimal_overlap(walked, max_len, force_exhaustive=False):

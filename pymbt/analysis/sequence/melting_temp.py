@@ -1,5 +1,8 @@
-'''Calculate the thermodynamic melting temperatures of nucleotide sequences
-using the Finnzymes modified Breslauer 1986 parameters.'''
+'''
+Calculate the thermodynamic melting temperatures of nucleotide sequences
+using the Finnzymes modified Breslauer 1986 parameters.
+
+'''
 
 from math import log
 from pymbt.sequence.utils import reverse_complement
@@ -14,7 +17,9 @@ from pymbt.analysis.sequence import tm_params
 class Tm(object):
     '''
     Nearest-neighbor melting temperature (Tm) calculator.
+
     '''
+
     def __init__(self, dna_object, dna_conc=50, salt_conc=50,
                  method='finnzymes'):
         '''
@@ -27,6 +32,7 @@ class Tm(object):
         :param method: computation method to use. Only available method is
                        'finnzymes'.
         :type method: str
+
         '''
 
         self.template = dna_object
@@ -67,7 +73,7 @@ def _calc_tm(sequence, dna_conc=50, salt_conc=50, method='finnzymes'):
     if method == 'finnzymes':
         params = tm_params.FINNZYMES_PARAMS
     else:
-        msg = '\'finnzymes\' is the only method that is currently supported'
+        msg = "'finnzymes' is the only method that is currently supported"
         raise ValueError(msg)
 
     # Thermodynamic parameters

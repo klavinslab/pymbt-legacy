@@ -6,7 +6,13 @@ DNA object classes.
 import re
 from pymbt.sequence import utils
 
-# TODO: get / set methods for strandedness/topology?
+# TODO: if sequence is mutable, core data structure should be list?
+# TODO: figure out what to do with bottom-strand-only ssDNA. Should it be
+# flipped automatically or represented as-is? __setitem__ depends on this and
+# is currently incomplete. Also has implications for __add__.
+# Flipping automatically solves lots of problems, but would user expect it?
+# TODO: Features
+# TODO: set method for topology?
 # TODO: method for converting ungapped dsDNA to top-strand ssDNA?
 
 
@@ -15,6 +21,7 @@ class DNA(object):
     Core DNA sequence object.
 
     '''
+
     def __init__(self, sequence, bottom=None, topology='linear', stranded='ds',
                  features=None, run_checks=True):
         '''
@@ -68,7 +75,9 @@ class DNA(object):
         Reverse complement top and bottom strands.
 
         '''
+
         new_instance = self.copy()
+
         if self.stranded == 'ds':
             new_instance.top = self.bottom
             new_instance.bottom = self.top
@@ -82,7 +91,7 @@ class DNA(object):
         Circularize linear DNA.
 
         '''
-        # Currently does nothing other than changing an attribute
+
         new_instance = self.copy()
         new_instance.topology = 'circular'
 
@@ -97,71 +106,52 @@ class DNA(object):
 
 
         '''
-        # TODO: collections.deque makes this easier.
+
         if self.topology == 'linear':
             raise Exception('Cannot relinearize linear DNA.')
-        top_list = [base for base in self.top]
-        bottom_list = [base for base in self.bottom]
-        if index > 0:
-            for i in range(index):
-                top_pop = top_list.pop(0)
-                top_list.append(top_pop)
-                bottom_list = [bottom_list.pop()] + bottom_list
-        elif index < 0:
-            for i in range(abs(index)):
-                top_list = [top_list.pop()] + top_list
-                bottom_pop = bottom_list.pop(0)
-                bottom_list.append(bottom_pop)
 
         new_instance = self.copy()
-        new_instance.top = ''.join(top_list)
-        new_instance.bottom = ''.join(bottom_list)
+        try:
+            new_instance[index]
+        except:
+            raise Exception('Index out of range.')
+
+        new_instance = new_instance[index:] + new_instance[:index]
         new_instance.topology = 'linear'
 
         return new_instance
 
-    def five_resect(self, n_bases=None):
+    def five_resect(self, n_bases):
         '''
         Remove bases from 5' end of top strand.
 
 
-        :param n_bases: Number of bases cut back. Defaults to removing entire
-                        top strand
+        :param n_bases: Number of bases cut back.
         :type n_bases: int
 
         '''
-        n_blanks = len(self.top) - len(self.top.lstrip('-'))
-        if n_bases and n_bases < len(self.top):
-            gap_length = n_blanks + n_bases
-            new_gap = '-' * gap_length
-            new_top = new_gap + self.top[gap_length:]
-        else:
-            new_top = '-' * len(self.top)
 
         new_instance = self.copy()
+
+        new_top = '-' * min(len(self.top), n_bases) + self.top[n_bases:]
         new_instance.top = new_top
         new_instance.remove_end_gaps()
 
         return new_instance
 
-    def three_resect(self, n_bases=None):
+    def three_resect(self, n_bases):
         '''
         Remove bases from 3' end of top strand.
 
-        :param n_bases: Number of bases cut back. Defaults to removing entire
-                        top strand
+        :param n_bases: Number of bases cut back.
         :type n_bases: int
 
         '''
-        n_blanks = len(self.top) - len(self.top.rstrip('-'))
-        if n_bases and n_bases < len(self.top):
-            gap_length = n_blanks + n_bases
-            new_gap = '-' * gap_length
-            new_top = self.top[:-gap_length] + new_gap
-        else:
-            new_top = '-' * len(self.top)
 
+        # TODO: if you find double end gaps, should make topology linear
         new_instance = self.copy()
+
+        new_top = self.top[:-n_bases] + '-' * min(len(self.top), n_bases)
         new_instance.top = new_top
         new_instance.remove_end_gaps()
 
@@ -169,19 +159,36 @@ class DNA(object):
 
     # TODO: this can be replaced with __setattr__
     def set_stranded(self, stranded):
-        if stranded == self.stranded:
-            return self
+        '''
+        Change DNA strandedness
+
+        :param stranded: 'ss' or 'ds' (DNA).
+        :type stranded: str
+
+        '''
 
         new_instance = self.copy()
+        # Do nothing if already set
+        if stranded == self.stranded:
+            return new_instance
+
         if stranded == 'ss':
             new_instance.bottom = '-' * len(new_instance)
             new_instance.stranded = 'ss'
         elif stranded == 'ds':
-            new_instance.bottom = utils.reverse_complement(new_instance.top,
-                                                           'dna')
+            # Find strand that's all gaps (if ss this should be the case)
+            reverse_seq = self.reverse_complement()
+            if all(char == '-' for char in self.top):
+                new_instance.top = reverse_seq.bottom
+            elif all(char == '-' for char in self.bottom):
+                new_instance.bottom = reverse_seq.top
+            else:
+                # TODO: this shouldn't be necessary?
+                raise Exception('Sequence is not really single stranded.')
+
             new_instance.stranded = 'ds'
         else:
-            raise ValueError('\'stranded\' must be \'ss\' or \'ds\'.')
+            raise ValueError("'stranded' must be 'ss' or 'ds'.")
 
         return new_instance
 
@@ -194,33 +201,32 @@ class DNA(object):
 
         '''
 
+        if len(pattern) > 2 * len(self):
+            raise Exception('Pattern must be less than 2 x sequence length.')
+        if not pattern:
+            return [[], []]
+
         pattern = pattern.lower()
+        regex = '(?=' + pattern + ')'
+
         if self.topology == 'circular':
-            # TODO: this probably doesn't account for gaps
-            max_len = min(len(self.top), len(pattern)) + len(self.top) - 1
-            template_top = self.top + self.top[0:max_len]
-            template_bottom = self.bottom + self.bottom[0:max_len]
+            roff = len(pattern) - 1
+            loff = len(self) - roff + 1
+            top = self.top[loff:] + self.top + self.top[0:roff]
+            bottom = self.bottom[loff:] + self.bottom + self.bottom[0:roff]
         else:
-            template_top = self.top
-            template_bottom = self.bottom
-        re_pattern = '(?=' + pattern + ')'
-        indices_top = [index.start() for index in
-                       re.finditer(re_pattern, template_top)]
-        indices_bottom = [index.start() for index in
-                          re.finditer(re_pattern, template_bottom)]
-        # TODO: if pattern is inverted repeat, throw out top/bottom redundant
-        # matches. For now will just check top strand only - but this will
-        # fail if there's gaps
+            top = self.top
+            bottom = self.bottom
 
-        inverted_repeat = utils.check_inv(pattern)
+        top_starts = [index.start() for index in re.finditer(regex, top)]
+        bottom_starts = [index.start() for index in re.finditer(regex, bottom)]
 
-        if inverted_repeat:
-            # subtract all occurrences in top from bottom
-            subtract = [len(self.top) - index - len(pattern) for index in
-                        indices_top]
-            indices_bottom = [x for x in subtract if x not in indices_bottom]
+        # Adjust indices if doing circular search
+        if self.topology == 'circular':
+            top_starts = [start - roff + 1 for start in top_starts]
+            bottom_starts = [start - roff + 1 for start in bottom_starts]
 
-        return (indices_top, indices_bottom)
+        return (top_starts, bottom_starts)
 
     def copy(self):
         '''
@@ -228,11 +234,11 @@ class DNA(object):
 
         '''
 
-        # Note: alphabet checking disabled on copy to improve preformance -
-        # will bottleneck many workflows that rely on slicing otherwise
+        # Alphabet checking disabled on copy to improve performance
         new_instance = DNA(self.top, bottom=self.bottom,
                            topology=self.topology, stranded=self.stranded,
                            features=self.features, run_checks=False)
+
         return new_instance
 
     def remove_end_gaps(self):
@@ -240,24 +246,23 @@ class DNA(object):
         Removes double-stranded gaps from ends of the sequence.
 
         '''
+
         top = self.top
-        bottom = self.bottom
-        top_nogaps = len(top.lstrip('-')), len(top.rstrip('-'))
-        bottom_nogaps = len(bottom.lstrip('-')), len(bottom.rstrip('-'))
-        top_gaps = [len(top) - x for x in top_nogaps]
-        bottom_gaps = [len(bottom) - x for x in bottom_nogaps]
+        bottom_rev = self.bottom[::-1]
 
-        left_trim = min(top_gaps[0], bottom_gaps[1])
-        right_trim = min(top_gaps[1], bottom_gaps[0])
+        top_lstrip = top.lstrip('-')
+        bottom_lstrip = bottom_rev.lstrip('-')
+        lstrip_len = max(len(top_lstrip), len(bottom_lstrip))
+        top = top[-lstrip_len:]
+        bottom_rev = bottom_rev[-lstrip_len:]
 
-        # TODO: should define slicing for DNA objects and use that here instead
-        if left_trim:
-            top = top[left_trim:]
-            bottom = bottom[:-left_trim]
-        if right_trim:
-            top = top[:-right_trim]
-            bottom = bottom[right_trim:]
+        top_rstrip = top.rstrip('-')
+        bottom_rstrip = bottom_rev.rstrip('-')
+        rstrip_len = max(len(top_rstrip), len(bottom_rstrip))
+        top = top[0:rstrip_len]
+        bottom_rev = bottom_rev[0:rstrip_len]
 
+        bottom = bottom_rev[::-1]
         self.top = top
         self.bottom = bottom
 
@@ -269,24 +274,14 @@ class DNA(object):
         :type key: int or slice object
 
         '''
-        # TODO: throw proper error when index is out of range
+
         new_instance = self.copy()
-        if isinstance(key, int):
-            new_instance.top = new_instance.top[key]
-            new_instance.bottom = new_instance.bottom[::-1][key]
+        new_instance.top = new_instance.top[key]
+        new_instance.bottom = new_instance.bottom[::-1][key][::-1]
 
-            return new_instance
-        elif isinstance(key, slice):
-            new_instance.top = new_instance.top.__getitem__(key)
-            bottom_rev = new_instance.bottom[::-1]
-            new_instance.bottom = bottom_rev.__getitem__(key)[::-1]
-            return new_instance
+        new_instance.topology = 'linear'
 
-        circ = new_instance.topology == 'circular'
-
-        if circ and len(new_instance) != len(self):
-            new_instance.topology = 'linear'
-            return new_instance
+        return new_instance
 
     def __delitem__(self, index):
         '''
@@ -297,9 +292,14 @@ class DNA(object):
 
         '''
 
-        new = self[0:index] + self[index + 1:]
-        self.top = new.top
-        self.bottom = new.bottom
+        top_list = list(self.top)
+        bottom_list = list(self.bottom[::-1])
+
+        del top_list[index]
+        del bottom_list[index]
+
+        self.top = ''.join(top_list)
+        self.bottom = ''.join(bottom_list)[::-1]
 
     def __setitem__(self, index, new_value):
         '''
@@ -307,30 +307,45 @@ class DNA(object):
 
         '''
 
-        insert = DNA(new_value)
-        new = self[0:index] + insert + self[index + 1:]
-        self.top = new.top
-        self.bottom = new.bottom
+        if new_value == '-':
+            raise ValueError("Can't insert gap - split sequence instead.")
+
+        insert = DNA(str(new_value))
+        new_top = insert.top
+        if self.stranded == 'ds':
+            new_bottom = insert.bottom
+        else:
+            new_bottom = '-'
+
+        top_list = list(self.top)
+        bottom_list = list(self.bottom[::-1])
+
+        top_list[index] = new_top
+        bottom_list[index] = new_bottom
+
+        self.top = ''.join(top_list)
+        self.bottom = ''.join(bottom_list)[::-1]
 
     def __repr__(self):
         '''
         String to print when object is called directly.
 
         '''
-        show_bases = 40
-        bottom = self.bottom[::-1]
-        if len(self.top) < 90:
-            to_print = [self.top, bottom]
-        else:
-            top = ''.join([self.top[0:show_bases], ' ... ',
-                           self.top[-show_bases:]])
-            bottom = ''.join([bottom[0:show_bases], ' ... ',
-                              bottom[-show_bases:]])
-            to_print = [top, bottom]
-        first_line = '{} {}DNA:'.format(self.topology, self.stranded)
-        to_print = [first_line] + to_print
 
-        return '\n'.join(to_print)
+        show = 40
+        bottom = self.bottom[::-1]
+
+        if len(self.top) < 90:
+            top = self.top
+            bottom = self.bottom[::-1]
+        else:
+            top = ''.join([self.top[0:show], ' ... ', self.top[-show:]])
+            bottom = ''.join([bottom[0:show], ' ... ', bottom[-show:]])
+
+        first_line = '{} {}DNA:'.format(self.topology, self.stranded)
+        to_print = '\n'.join([first_line, top, bottom])
+
+        return to_print
 
     def __str__(self):
         '''
@@ -338,16 +353,12 @@ class DNA(object):
         and top-strand ssDNA.
 
         '''
-        # TODO: implement bottom-only strand ssDNA as well?
+
         gaps = sum([1 for x in self.top if x == '-'])
-        #gaps += sum([1 for x in self.bottom if x == '-'])
+
         if gaps:
-            # note: should really implement this - getting an error from a
-            # print line is stupid
-            msg1 = 'No string coercion method for gapped / single stranded '
-            msg2 = 'sequences.'
-            print msg1 + msg2
-            return NotImplemented
+            msg = 'No string coercion method sequences with top-strand gaps.'
+            raise Exception(msg)
         else:
             return self.top
 
@@ -357,6 +368,7 @@ class DNA(object):
         len function is used.
 
         '''
+
         return len(self.top)
 
     def __add__(self, other):
@@ -369,31 +381,26 @@ class DNA(object):
 
         '''
 
-        # Check self for terminal gaps:
-        if len(self):
-            self_gaps = (self.top[-1] == '-', self.bottom[0] == '-')
-        else:
-            self_gaps = (False, False)
-        if len(other):
-            other_gaps = (other.top[0] == '-', other.bottom[-1] == '-')
-        else:
-            other_gaps = (False, False)
+        if self.topology == 'circular' or other.topology == 'circular':
+            raise Exception('Can only add linear DNA.')
 
-        # Only time this should fail is when there's a discontinuity. A
-        # discontinuity appears when the first and second entries for the gaps
-        # tuples are exactly the opposite of each other
-        if self_gaps[0] != other_gaps[0] and self_gaps[1] != other_gaps[1]:
-            # TODO: pretty sure this is the wrong way to throw an exception
-            # here
-            print 'Discontinuity at ends of DNA objects - can\'t add.'
-            return NotImplemented
+        forward_discontinuity = self.top[-1] == '-' and other.bottom[-1] == '-'
+        rev_discontinuity = self.bottom[0] == '-' and other.top[0] == '-'
+
+        if forward_discontinuity or rev_discontinuity:
+            msg = "Concatenated DNA would be discontinuous."
+            raise Exception(msg)
+
+        if self.stranded == 'ds' or other.stranded == 'ds':
+            stranded = 'ds'
+        else:
+            stranded = 'ss'
 
         tops = self.top + other.top
         bottoms = other.bottom + self.bottom
 
-        new_instance = self.copy()
-        new_instance.top = tops
-        new_instance.bottom = bottoms
+        new_instance = DNA(tops, bottom=bottoms, topology='linear',
+                           stranded=stranded, run_checks=False)
 
         return new_instance
 
@@ -401,32 +408,48 @@ class DNA(object):
         '''
         Multiply DNA by an integer to create concatenation.
 
-        :param multiply: Factor by which to multiply the sequence.
-        :type multiply: int
+        :param multiplier: Factor by which to multiply the sequence.
+        :type multiplier: int
 
         '''
 
         # Input checking
         if multiplier != int(multiplier):
-            msg = 'can\'t multiply sequence by non-int.'
-            raise TypeError(msg)
+            raise TypeError("can't multiply sequence by non-integer.")
         if self.topology == 'circular':
-            raise ValueError('Can\'t multiply circular DNA')
+            raise ValueError("Can't multiply circular DNA")
 
-        # Try adding once as a test. This is slow for low values of b
-        # but very fast for higher values
+        # Test concatenation by adding once
         try:
             self + self
         except:
             raise Exception('Failed to add, so cannot multiply.')
 
-        # If addition check passes, just isolate top and bottom strands, do
-        # multiplication to the strings (fast), and recreate DNA
+        # Isolate top and bottom strands, multiply strings, recreate DNA
         tops = self.top * multiplier
         bottoms = self.bottom * multiplier
 
-        return DNA(tops, bottom=bottoms, topology=self.topology,
-                   stranded=self.stranded, run_checks=False)
+        new_instance = DNA(tops, bottom=bottoms, topology=self.topology,
+                           stranded=self.stranded, run_checks=False)
+
+        return new_instance
+
+    def __eq__(self, other):
+        '''
+        Test DNA object equality.
+
+        '''
+        if vars(self) == vars(other):
+            return True
+        else:
+            return False
+
+    def __ne__(self, other):
+        '''
+        Test DNA object equality.
+
+        '''
+        return not (self == other)
 
 
 class RestrictionSite(object):

@@ -97,7 +97,7 @@ def sequence_type(seq):
     '''
     if isinstance(seq, pymbt.sequence.DNA):
         material = 'dna'
-    elif isinstance(seq, pymbt.sequence.DNA):
+    elif isinstance(seq, pymbt.sequence.RNA):
         material = 'rna'
     else:
         raise Exception("Input was not a DNA or RNA object.")
