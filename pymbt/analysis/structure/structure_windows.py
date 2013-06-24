@@ -6,7 +6,6 @@ structure.
 
 from matplotlib import pylab
 from pymbt.analysis import nupack_multiprocessing
-from pymbt.sequence.utils import check_instance
 
 
 class StructureWindows(object):
@@ -24,7 +23,6 @@ class StructureWindows(object):
         '''
 
         self.template = dna_object
-        check_instance(self.template)
 
         self.walked = []
         self.core_starts = []

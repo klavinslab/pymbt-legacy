@@ -84,7 +84,7 @@ def translate_seq(sequence):
     return peptide
 
 
-def check_instance(sequence_in, material):
+def sequence_type(seq):
     '''
     Validates a DNA or RNA sequence instance.
 
@@ -94,14 +94,14 @@ def check_instance(sequence_in, material):
     :type material: str
 
     '''
-    if material == 'dna':
-        valid = isinstance(sequence_in, pymbt.sequence.DNA)
-    if material == 'rna':
-        valid = isinstance(sequence_in, pymbt.sequence.DNA)
+    if isinstance(seq, pymbt.sequence.DNA):
+        material = 'dna'
+    elif isinstance(seq, pymbt.sequence.DNA):
+        material = 'rna'
     else:
-        raise Exception("material must be 'dna' or 'rna'.")
-    if not valid:
-        raise Exception('Input must be an instance of pymbt.sequence.DNA.')
+        raise Exception("Input was not a DNA or RNA object.")
+
+    return material
 
 
 def check_seq(seq, material):

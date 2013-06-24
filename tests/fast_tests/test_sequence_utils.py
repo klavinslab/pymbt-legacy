@@ -9,7 +9,7 @@ def test_reverse_complement():
 
     seq = 'ATGCNatgcn'
     rev_seq = 'ngcatNGCAT'
-    assert_equals(utils.reverse_complement(seq), rev_seq)
+    assert_equals(utils.reverse_complement(seq, 'dna'), rev_seq)
 
 
 def test_translate_seq():

@@ -7,7 +7,7 @@ from tempfile import mkdtemp
 from shutil import rmtree
 from os.path import isdir
 from os import environ
-from pymbt.sequence.utils import check_instance
+from pymbt.sequence.utils import sequence_type
 
 
 if 'NUPACKHOME' in environ:
@@ -19,33 +19,32 @@ else:
 class Nupack(object):
     '''Contain sequence inputs and use NUPACK computation methods.'''
 
-    def __init__(self, dna_list):
+    def __init__(self, seq_list, rna99=False):
         '''
-        :param dna_list: Input sequences. Can also be list of sequences.
-        :type dna_list: str
+        :param seq_list: Input sequences. Can also be list of sequences.
+        :type seq_list: str
 
         '''
-
-        # TODO: automatically figure out material based on input
-        # Hard-coded to 'dna' for now.
-        self.material = 'dna'
 
         # Set up nupack environment variable
         self.nupack_home = NUPACKHOME
 
-        # Hard-coded to 'dna' for now.
-        self.material = 'dna'
-        if type(dna_list) != list:
-            dna_list = [dna_list]
+        if type(seq_list) != list:
+            seq_list = [seq_list]
         else:
-            dna_list = dna_list
+            seq_list = seq_list
 
-        for seq in dna_list:
-            check_instance(seq)
+        # Figure out material based on input and ensure it's consistent
+        self.material = sequence_type(seq_list[0])
+        if not all([sequence_type(seq) == self.material for seq in seq_list]):
+            raise ValueError('Sequence inputs were of mixed types.')
 
-        # convert dna object to string
-        dna_list = [str(dna) for dna in dna_list]
-        self.dna_list = dna_list
+        if self.material == 'rna' and rna99:
+            self.material = 'rna99'
+
+        # Convert seq object(s) to string(s)
+        seq_list = [str(seq) for seq in seq_list]
+        self.seq_list = seq_list
         self.outdir = mkdtemp()
 
         # Track whether complexes has been run
@@ -67,8 +66,8 @@ class Nupack(object):
         self._open()  # Recreate temp dir if it was removed
 
         # Prepare input file
-        complexes_input = '\n'.join([str(len(self.dna_list)),
-                                     '\n'.join(self.dna_list),
+        complexes_input = '\n'.join([str(len(self.seq_list)),
+                                     '\n'.join(self.seq_list),
                                      str(max_complexes)])
 
         handle = open(self.outdir + '/nupack.in', 'w')
@@ -97,7 +96,7 @@ class Nupack(object):
         eq_results_cx = []
         for result in eq_results:
             cx_i = []
-            for i in range(len(self.dna_list)):
+            for i in range(len(self.seq_list)):
                 cx_i.append(int(float(result.pop(0))))
             eq_results_cx.append(cx_i)
 
@@ -132,11 +131,11 @@ class Nupack(object):
 
         # Prepare input file
         if type(conc) == list:
-            if len(conc) != len(self.dna_list):
+            if len(conc) != len(self.seq_list):
                 raise ValueError("len(conc) must be len(sequences)")
             concstring = '\n'.join(conc)
         else:
-            concstring = '\n'.join([str(conc) for x in self.dna_list])
+            concstring = '\n'.join([str(conc) for x in self.seq_list])
 
         handle = open(self.outdir + '/nupack.con', 'w')
         handle.write(concstring)
@@ -157,7 +156,7 @@ class Nupack(object):
         eq_results_cx = []
         for result in eq_results:
             eq_cx_i = []
-            for i in range(len(self.dna_list)):
+            for i in range(len(self.seq_list)):
                 eq_cx_i.append(int(float(result.pop(0))))
             eq_results_cx.append(eq_cx_i)
 
@@ -182,7 +181,7 @@ class Nupack(object):
 
         self._open()  # Recreate temp dir if it was removed
 
-        sequence = self.dna_list[index]
+        sequence = self.seq_list[index]
         # Prepare input file
         handle = open(self.outdir + '/nupack.in', 'w')
         handle.write(sequence)
@@ -210,7 +209,7 @@ class Nupack(object):
 
         self._open()  # Recreate temp dir if it was removed
 
-        sequence = self.dna_list[strand]
+        sequence = self.seq_list[strand]
         handle = open(self.outdir + '/nupack.in', 'w')
         handle.write(sequence)
         handle.close()

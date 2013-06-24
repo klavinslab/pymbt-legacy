@@ -7,7 +7,6 @@ import csv
 import itertools
 import time
 from pymbt.analysis import StructureWindows
-from pymbt.sequence.utils import check_instance
 
 # TODO: circular (e.g. plasmid) version.
 #   1. Convert plasmid to 'linear' version - add 60bp from front to end
@@ -35,7 +34,6 @@ class GeneSplitter(object):
         '''
 
         self.template = dna_object
-        check_instance(self.template)
 
         self.overlaps = []
         self.scores = []

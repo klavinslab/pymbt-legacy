@@ -2,7 +2,6 @@
 
 from collections import Counter
 
-from pymbt.sequence.utils import check_instance
 # TODO: implement version that works for circular DNA?
 
 
@@ -21,7 +20,6 @@ class FindRepeats(object):
         '''
 
         self.template = dna_object
-        check_instance(self.template)
         self.size = size
 
     def run(self):

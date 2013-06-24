@@ -9,7 +9,6 @@ from math import floor
 from pymbt.sequence.utils import reverse_complement
 from pymbt import analysis
 from pymbt.design import DesignPrimerGene
-from pymbt.sequence.utils import check_instance
 
 from Bio.SeqFeature import SeqFeature, FeatureLocation, ExactPosition
 from Bio.Seq import Seq
@@ -40,7 +39,6 @@ class OligoAssembly(object):
         '''
 
         self.template = seq
-        check_instance(self.template)
         assembly_dict = oligo_calc(seq=self.template, **kwargs)
 
         self.oligos = assembly_dict['oligos']

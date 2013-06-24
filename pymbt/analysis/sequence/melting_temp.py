@@ -2,7 +2,7 @@
 using the Finnzymes modified Breslauer 1986 parameters.'''
 
 from math import log
-from pymbt.sequence.utils import reverse_complement, check_instance
+from pymbt.sequence.utils import reverse_complement
 from pymbt.analysis.sequence import tm_params
 
 # TODO: Add Breslauer, SantaLucia98, and Sugimoto methods
@@ -30,7 +30,6 @@ class Tm(object):
         '''
 
         self.template = dna_object
-        check_instance(self.template)
 
         # store params as attributes for modification?
         self.dna_conc = dna_conc

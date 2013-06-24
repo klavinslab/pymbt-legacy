@@ -4,7 +4,6 @@ Primer design tools.
 '''
 
 from pymbt import analysis
-from pymbt.sequence.utils import check_instance
 
 
 class DesignPrimer(object):
@@ -39,7 +38,6 @@ class DesignPrimer(object):
         # TODO: deal with sticky ended inputs or require a new DNA type
         # that can't have them (dsDNA)
 
-        check_instance(dna_object)
         self.template = dna_object
 
         # Storing inputs as attributes so they can be modified in-place?
@@ -95,7 +93,6 @@ class DesignPrimerGene(object):
         # that can't have them (dsDNA)
 
         # Type checking on input
-        check_instance(dna_object)
         self.template = dna_object
 
         # Storing inputs as attributes so they can be modified in-place?
@@ -105,10 +102,6 @@ class DesignPrimerGene(object):
         self.tm_overshoot = tm_overshoot
         self.end_gc = end_gc
         self.tm_method = tm_method
-        # Type checking on input
-        if overhangs:
-            for overhang in overhangs:
-                check_instance(overhang)
         self.overhangs = overhangs
 
     def run(self):
