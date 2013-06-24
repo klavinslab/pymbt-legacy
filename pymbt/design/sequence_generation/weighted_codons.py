@@ -62,7 +62,7 @@ class WeightedCodons(object):
             if value > random_num:
                 return codon
 
-    def generate(self):
+    def run(self):
         '''
         Generate the sequence.
 

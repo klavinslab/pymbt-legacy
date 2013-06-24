@@ -5,7 +5,6 @@ DNA object classes.
 
 import math
 import re
-
 from pymbt.sequence import utils
 
 # TODO: get / set methods for strandedness/topology?
@@ -39,15 +38,9 @@ class DNA(object):
 
         '''
 
-        def check_seq(seq):
-            '''Do input checks / string processing.'''
-            utils.check_alphabet(seq)
-            seq = seq.lower()
-            return seq
-
         self.top = sequence
         if run_checks:
-            self.top = check_seq(sequence)
+            self.top = utils.check_seq(sequence, 'dna')
 
         self.topology = topology
         if not features:
@@ -57,12 +50,11 @@ class DNA(object):
         # TODO: eliminate this attribute - just let it be implicit / checkable
         # with a method e.g. DNA.stranded()
         self.stranded = stranded
-        self.name = ''
 
         if bottom:
             self.bottom = bottom
             if run_checks:
-                self.bottom = check_seq(bottom)
+                self.bottom = utils.check_seq(bottom, 'dna')
 
             # TODO: check for complementation between top/bottom if allowing
             # manual bottom strand input. Mismatched complexes should
@@ -70,7 +62,7 @@ class DNA(object):
         elif stranded == 'ss':
             self.bottom = ''.join('-' for x in self.top)
         elif stranded == 'ds':
-            self.bottom = utils.reverse_complement(self.top)
+            self.bottom = utils.reverse_complement(self.top, 'dna')
 
     def reverse_complement(self):
         '''
@@ -82,7 +74,7 @@ class DNA(object):
             new_instance.top = self.bottom
             new_instance.bottom = self.top
         elif self.stranded == 'ss':
-            new_instance.top = utils.reverse_complement(self.top)
+            new_instance.top = utils.reverse_complement(self.top, 'dna')
 
         return new_instance
 
@@ -176,6 +168,24 @@ class DNA(object):
 
         return new_instance
 
+    # TODO: this can be replaced with __setattr__
+    def set_stranded(self, stranded):
+        if stranded == self.stranded:
+            return self
+
+        new_instance = self.copy()
+        if stranded == 'ss':
+            new_instance.bottom = '-' * len(new_instance)
+            new_instance.stranded = 'ss'
+        elif stranded == 'ds':
+            new_instance.bottom = utils.reverse_complement(new_instance.top,
+                                                           'dna')
+            new_instance.stranded = 'ds'
+        else:
+            raise ValueError('\'stranded\' must be \'ss\' or \'ds\'.')
+
+        return new_instance
+
     def locate(self, pattern):
         '''
         Find sequences matching a pattern.
@@ -185,7 +195,6 @@ class DNA(object):
 
         '''
 
-        # TODO: pattern should itself be a DNA object to ensure valid alphabet
         pattern = pattern.lower()
         if self.topology == 'circular':
             # TODO: this probably doesn't account for gaps
@@ -219,7 +228,7 @@ class DNA(object):
             else:
                 l_wing = pattern[0: wing]
                 r_wing = pattern[wing:]
-            if l_wing == utils.reverse_complement(r_wing):
+            if l_wing == utils.reverse_complement(r_wing, 'dna'):
                 return True
             else:
                 return False
@@ -419,7 +428,7 @@ class DNA(object):
 
         # Input checking
         if multiplier != int(multiplier):
-            msg = 'can\'t multiply sequence by non-int of type \'list\''
+            msg = 'can\'t multiply sequence by non-int.'
             raise TypeError(msg)
         if self.topology == 'circular':
             raise ValueError('Can\'t multiply circular DNA')

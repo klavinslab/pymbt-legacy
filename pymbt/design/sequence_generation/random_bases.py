@@ -4,6 +4,7 @@ Generate random DNA or RNA sequences.
 '''
 
 import random
+from pymbt import sequence
 
 
 class RandomBases(object):
@@ -28,11 +29,11 @@ class RandomBases(object):
         '''
         return 'RandomBases generator for {} bases of DNA'.format(self.size)
 
-    def generate(self):
+    def run(self):
         '''
         Generate the sequence.
 
         '''
 
         random_seq = ''.join([random.choice('ATGC') for x in range(self.size)])
-        return random_seq
+        return sequence.DNA(random_seq)

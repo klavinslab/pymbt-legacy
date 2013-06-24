@@ -2,20 +2,26 @@
 
 import re
 from pymbt.data.common import ALPHABETS
+from pymbt.data.common import COMPLEMENTS
 from pymbt.data.common import CODONS
 import pymbt.sequence
 
 
-def reverse_complement(sequence):
+def reverse_complement(sequence, material):
     '''
     Reverse complement a DNA sequence.
 
-    :param sequence: DNA sequence.
+    :param sequence: Input sequence.
     :type sequence: str
+    :param material: 'dna' or 'rna'.
+    :type material: str
 
     '''
 
-    code = dict(zip('ATGCNatgcn-', 'TACGNtacgn-'))
+    complements = COMPLEMENTS[material]
+    origin = complements[0]
+    destination = complements[1]
+    code = dict(zip(origin, destination))
     complemented = ''.join(code.get(k, k) for k in sequence)
     reverse_complemented = complemented[::-1]
     return reverse_complemented
@@ -39,8 +45,8 @@ def check_alphabet(sequence, material='dna'):
     else:
         msg = 'Input material must be \'dna\', \'rna\', or \'pep\'.'
         raise ValueError(msg)
-    # TODO: this is a bottleneck for a lot of code. Write in C / use pypy /
-    # find alternative
+    # This is a bottleneck for a lot of code.
+    # First attempt with cython was slower. Could also try pypy.
     if re.search('[^' + alphabet + ']', sequence):
         raise ValueError('Sequence has a non-%s character' % err_msg)
     return sequence
@@ -78,14 +84,28 @@ def translate_seq(sequence):
     return peptide
 
 
-def check_instance(sequence_in):
+def check_instance(sequence_in, material):
     '''
-    Validates a DNA sequence instance.
+    Validates a DNA or RNA sequence instance.
 
     :param sequence_in: input DNA sequence.
     :type sequence_in: DNA
+    :param material: 'dna' or 'rna'.
+    :type material: str
 
     '''
-    valid = isinstance(sequence_in, pymbt.sequence.DNA)
+    if material == 'dna':
+        valid = isinstance(sequence_in, pymbt.sequence.DNA)
+    if material == 'rna':
+        valid = isinstance(sequence_in, pymbt.sequence.DNA)
+    else:
+        raise Exception("material must be 'dna' or 'rna'.")
     if not valid:
         raise Exception('Input must be an instance of pymbt.sequence.DNA.')
+
+
+def check_seq(seq, material):
+    '''Do input checks / string processing.'''
+    check_alphabet(seq, material=material)
+    seq = seq.lower()
+    return seq

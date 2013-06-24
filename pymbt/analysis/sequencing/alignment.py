@@ -8,7 +8,6 @@ from matplotlib import pyplot
 from matplotlib import cm
 
 from pymbt.analysis.sequencing.needle import needle
-from pymbt.sequence.utils import reverse_complement, check_instance
 
 # TODO:
 # consensus / master sequence for plotting / report / analysis
@@ -25,11 +24,6 @@ class Sanger(object):
         :type res: DNA object
 
         '''
-
-        # Check input types
-        check_instance(ref)
-        for seq in res:
-            check_instance(seq)
 
         # make results a list if there's just one
         if type(res) != list:
@@ -51,7 +45,7 @@ class Sanger(object):
         #print self.scores
         for i, score in enumerate(self.scores):
             if score < 1300:
-                new_needle = needle(ref, reverse_complement(res[i]))
+                new_needle = needle(ref, res[i].reverse_complement())
                 self.alignments[i] = new_needle[0]
                 self.scores[i] = new_needle[1]
         self.needle = []

@@ -6,6 +6,10 @@ ALPHABETS = {
     'rna': 'AUGCNaugcn',
     'pep': 'ACDEFGHIKLMNPQRSTVWYacdefghiklmnpqrstvwy'}
 
+COMPLEMENTS = {
+    'dna': ('ATGCNatgcn-', 'TACGNtacgn-'),
+    'rna': ('AUGCNaugcn-', 'UACGNuacgn-')}
+
 
 # The standard codon table.
 CODON_TABLE = {

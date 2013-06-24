@@ -148,7 +148,7 @@ def oligo_calc(seq, tm=72, length_range=(80, 200), require_even=True,
 
     if len(seq) < length_range[0]:
         # If sequence can be built with just two oligos, do that
-        oligos = [seq, reverse_complement(seq)]
+        oligos = [seq, reverse_complement(seq, 'dna')]
         overlaps = [seq]
         overlap_tms = [analysis.Tm(seq).run()]
         assembly_dict = {'oligos': oligos,
@@ -188,7 +188,7 @@ def oligo_calc(seq, tm=72, length_range=(80, 200), require_even=True,
             oligos[i] = r_oligo
     else:
         for i in [x for x in range(len(oligos)) if x % 2 == 0]:
-            r_oligo = reverse_complement(oligos[i])
+            r_oligo = oligos[i].reverse_complement()
             oligos[i] = r_oligo
 
     oligos = [str(x) for x in oligos]
@@ -245,8 +245,7 @@ def grow_overlaps(seq, tm, require_even, length_max, overlap_min):
 
     # Initialize score list - list of tms. They start artificially low to make
     # min tm check simple.
-    lowest_tm = -40000
-    overlap_tms = [lowest_tm] * (oligo_n - 1)
+    overlap_tms = [-40000] * (oligo_n - 1)
 
     # Loop until all overlaps meet minimum Tm
     tm_met = all([x >= tm for x in overlap_tms])
@@ -269,8 +268,7 @@ def grow_overlaps(seq, tm, require_even, length_max, overlap_min):
         # Initial overlaps (1 base) and their tms
         overlaps = [seq[start:end] for start, end in zip(starts, ends)]
         overlap_tms = [analysis.Tm(overlap).run() for overlap in overlaps]
-        lowest_tm = min(overlap_tms)
-        index = overlap_tms.index(lowest_tm)
+        index = overlap_tms.index(min(overlap_tms))
         # Initial oligos - includes the 1 base overlaps.
         # All the oligos are in the same direction - reverse
         # complementation of every other one happens later
@@ -279,30 +277,28 @@ def grow_overlaps(seq, tm, require_even, length_max, overlap_min):
         oligos = [seq[start:end] for start, end in
                   zip(oligo_starts, oligo_ends)]
 
-        # Initialize loop conditions
-        maxed = [False] * oligo_n
+        maxed = False
 
-        while not (tm_met and len_met) and not any(maxed):
+        while not (tm_met and len_met) and not maxed:
             # Recalculate overlaps and their Tms
             overlaps = [seq[oligo_starts[x + 1]:oligo_ends[x]] for x in
                         range(overlap_n)]
             overlap_tms[index] = analysis.Tm(overlaps[index]).run()
 
             # Find lowest-Tm overlap and its index.
-            lowest_tm = min(overlap_tms)
-            index = overlap_tms.index(lowest_tm)
+            index = overlap_tms.index(min(overlap_tms))
 
             # Oligos to the left and right of the lowest Tm overlap
-            oligo_to_left = len(oligos[index])
-            oligo_to_right = len(oligos[index + 1])
+            left_oligo = len(oligos[index])
+            right_oligo = len(oligos[index + 1])
 
             # If one of the oligos is max size, increase the other one
-            if oligo_to_right == length_max:
+            if right_oligo == length_max:
                 oligo_ends = _increase_overlap(oligo_ends, index, 'right')
-            elif oligo_to_left == length_max:
+            elif left_oligo == length_max:
                 oligo_starts = _increase_overlap(oligo_starts, index, 'left')
             else:
-                if oligo_to_left > oligo_to_right:
+                if left_oligo > right_oligo:
                     oligo_starts = _increase_overlap(oligo_starts, index,
                                                      'left')
                 else:
@@ -313,7 +309,7 @@ def grow_overlaps(seq, tm, require_even, length_max, overlap_min):
                       zip(oligo_starts, oligo_ends)]
 
             # Regenerate conditions
-            maxed = [len(x) == length_max for x in oligos]
+            maxed = any([len(x) == length_max for x in oligos])
             tm_met = all([x >= tm for x in overlap_tms])
             len_met = all([len(x) >= overlap_min for x in overlaps])
 

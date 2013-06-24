@@ -130,7 +130,7 @@ class OrthoSeq(object):
             for combo in combos:
                 for seq in combo:
                     newlist = [seq]
-                    newlist += [r_c(x) for x in combo if x != seq]
+                    newlist += [r_c(x, 'dna') for x in combo if x != seq]
                     reversed_combos.append(newlist)
 
             # a list of Nupack's 'complexes' that's m * (m + n) long

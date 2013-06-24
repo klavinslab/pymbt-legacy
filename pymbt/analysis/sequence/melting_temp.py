@@ -92,7 +92,7 @@ def _calc_tm(sequence, dna_conc=50, salt_conc=50, method='finnzymes'):
             deltas[i] += pars_error[delta]['initAT']
         if sequence.startswith('T') and delta == 'delta_h':
             deltas[i] += pars_error[delta]['5termT']
-        if sequence == reverse_complement(sequence):
+        if sequence == reverse_complement(sequence, 'dna'):
             deltas[i] += pars_error[delta]['symm']
 
     # Unit corrections

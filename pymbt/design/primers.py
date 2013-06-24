@@ -151,48 +151,40 @@ def _design_primer(dna_object, tm=72, min_len=10, tm_undershoot=1,
 
     # Check Tm of input sequence to see if it's already too low
     seq_tm = analysis.Tm(dna_object, method=tm_method).run()
-    if seq_tm < tm - tm_undershoot:
-        err = 'Input sequence Tm is lower than primer Tm setting'
-        raise Exception(err)
+    if seq_tm < (tm - tm_undershoot):
+        msg = 'Input sequence Tm is lower than primer Tm setting'
+        raise Exception(msg)
 
-    max_tm = tm + tm_overshoot
-    bases = min_len
-    # Trim down max length to increase efficiency
-    # Pretty much impossible for an annealing sequence to need more than 90bp
+    # Focus on first 90 bases - shouldn't need more than 90bp to anneal
     dna_object = dna_object[0:90]
 
-    # First, generate a range of primers and Tms:
-    #     range: from min_len to 'tm' + tm_overshoot
-    primers = []
-    tms = []
-    primer_tm = 0
-    primer_len = 0
-    while primer_tm <= max_tm and primer_len <= 80 and (primer_len !=
-                                                        len(dna_object)):
+    # Generate primers from min_len to 'tm' + tm_overshoot
+    primers_tms = []
+
+    last_tm = 0
+    max_tm = tm + tm_overshoot
+    bases = min_len
+
+    while last_tm <= max_tm and (bases != len(dna_object)):
         new_primer = dna_object[0:bases]
-        new_tm = analysis.Tm(new_primer, method=tm_method).run()
-        primers.append(new_primer)
-        tms.append(new_tm)
+        last_tm = analysis.Tm(new_primer, method=tm_method).run()
+        primer_tm = (new_primer, last_tm)
+        primers_tms.append(primer_tm)
         bases += 1
-        primer_tm = tms[-1]
-        primer_len = len(new_primer)
 
     # Trim primer list based on tm_undershoot and end_gc
-    terr = tm - tm_undershoot
-    #print terr
-    #print tms
-    primers = [primer for primer, melt in zip(primers, tms) if melt >= terr]
-    tms = [melt for melt in tms if melt >= terr]
+    tmin = tm - tm_undershoot
+
+    primers = []
+    tms = []
+    primers_tms = [(primer, melt) for primer, melt in primers_tms if
+                   melt >= tmin]
 
     if end_gc:
-        gc_primers = []
-        gc_tms = []
-        for primer, tm in zip(primers, tms):
-            if primer.endswith(('C', 'G')):
-                gc_primers.append(primer)
-                gc_tms.append(tm)
-        primers = gc_primers
-        tms = gc_tms
+        primers_tms = [(primer, melt) for primer, melt in primers_tms if
+                       primer.endswith(('c', 'g'))]
+
+    primers, tms = zip(*primers_tms)
 
     if not primers:
         raise Exception('No primers could be generated using these settings')
@@ -204,9 +196,7 @@ def _design_primer(dna_object, tm=72, min_len=10, tm_undershoot=1,
     best_tm = tms[best_index]
 
     # Make it single-stranded
-    best_primer = best_primer.reverse_complement()
-    best_primer = best_primer.five_resect().reverse_complement()
-    best_primer.stranded = 'ss'
+    best_primer = best_primer.set_stranded('ss')
 
     if overhang:
         best_primer = overhang + best_primer

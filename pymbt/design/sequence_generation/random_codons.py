@@ -39,7 +39,7 @@ class RandomCodons(object):
         '''
         return 'RandomCodons generator for {}'.format(self.pep)
 
-    def generate(self):
+    def run(self):
         '''
         Generate the sequence.
 
