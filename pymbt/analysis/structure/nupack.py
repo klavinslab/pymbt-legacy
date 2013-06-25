@@ -1,0 +1,352 @@
+'''
+Wrapper for NUPACK 3.0.
+
+'''
+
+import multiprocessing
+import time
+from subprocess import call
+from tempfile import mkdtemp
+from shutil import rmtree
+from os.path import isdir
+from os import environ
+from pymbt.sequence.utils import sequence_type
+
+
+class Nupack(object):
+    '''
+    Contain sequence inputs and use NUPACK computation methods.
+
+    '''
+
+    def __init__(self, seq_list, rna1999=False, temp=50, nupack_home=None):
+        '''
+        :param seq_list: Input sequence(s).
+        :type seq_list: DNA, RNA, or list of either.
+        :param rna1999: Use RNA 1999 settings.
+        :type rna1999: bool
+        :param temp: Temperature in C.
+        :type temp: float
+        :param nupack_home: NUPACK home dir. The script attempts to find the
+                            NUPACKHOME environment variable if this isn't set.
+        :type nupack_home: str
+
+        '''
+
+        # Set up nupack environment variable
+        if not nupack_home:
+            if 'NUPACKHOME' in environ:
+                nupack_home = environ['NUPACKHOME']
+            else:
+                msg1 = 'Must have NUPACKHOME environment variable set or '
+                msg2 = 'set nupack_home argument.'
+                raise ValueError(msg1 + msg2)
+        self.nupack_home = nupack_home
+
+        # If input isn't list, make it one
+        if type(seq_list) != list:
+            self.seq_list = [seq_list]
+        else:
+            self.seq_list = seq_list
+
+        # Figure out material based on input and ensure it's consistent
+        self.material = sequence_type(self.seq_list[0])
+        if not all([sequence_type(seq) == self.material for seq in
+                   self.seq_list]):
+            raise ValueError('Sequence inputs were of mixed types.')
+
+        # Convert seq object(s) to string(s)
+        self.seq_list = [str(seq) for seq in self.seq_list]
+
+        # Shared temperature
+        self.temp = temp
+
+        # Handle rna1999 setting
+        if self.material == 'rna' and rna1999:
+            self.material = 'rna1999'
+            if self.temp != 37:
+                raise Exception('To use rna1999 settings, temp must be 37.')
+
+        # Create temp dir
+        self.tmpdir = mkdtemp()
+
+        # Track whether complexes has been run
+        self.complexes_run = False
+
+    def complexes(self, max_complexes, mfe=True):
+        '''
+        Run \'complexes\'.
+
+        :param max_complexes: Maximum complex size (integer).
+        :type max_complexes: int
+        :param mfe: Include mfe calculations (boolean, defaults to True).
+        :type mfe: bool
+
+        '''
+
+        self._temp_dir()
+
+        # Prepare input file
+        n_seqs = str(len(self.seq_list))
+        seqs = '\n'.join(self.seq_list)
+        max_complexes = str(max_complexes)
+        complexes_input = '\n'.join([n_seqs, seqs, max_complexes])
+
+        with open(self.tmpdir + '/nupack.in', 'w') as input_handle:
+            input_handle.write(complexes_input)
+
+        # Prepare arguments
+        if mfe:
+            mfe_arg = ' -mfe '
+        else:
+            mfe_arg = ''
+
+        # Run 'complexes'
+        args = ' -T {0} -material {1} {2}'.format(self.temp, self.material,
+                                                  mfe_arg)
+        self._run_cmd('complexes', args)
+
+        # Parse the output
+        with open(self.tmpdir + '/nupack.cx', 'r+') as output_handle:
+            complexes_results = output_handle.readlines()
+            complexes_results = [x.split() for x in complexes_results if '%'
+                                 not in x]
+
+        # Remove rank entry
+        for complexes_result in complexes_results:
+            complexes_result.pop(0)
+
+        # Extract complexes
+        complexes = []
+        for result in complexes_results:
+            complex_i = []
+            for seq in self.seq_list:
+                complex_i.append(int(float(result.pop(0))))
+            complexes.append(complex_i)
+
+        # Extract energies
+        energies = [float(x.pop(0)) for x in complexes_results]
+
+        self.complexes_run = max_complexes, mfe
+
+        return {'complexes': complexes, 'complex_energy': energies}
+
+    def concentrations(self, max_complexes, conc=0.5e-6, mfe=True):
+        '''
+        Run \'concentrations\'.
+
+        :param max_complexes: Maximum complex size.
+        :type max_complexes: int
+        :param conc: Oligo concentrations.
+        :type conc: float
+        :param mfe: Include mfe calculations.
+        :type mfe: bool
+
+        '''
+
+        self._temp_dir()
+
+        # If complexes has already been run with the same settings, keep the
+        # result (more efficient). Otherwise, run 'concentrations'
+        if self.complexes_run == (max_complexes, mfe):
+            pass
+        else:
+            self.complexes(max_complexes=max_complexes, mfe=mfe)
+
+        # Prepare input file
+        input_concs = '\n'.join([str(conc) for x in self.seq_list])
+
+        with open(self.tmpdir + '/nupack.con', 'w') as input_handle:
+            input_handle.write(input_concs)
+
+        # Run 'concentrations'
+        self._run_cmd('concentrations', '-sort 3 ')
+
+        # Parse the output of 'complexes'
+        with open(self.tmpdir + '/nupack.eq', 'r+') as output_handle:
+            con_results = output_handle.readlines()
+            con_results = [x.split() for x in con_results if '%' not in x]
+
+        # Format results: complex type, concentration, and energy
+        # Remove rank information
+        for concentration in con_results:
+            concentration.pop(0)
+
+        con_types = []
+        for result in con_results:
+            eq_cx_i = []
+            for i in range(len(self.seq_list)):
+                eq_cx_i.append(int(float(result.pop(0))))
+            con_types.append(eq_cx_i)
+
+        energies = [x.pop(0) for x in con_results]
+        concentrations = [float(x[0]) for x in con_results]
+
+        return {'types': con_types,
+                'concentrations': concentrations,
+                'energy': energies}
+
+    def mfe(self, index=0):
+        '''
+        Run 'mfe'.
+
+        :param index: Index of strand to analyze.
+        :type index: int
+
+        '''
+
+        self._temp_dir()
+
+        # Prepare input file
+        with open(self.tmpdir + '/nupack.in', 'w') as input_handle:
+            input_handle.write(self.seq_list[index])
+
+        # Run 'mfe'
+        args = ' -T {} -material {}'.format(self.temp, self.material)
+        self._run_cmd('mfe', args)
+
+        # Parse the output of 'mfe'
+        with open(self.tmpdir + '/nupack.mfe', 'r+') as output_handle:
+            mfe = float(output_handle.readlines()[14].strip())
+
+        # Return the mfe
+        return mfe
+
+    def pairs(self, index=0):
+        '''
+        Run 'pairs'.
+
+        :param index: Index of strand to analyze.
+        :type index: int
+
+        '''
+
+        self._temp_dir()
+
+        # Sequence at the specified index
+        sequence = self.seq_list[index]
+
+        # Input file
+        with open(self.tmpdir + '/nupack.in', 'w') as input_handle:
+            input_handle.write(sequence)
+
+        # Calculate pair probabilities with 'pairs'
+        args = '-T {0} -material {1}'.format(self.temp, self.material)
+        self._run_cmd('pairs', args)
+
+        # Parse the output of 'pairs'
+        # Only look at the last n rows - unbound probabilities
+        # TODO: return both unbound and bound as separate keys
+        with open(self.tmpdir + '/nupack.ppairs', 'r+') as handle:
+            pairs = handle.readlines()[-len(sequence):]
+            pairs = [pair for pair in pairs if '%' not in pair]
+
+        types = [(int(x.split()[0]), int(x.split()[1])) for x in pairs]
+        pair_probabilities = [float(x.split()[2]) for x in pairs]
+
+        # Return the pair probabilities
+        return {'type': types, 'probabilities': pair_probabilities}
+
+    def close(self):
+        '''
+        Delete the temp dir. This prevents filling up /tmp.
+
+        '''
+
+        rmtree(self.tmpdir)
+
+    def _temp_dir(self):
+        '''
+        Check for temp dir. If it doesn't exist, create it.
+
+        '''
+
+        if not isdir(self.tmpdir):
+            self.tmpdir = mkdtemp()
+
+    def _run_cmd(self, cmd, cmd_args):
+        '''
+        Wrapper for running NUPACK commands.
+
+        :param cmd: NUPACK command line tool to run ('mfe', 'complexes',
+                    'concentrations', 'pairs').
+        :type cmd: str
+        :param cmd_args: Arguments to pass to the command line.
+        :type cmd_args: str
+
+        '''
+
+        known_cmds = ['complexes', 'concentrations', 'mfe', 'pairs']
+        if cmd not in known_cmds:
+            msg = 'Command must be one of: {}'.format(known_cmds)
+            raise ValueError(msg)
+
+        env = "export NUPACKHOME=" + self.nupack_home + ' && '
+        change_dir = 'cd {} && '.format(self.tmpdir)
+        cmd_path = '{0}/bin/{1} '.format(self.nupack_home, cmd)
+        arguments = '{0} {1}/nupack'.format(cmd_args, self.tmpdir)
+
+        run_command = env + change_dir + cmd_path + arguments
+        call(run_command + ' > /dev/null', shell=True)
+
+
+def nupack_multiprocessing(seqs, material, cmd, arguments, report=True):
+    '''
+    Provides access to NUPACK commands with multiprocessing support.
+
+    :param inputs: List of sequences.
+    :type inpus: list
+    :param material: Input material: 'dna' or 'rna'.
+    :type material: str
+    :param cmd: Command: 'mfe', 'pairs', 'complexes', or 'concentrations'.
+    :type cmd: str
+    :param arguments: Arguments for the command.
+    :type arguments: str
+
+    '''
+
+    nupack_pool = multiprocessing.Pool()
+    try:
+        args = [{'seq': seq,
+                 'cmd': cmd,
+                 'material': material,
+                 'arguments': arguments} for seq in seqs]
+        nupack_iterator = nupack_pool.imap(run_nupack, args)
+        total = len(seqs)
+        msg = ' calculations complete.'
+        passed = 4
+        while report:
+            completed = nupack_iterator._index
+            if (completed == total):
+                break
+            else:
+                if passed >= 4:
+                    print '({0}/{1}) '.format(completed, total) + msg
+                    passed = 0
+                passed += 1
+                time.sleep(1)
+        multi_output = [x for x in nupack_iterator]
+        nupack_pool.close()
+        nupack_pool.join()
+    except KeyboardInterrupt:
+        print "Caught KeyboardInterrupt, terminating workers"
+        nupack_pool.terminate()
+        nupack_pool.close()
+
+    return multi_output
+
+
+def run_nupack(kwargs):
+    '''
+    Create Nupack instance, run command with arguments. Goal is to be
+    picklable.
+
+    :param kwargs: keyword arguments to pass to Nupack
+
+    '''
+
+    run = Nupack(kwargs['seq'])
+    output = getattr(run, kwargs['cmd'])(**kwargs['arguments'])
+    run.close()
+
+    return output

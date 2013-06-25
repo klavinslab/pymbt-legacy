@@ -1,22 +1,38 @@
 # pymbt
 
-Tools for molecular (and synthetic) biologists
+PyMBT: Python molecular biology tools.
 
-### Requirements:
-python:
-> numpy  
-> biopython  
-> matplotlib  
+## Requirements:
 
-system:
-> for matplotlib:
+###python (pip-compatible):
 
-> libpng dev headers
-> libfreetype dev headers
-> backend headers (e.g. tk-dev, tcl-dev)
+```
+numpy  
+biopython  
+matplotlib  
+```
 
-> emboss (for needleman-wunsch alignment)
+###system:
 
-### Clone pymbt into your current directory, then:
-> cd pymbt  
-> pip install .  
+for matplotlib
+
+```
+libpng-dev
+libfreetype-dev 
+tk-dev
+tcl-dev
+```
+
+for needleman-wunsch alignment
+
+```
+emboss
+```
+
+## Clone and install:
+
+```
+git clone https://github.com/klavinslab/pymbt.git
+cd pymbt  
+pip install .
+```
