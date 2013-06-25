@@ -188,12 +188,11 @@ def oligo_calc(seq, tm=72, length_range=(80, 200), require_even=True,
 
     if start_5:
         for i in [x for x in range(len(oligos)) if x % 2 == 1]:
-            r_oligo = oligos[i].reverse_complement()
-            #reverse_complement(oligos[i])
+            r_oligo = reverse_complement(oligos[i], 'dna')
             oligos[i] = r_oligo
     else:
         for i in [x for x in range(len(oligos)) if x % 2 == 0]:
-            r_oligo = oligos[i].reverse_complement()
+            r_oligo = reverse_complement(oligos[i], 'dna')
             oligos[i] = r_oligo
 
     oligos = [str(x) for x in oligos]
@@ -294,7 +293,6 @@ def grow_overlaps(seq, tm, require_even, length_max, overlap_min,
             overlaps = [seq[oligo_starts[x + 1]:oligo_ends[x]] for x in
                         range(overlap_n)]
             overlap_tms[index] = analysis.Tm(overlaps[index]).run()
-            print overlap_tms
 
             # Find lowest-Tm overlap and its index.
             index = overlap_tms.index(min(overlap_tms))
@@ -336,6 +334,8 @@ def grow_overlaps(seq, tm, require_even, length_max, overlap_min,
                 while not len_met and not maxed:
                     # If not, increase smallest overlap size until len_met
                     # Which side increases? The shorter one, just like before
+                    overlaps = [seq[oligo_starts[x + 1]:oligo_ends[x]] for x in
+                                range(overlap_n)]
                     overlap_lens = [len(overlap) for overlap in overlaps]
                     index = overlap_lens.index(min(overlap_lens))
 
@@ -362,9 +362,11 @@ def grow_overlaps(seq, tm, require_even, length_max, overlap_min,
                     # Recalculate oligos from start and end indices
                     oligos = [seq[start:end] for start, end in
                               zip(oligo_starts, oligo_ends)]
-
                     maxed = any([len(x) == length_max for x in oligos])
                     len_met = all([len(x) >= overlap_min for x in overlaps])
+
+                # Recalculate tms to reflect any changes (some are redundant)
+                overlap_tms[index] = analysis.Tm(overlaps[index]).run()
 
                 # Outcome could be that len_met happened *or* maxed out
                 # length of one of the oligos. If len_met happened, should be
