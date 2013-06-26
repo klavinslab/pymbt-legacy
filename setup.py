@@ -17,7 +17,7 @@ config = {
     'packages': ['pymbt',
                  'pymbt.analysis',
                  'pymbt.design',
-                 'pymbt.io',
+                 'pymbt.seqio',
                  'pymbt.reaction',
                  'pymbt.sequence'],
     'scripts': [],

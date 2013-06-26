@@ -8,6 +8,7 @@ import csv
 from math import floor
 from pymbt.sequence.utils import reverse_complement
 from pymbt import analysis
+from pymbt import sequence
 from pymbt.design import DesignPrimerGene
 
 from Bio.SeqFeature import SeqFeature, FeatureLocation, ExactPosition
@@ -37,18 +38,29 @@ class OligoAssembly(object):
         :param kwargs: Keyword arguments to pass to oligo_calc.
 
         '''
+        # TODO: remove this - should be laid out explicitly
+        self.kwargs = kwargs
 
         self.template = seq
-        assembly_dict = oligo_calc(seq=self.template, **kwargs)
+
+        self.seq = seq
+        self.settings = {'primers': True, 'primer_tm': primer_tm}
+        self._has_run = False
+
+    def run(self):
+        assembly_dict = oligo_calc(seq=self.template, **self.kwargs)
 
         self.oligos = assembly_dict['oligos']
         self.overlaps = assembly_dict['overlaps']
         self.overlap_tms = assembly_dict['overlap_tms']
         self.overlap_indices = assembly_dict['overlap_indices']
-        if primers:
-            primers = DesignPrimerGene(seq, tm=primer_tm).run()
-            self.primers = [x[0].upper() for x in primers]
-            self.primer_tms = [x[1] for x in primers]
+
+        if self.settings['primers']:
+            primers = DesignPrimerGene(sequence.DNA(self.seq),
+                                       tm=self.settings['primer_tm'])
+            self.primers = primers.run()
+            self.primers = [x[0] for x in self.primers]
+            self.primer_tms = [x[1] for x in self.primers]
 
         # TODO: fix this problem automatically rather than warning
         for i in range(len(self.overlap_indices) - 1):
@@ -56,6 +68,8 @@ class OligoAssembly(object):
             current_end = self.overlap_indices[i][1]
             if current_start <= current_end:
                 print 'warning: overlapping overlaps!'
+
+        self._has_run = True
 
     def write(self, outpath):
         '''
@@ -115,9 +129,12 @@ class OligoAssembly(object):
         SeqIO.write(seq_map, path, 'genbank')
 
     def __repr__(self):
-        str1 = "An OligoAssembly consisting of "
-        str2 = str(len(self.oligos)) + ' oligos.'
-        return str1 + str2
+        if self._has_run:
+            str1 = "An OligoAssembly consisting of "
+            str2 = str(len(self.oligos)) + ' oligos.'
+            return str1 + str2
+        else:
+            return 'An OligoAssembly instance that has not been run yet.'
 
 
 def oligo_calc(seq, tm=72, length_range=(80, 200), require_even=True,
