@@ -98,14 +98,16 @@ def test_oligo_assembly():
           'cccaacgaaaagagagaccacatggtccttcttgagtttgtaacagctgctgggattacacat' + \
           'ggcatggatgaactatacaaaaggcctgctgcaaacgacgaaaactacgctttagtagcttaa'
     dna_seq = sequence.DNA(seq)
-    designed = design.OligoAssembly(dna_seq,
+    assembly = design.OligoAssembly(dna_seq,
                                     tm=72,
                                     length_range=(120, 120),
                                     require_even=True,
                                     start_5=True)
+    assembly.run()
+
     # Prepare outputs vs reference
-    output_oligos = [str(oligo).lower() for oligo in designed.oligos]
+    output_oligos = [str(oligo).lower() for oligo in assembly.oligos]
     reference_oligos = [oligo.lower() for oligo in reference_oligos]
 
     assert_equals(output_oligos, reference_oligos)
-    assert_equals(designed.overlap_tms, reference_tms)
+    assert_equals(assembly.overlap_tms, reference_tms)

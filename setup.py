@@ -10,7 +10,7 @@ config = {
     'download_url': 'https://github.com/klavinslab/pymbt.git',
     'author_email': 'nbolten _at_ gmail',
     'version': '0.1',
-    'install_requires': ['nose'],
+    'install_requires': ['nose', 'matplotlib'],
     'requires': ['numpy',
                  'biopython',
                  'matplotlib'],

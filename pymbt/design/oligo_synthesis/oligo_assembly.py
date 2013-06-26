@@ -41,9 +41,8 @@ class OligoAssembly(object):
         # TODO: remove this - should be laid out explicitly
         self.kwargs = kwargs
 
-        self.template = seq
+        self.template = str(seq)  # TODO: should keep as DNA object
 
-        self.seq = seq
         self.settings = {'primers': True, 'primer_tm': primer_tm}
         self._has_run = False
 
@@ -56,11 +55,11 @@ class OligoAssembly(object):
         self.overlap_indices = assembly_dict['overlap_indices']
 
         if self.settings['primers']:
-            primers = DesignPrimerGene(sequence.DNA(self.seq),
-                                       tm=self.settings['primer_tm'])
-            self.primers = primers.run()
-            self.primers = [x[0] for x in self.primers]
-            self.primer_tms = [x[1] for x in self.primers]
+            primer_design = DesignPrimerGene(sequence.DNA(self.template),
+                                             tm=self.settings['primer_tm'])
+            self.primers_tms = primer_design.run()
+            self.primers = [x[0] for x in self.primers_tms]
+            self.primer_tms = [x[1] for x in self.primers_tms]
 
         # TODO: fix this problem automatically rather than warning
         for i in range(len(self.overlap_indices) - 1):
@@ -202,6 +201,10 @@ def oligo_calc(seq, tm=72, length_range=(80, 200), require_even=True,
                                        overlap_min, min_exception)
 
     oligos, overlaps, overlap_tms, overlap_indices = grown_overlaps
+
+    # TODO: keep everything a DNA object until writing time!
+    oligos = [str(x) for x in oligos]
+    overlaps = [str(x) for x in overlaps]
 
     if start_5:
         for i in [x for x in range(len(oligos)) if x % 2 == 1]:
