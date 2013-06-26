@@ -6,9 +6,7 @@ from a gene sequence.
 
 import csv
 from math import floor
-from pymbt.sequence.utils import reverse_complement
 from pymbt import analysis
-from pymbt import sequence
 from pymbt.design import DesignPrimerGene
 
 from Bio.SeqFeature import SeqFeature, FeatureLocation, ExactPosition
@@ -17,37 +15,67 @@ from Bio.SeqRecord import SeqRecord
 from Bio import SeqIO
 from Bio.Alphabet.IUPAC import unambiguous_dna
 
-# TODO: note - this is waaaaaaaay slower using DNA cloning language than
-# using raw strings. It's spending tons of time checking the alphabet
-# of something
+
+# TODO: This script really needs to be split up into manageable chunks with
+# fewer parameters.
 
 
 class OligoAssembly(object):
     '''Split a sequence into overlapping oligonucleotides with equal-Tm
     overlaps. Contains results and output methods.'''
 
-    def __init__(self, seq, primers=False, primer_tm=60, **kwargs):
+    def __init__(self, seq, tm=72, length_range=(80, 200), require_even=True,
+                 start_5=True, oligo_number=None, overlap_min=20,
+                 min_exception=False, primers=False, primer_tm=60):
+
         '''
         :param seq: Input sequence (DNA).
-        :type seq: str
+        :type seq: DNA object
         :param primers: Design cloning primers that bind the termini of the
                         input sequence.
         :type primers: bool
         :param primer_tm: Ideal Tm for the cloning primers, if applicable.
         :type primer_tm: float
-        :param kwargs: Keyword arguments to pass to oligo_calc.
+        :param length_range: Maximum oligo size (e.g. 60bp price point cutoff)
+                             range - lower bound only matters if oligo_number
+                             parameter is set.
+        :type length_range: int 2-tuple
+        :param require_even: Require that the number of oligonucleotides is
+                             even.
+        :type require_even: bool
+        :param start_5: Require that the first oligo's terminal side is 5\'.
+        :type start_5: bool
+        :param oligo_number: Attempt to build assembly with this many oligos,
+                             starting with length_range min and incrementing by
+                             10 up to length_range max.
+        :type oligo_number: bool
+        :param overlap_min: Minimum overlap size.
+        :type overlap_min: int
+        :param min_exception: In order to meet tm and overlap_min requirements,
+                              allow overlaps less than overlap_min to continue
+                              growing above tm setpoint.
+        :type min_exception: bool
 
         '''
-        # TODO: remove this - should be laid out explicitly
-        self.kwargs = kwargs
 
-        self.template = str(seq)  # TODO: should keep as DNA object
+        self.kwargs = {'tm': tm, 'length_range': length_range,
+                       'require_even': require_even, 'start_5': start_5,
+                       'oligo_number': oligo_number,
+                       'overlap_min': overlap_min,
+                       'min_exception': min_exception}
+
+        self.template = seq
 
         self.settings = {'primers': True, 'primer_tm': primer_tm}
         self._has_run = False
 
     def run(self):
-        assembly_dict = oligo_calc(seq=self.template, **self.kwargs)
+        '''
+        Execute design.
+
+        '''
+
+        assembly_dict = _oligo_calc(seq=self.template, **self.kwargs)
 
         self.oligos = assembly_dict['oligos']
         self.overlaps = assembly_dict['overlaps']
@@ -55,7 +83,7 @@ class OligoAssembly(object):
         self.overlap_indices = assembly_dict['overlap_indices']
 
         if self.settings['primers']:
-            primer_design = DesignPrimerGene(sequence.DNA(self.template),
+            primer_design = DesignPrimerGene(self.template,
                                              tm=self.settings['primer_tm'])
             self.primers_tms = primer_design.run()
             self.primers = [x[0] for x in self.primers_tms]
@@ -136,14 +164,14 @@ class OligoAssembly(object):
             return 'An OligoAssembly instance that has not been run yet.'
 
 
-def oligo_calc(seq, tm=72, length_range=(80, 200), require_even=True,
-               start_5=True, oligo_number=None, overlap_min=20,
-               min_exception=False):
+def _oligo_calc(seq, tm=72, length_range=(80, 200), require_even=True,
+                start_5=True, oligo_number=None, overlap_min=20,
+                min_exception=False):
     '''Split a sequence into overlapping oligonucleotides with equal-Tm
     overlaps.
 
     :param seq: Input sequence (DNA).
-    :type seq: str
+    :type seq: DNA
     :param tm: Ideal Tm of the overlaps, in degrees C.
     :type tm: float
     :param length_range: Maximum oligo size (e.g. 60bp price point cutoff)
@@ -169,65 +197,59 @@ def oligo_calc(seq, tm=72, length_range=(80, 200), require_even=True,
 
     if len(seq) < length_range[0]:
         # If sequence can be built with just two oligos, do that
-        oligos = [seq, reverse_complement(seq, 'dna')]
+        oligos = [seq, seq.reverse_complement()]
         overlaps = [seq]
         overlap_tms = [analysis.Tm(seq).run()]
-        assembly_dict = {'oligos': oligos,
-                         'overlaps': overlaps,
+        assembly_dict = {'oligos': oligos, 'overlaps': overlaps,
                          'overlap_tms': overlap_tms}
+
         return assembly_dict
 
     if oligo_number:
-        # Make first attempt using length_range[0] and see what happens
-        step = 3
+        # Make first attempt using length_range[1] and see what happens
+        step = 3  # Decrease max range by this amount each iteration
+
         length_max = length_range[1]
         current_oligo_n = oligo_number + 1
         while current_oligo_n != oligo_number and length_max > length_range[0]:
-            # Make oligos until target number is met. If impossible, make next
-            # best thing
-            # Tried starting with low range and going up - using too low
-            # a 'max' results in bad things for longer sequences (overlaps
-            # become longer than 80)
-
-            # TODO: first run is redundant. fix it
-            grown_overlaps = grow_overlaps(seq, tm, require_even, length_max,
-                                           overlap_min, min_exception)
+            # Starting with low range and going up doesnt work for longer
+            # sequence (overlaps become longer than 80)
+            grown_overlaps = _grow_overlaps(seq, tm, require_even, length_max,
+                                            overlap_min, min_exception)
             current_oligo_n = len(grown_overlaps[0])
             if current_oligo_n > oligo_number:
                 break
             length_max -= step
     else:
-        grown_overlaps = grow_overlaps(seq, tm, require_even, length_range[1],
-                                       overlap_min, min_exception)
+        print seq
+        grown_overlaps = _grow_overlaps(seq, tm, require_even, length_range[1],
+                                        overlap_min, min_exception)
 
     oligos, overlaps, overlap_tms, overlap_indices = grown_overlaps
 
-    # TODO: keep everything a DNA object until writing time!
-    oligos = [str(x) for x in oligos]
-    overlaps = [str(x) for x in overlaps]
-
     if start_5:
         for i in [x for x in range(len(oligos)) if x % 2 == 1]:
-            r_oligo = reverse_complement(oligos[i], 'dna')
-            oligos[i] = r_oligo
+            oligos[i] = oligos[i].reverse_complement()
     else:
         for i in [x for x in range(len(oligos)) if x % 2 == 0]:
-            r_oligo = reverse_complement(oligos[i], 'dna')
-            oligos[i] = r_oligo
+            oligos[i] = oligos[i].reverse_complement()
 
-    oligos = [str(x) for x in oligos]
+    # Make single-stranded
+    oligos = [oligo.set_stranded('ss') for oligo in oligos]
+
     assembly_dict = {'oligos': oligos,
                      'overlaps': overlaps,
                      'overlap_tms': overlap_tms,
                      'overlap_indices': overlap_indices}
+
     return assembly_dict
 
 
-def grow_overlaps(seq, tm, require_even, length_max, overlap_min,
-                  min_exception):
+def _grow_overlaps(seq, tm, require_even, length_max, overlap_min,
+                   min_exception):
     '''
     :param seq: Input sequence (DNA).
-    :type seq: str
+    :type seq: DNA object
     :param tm: Ideal Tm of the overlaps, in degrees C.
     :type tm: float
     :param require_even: Require that the number of oligonucleotides is even.
@@ -243,6 +265,7 @@ def grow_overlaps(seq, tm, require_even, length_max, overlap_min,
     :type min_exception: bool
 
     '''
+
     # TODO: prevent growing overlaps from bumping into each other -
     # should halt when it happens, give warning, let user decide if they still
     # want the current construct
@@ -250,11 +273,8 @@ def grow_overlaps(seq, tm, require_even, length_max, overlap_min,
     # near the problem region a little farther from each other - this would
     # put the AT-rich region in the middle of the spanning oligo
 
-    #
     # Number of oligos (initially) to start building
-    #
-
-    # Bare minimum - usually not enough oligos
+    # Try bare minimum possiblem
     oligo_n = int(floor(float(len(seq)) / length_max) + 1)
 
     # Adjust if even number of oligos is required
@@ -278,9 +298,6 @@ def grow_overlaps(seq, tm, require_even, length_max, overlap_min,
 
     # Loop until all overlaps meet minimum Tm
     tm_met = all([x >= tm for x in overlap_tms])
-
-    # TODO: len_unmet can loop forever or be exceedingly slow - e.g. generate
-    # 900bp gene, tell it to do oligo_min of 50 and see what happens.
     len_met = False
 
     while(not tm_met or not len_met):
@@ -303,40 +320,23 @@ def grow_overlaps(seq, tm, require_even, length_max, overlap_min,
         # complementation of every other one happens later
         oligo_starts = [0] + starts
         oligo_ends = ends + [len(seq)]
-        oligos = [seq[start:end] for start, end in
-                  zip(oligo_starts, oligo_ends)]
+        oligo_index = [oligo_starts, oligo_ends]
 
+        oligos = [seq[start:end] for start, end in zip(*oligo_index)]
+
+        # Oligo won't be maxed in first pass. tm_met and len_met will be false
         maxed = False
 
         while not (tm_met and len_met) and not maxed:
             # Recalculate overlaps and their Tms
-            overlaps = [seq[oligo_starts[x + 1]:oligo_ends[x]] for x in
-                        range(overlap_n)]
+            overlaps = _recalculate_overlaps(seq, overlaps, oligo_index)
+            # Tm calculation is bottleneck - only recalculate changed overlap
             overlap_tms[index] = analysis.Tm(overlaps[index]).run()
-
             # Find lowest-Tm overlap and its index.
             index = overlap_tms.index(min(overlap_tms))
-
-            # Oligos to the left and right of the lowest Tm overlap
-            left_oligo = len(oligos[index])
-            right_oligo = len(oligos[index + 1])
-
-            # If one of the oligos is max size, increase the other one
-            if right_oligo == length_max:
-                oligo_ends = _increase_overlap(oligo_ends, index, 'right')
-            elif left_oligo == length_max:
-                oligo_starts = _increase_overlap(oligo_starts, index, 'left')
-            else:
-                if left_oligo > right_oligo:
-                    oligo_starts = _increase_overlap(oligo_starts, index,
-                                                     'left')
-                else:
-                    oligo_ends = _increase_overlap(oligo_ends, index, 'right')
-
-            # Recalculate oligos from start and end indices
-            oligos = [seq[start:end] for start, end in
-                      zip(oligo_starts, oligo_ends)]
-
+            # Move overlap at that index
+            oligos = _expand_overlap(seq, oligo_index, index, oligos,
+                                     length_max)
             # Regenerate conditions
             maxed = any([len(x) == length_max for x in oligos])
             tm_met = all([x >= tm for x in overlap_tms])
@@ -345,43 +345,26 @@ def grow_overlaps(seq, tm, require_even, length_max, overlap_min,
             else:
                 len_met = all([len(x) >= overlap_min for x in overlaps])
 
+        # TODO: add test for min_exception case (use rob's sequence from
+        # 20130624 with 65C Tm)
         if min_exception:
             len_met = all([len(x) >= overlap_min for x in overlaps])
+
             # See if len_met is true - if so do nothing
             if len_met:
                 break
             else:
                 while not len_met and not maxed:
-                    # If not, increase smallest overlap size until len_met
-                    # Which side increases? The shorter one, just like before
-                    overlaps = [seq[oligo_starts[x + 1]:oligo_ends[x]] for x in
-                                range(overlap_n)]
+                    # Recalculate overlaps and their Tms
+                    overlaps = _recalculate_overlaps(seq, overlaps,
+                                                     oligo_index)
+                    # Overlap to increase is the shortest one
                     overlap_lens = [len(overlap) for overlap in overlaps]
                     index = overlap_lens.index(min(overlap_lens))
-
-                    # Increase left or right oligo?
-                    # Oligos to the left and right of the lowest Tm overlap
-                    left_oligo = len(oligos[index])
-                    right_oligo = len(oligos[index + 1])
-
-                    # If one of the oligos is max size, increase the other one
-                    if right_oligo == length_max:
-                        oligo_ends = _increase_overlap(oligo_ends, index,
-                                                       'right')
-                    elif left_oligo == length_max:
-                        oligo_starts = _increase_overlap(oligo_starts, index,
-                                                         'left')
-                    else:
-                        if left_oligo > right_oligo:
-                            oligo_starts = _increase_overlap(oligo_starts,
-                                                             index, 'left')
-                        else:
-                            oligo_ends = _increase_overlap(oligo_ends, index,
-                                                           'right')
-
-                    # Recalculate oligos from start and end indices
-                    oligos = [seq[start:end] for start, end in
-                              zip(oligo_starts, oligo_ends)]
+                    # Increase left or right oligo
+                    oligos = _expand_overlap(seq, oligo_index, index, oligos,
+                                             length_max)
+                    # Recalculate conditions
                     maxed = any([len(x) == length_max for x in oligos])
                     len_met = all([len(x) >= overlap_min for x in overlaps])
 
@@ -396,13 +379,61 @@ def grow_overlaps(seq, tm, require_even, length_max, overlap_min,
 
         oligo_n += oligo_increment
 
-    overlap_indices = [(oligo_starts[x + 1], oligo_ends[x]) for x in
+    # Calculate location of overlaps
+    overlap_indices = [(oligo_index[0][x + 1], oligo_index[1][x]) for x in
                        range(overlap_n)]
 
     return oligos, overlaps, overlap_tms, overlap_indices
 
 
-def _increase_overlap(positions_list, index, direction):
+def _recalculate_overlaps(seq, overlaps, oligo_index):
+    for i, overlap in enumerate(overlaps):
+        first_index = oligo_index[0][i + 1]
+        second_index = oligo_index[1][i]
+        overlap = seq[first_index:second_index]
+        overlaps[i] = overlap
+
+    return overlaps
+
+
+def _expand_overlap(seq, oligo_index, index, oligos, length_max):
+    '''
+    Given an overlap to increase, in which direction should it increase?
+
+    :param oligo_index: index of oligo starts and stops
+    :type oligo_index: list
+    :param index: index of the oligo
+    :type index: int
+    :param left_len: length of left oligo
+    :type left_len: int
+    :param right_len: length of right oligo
+    :type right_len: int
+    :param length_max: length ceiling
+    :type length_max: int
+
+    '''
+
+    left_len = len(oligos[index])
+    right_len = len(oligos[index + 1])
+
+    # If one of the oligos is max size, increase the other one
+    if right_len == length_max:
+        oligo_index[1] = _adjust_overlap(oligo_index[1], index, 'right')
+    elif left_len == length_max:
+        oligo_index[0] = _adjust_overlap(oligo_index[0], index, 'left')
+    else:
+        if left_len > right_len:
+            oligo_index[0] = _adjust_overlap(oligo_index[0], index, 'left')
+        else:
+            oligo_index[1] = _adjust_overlap(oligo_index[1], index, 'right')
+
+    # Recalculate oligos from start and end indices
+    oligos = [seq[start:end] for start, end in zip(*oligo_index)]
+
+    return oligos
+
+
+def _adjust_overlap(positions_list, index, direction):
     '''
     Increase overlap to the right or left of an index.
 
