@@ -5,7 +5,7 @@ Generate random, but usage frequency-weighted codons (i.e. codon optimization).
 
 import random
 from pymbt.data.common import CODON_TABLE, CODON_FREQ
-from pymbt.sequence.utils import translate_seq
+from pymbt import reaction
 from pymbt import sequence
 
 
@@ -15,20 +15,18 @@ class WeightedCodons(object):
 
     '''
 
-    def __init__(self, dna_object, frequency_table='sc', material='dna'):
+    def __init__(self, dna_object, frequency_table='sc'):
         '''
         :param sequence: Input sequence.
         :type sequence: str
         :param frequency_table: The codon frequency dictionary to use.
         :type frequency_table: dict
-        :param material: 'dna' for DNA.
-        :type material: str
 
         '''
 
-        self.template = str(dna_object)
-        self.pep = translate_seq(self.template)
-        self.material = material
+        self.template = dna_object
+        self.rna = reaction.Transcription(self.template).run()
+        self.peptide = reaction.Translation(self.rna).run()
         self.codons = CODON_TABLE
         self.codon_freq = CODON_FREQ[frequency_table]
 
@@ -38,7 +36,7 @@ class WeightedCodons(object):
 
         '''
 
-        return 'RandomCodons generator for {}'.format(self.pep)
+        return 'RandomCodons generator for {}'.format(self.peptide)
 
     def weighted(self, pep):
         '''
@@ -68,7 +66,8 @@ class WeightedCodons(object):
 
         '''
 
-        coding_sequence = [self.weighted(x) for x in self.pep]
-        coding_sequence = sequence.DNA(''.join(coding_sequence))
+        coding_sequence = [self.weighted(str(x).upper()) for x in self.peptide]
+        coding_rna = sequence.RNA(''.join(coding_sequence))
+        coding_dna = reaction.ReverseTranscription(coding_rna).run()
 
-        return coding_sequence
+        return coding_dna

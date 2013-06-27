@@ -3,11 +3,11 @@ Generate random codons.
 
 '''
 
+# TODO: combine WeightedCodons and RandomCodons into single class
 import random
 from pymbt.data.common import CODON_FREQ_SC_NESTED
-from pymbt.sequence.utils import translate_seq
+from pymbt import reaction
 from pymbt import sequence
-# TODO: implement peptide sequence object
 
 
 class RandomCodons(object):
@@ -27,8 +27,9 @@ class RandomCodons(object):
 
         '''
 
-        self.template = str(dna_object)
-        self.pep = translate_seq(self.template)
+        self.template = dna_object
+        self.rna = reaction.Transcription(self.template).run()
+        self.peptide = reaction.Translation(self.rna).run()
         self.frequencies = CODON_FREQ_SC_NESTED
         self.threshold = threshold
 
@@ -37,7 +38,7 @@ class RandomCodons(object):
         Printed representation of RandomCodons object.
 
         '''
-        return 'RandomCodons generator for {}'.format(self.pep)
+        return 'RandomCodons generator for {}'.format(self.peptide)
 
     def run(self):
         '''
@@ -54,6 +55,8 @@ class RandomCodons(object):
                 raise ValueError('The threshold has been set so high that it \
                                   excludes all codons of a given amino acid.')
             new_table[key] = new_value
-        coding_sequence = [random.choice(new_table[x]) for x in self.pep]
-        coding_sequence = sequence.DNA(''.join(coding_sequence))
-        return coding_sequence
+        coding_sequence = [random.choice(new_table[str(x).upper()]) for x in
+                           self.peptide]
+        coding_rna = sequence.RNA(''.join(coding_sequence))
+        coding_dna = reaction.ReverseTranscription(coding_rna).run()
+        return coding_dna

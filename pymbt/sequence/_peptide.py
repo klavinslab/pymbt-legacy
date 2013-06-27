@@ -1,5 +1,5 @@
 '''
-RNA object classes.
+Peptide object classes.
 
 '''
 
@@ -7,14 +7,14 @@ import re
 from pymbt.sequence import utils
 
 
-class RNA(object):
+class Peptide(object):
     '''
-    Core RNA sequence object.
+    Core Peptide sequence object.
 
     '''
     def __init__(self, sequence, run_checks=True):
         '''
-        :param sequence: Input sequence (RNA).
+        :param sequence: Input sequence (peptide).
         :type sequence: str
         :param run_checks: Check inputs / formats (disabling increases speed):
                            alphabet check
@@ -23,46 +23,9 @@ class RNA(object):
 
         '''
 
-        self.top = sequence
+        self.peptide = sequence
         if run_checks:
-            self.top = utils.check_seq(sequence, 'rna')
-
-        self.bottom = ''.join('-' for x in self.top)
-
-    def reverse_complement(self):
-        '''
-        Reverse complement sequence.
-
-        '''
-        new_instance = self.copy()
-        new_instance.top = utils.reverse_complement(self.top, 'rna')
-
-        return new_instance
-
-    def five_resect(self, n_bases):
-        '''
-        Remove bases from 5' end of top strand.
-
-
-        :param n_bases: Number of bases cut back.
-        :type n_bases: int
-
-        '''
-
-        new_instance = self[n_bases::]
-        return new_instance
-
-    def three_resect(self, n_bases):
-        '''
-        Remove bases from 3' end of top strand.
-
-        :param n_bases: Number of bases cut back.
-        :type n_bases: int
-
-        '''
-
-        new_instance = self[:-n_bases]
-        return new_instance
+            self.peptide = utils.check_seq(sequence, 'peptide')
 
     def locate(self, pattern):
         '''
@@ -76,7 +39,7 @@ class RNA(object):
         pattern = pattern.lower()
         re_pattern = '(?=' + pattern + ')'
         indices_top = [index.start() for index in
-                       re.finditer(re_pattern, self.top)]
+                       re.finditer(re_pattern, self.peptide)]
 
         return indices_top
 
@@ -87,7 +50,7 @@ class RNA(object):
         '''
 
         # Alphabet checking disabled on copy to improve performance
-        new_instance = RNA(self.top, run_checks=False)
+        new_instance = Peptide(self.peptide, run_checks=False)
         return new_instance
 
     def __getitem__(self, key):
@@ -100,8 +63,7 @@ class RNA(object):
         '''
 
         new_instance = self.copy()
-        new_instance.top = self.top[key]
-        new_instance.bottom = self.bottom[::-1][key][::-1]
+        new_instance.peptide = self.peptide[key]
 
         return new_instance
 
@@ -114,8 +76,7 @@ class RNA(object):
 
         '''
 
-        self.top = self.top[0:index] + self.top[index + 1:]
-        self.bottom = self.bottom[1:]
+        self.peptide = self.peptide[0:index] + self.peptide[index + 1:]
 
     def __setitem__(self, index, new_value):
         '''
@@ -123,10 +84,9 @@ class RNA(object):
 
         '''
 
-        insert = RNA(new_value)
+        insert = Peptide(new_value)
         new = self[0:index] + insert + self[index + 1:]
-        self.top = new.top
-        self.bottom = new.bottom
+        self.peptide = new.peptide
 
     def __repr__(self):
         '''
@@ -135,55 +95,53 @@ class RNA(object):
         '''
 
         show = 40
-        bottom = self.bottom[::-1]
 
-        if len(self.top) < 90:
-            top = self.top
-            bottom = '-' * len(top)
+        if len(self.peptide) < 90:
+            peptide = self.peptide
         else:
-            top = ''.join([self.top[0:show], ' ... ', self.top[-show:]])
-            bottom = ''.join(['-' * show, ' ... ', '-' * show])
+            peptide = ''.join([self.peptide[0:show], ' ... ',
+                              self.peptide[-show:]])
 
-        first_line = 'RNA:'
-        to_print = '\n'.join([first_line, top, bottom])
+        first_line = 'Peptide:'
+        to_print = '\n'.join([first_line, peptide])
 
         return to_print
 
     def __str__(self):
         '''
-        Coerce RNA object to string. Only works for ungapped dsRNA
-        and top-strand ssRNA.
+        Coerce Peptide object to string. Only works for ungapped dsPeptide
+        and top-strand ssPeptide.
 
         '''
 
-        return self.top
+        return self.peptide
 
     def __len__(self):
         '''
-        Return length of all RNA (including gaps) in object when built-in
+        Return length of all Peptide (including gaps) in object when built-in
         len function is used.
 
         '''
 
-        return len(self.top)
+        return len(self.peptide)
 
     def __add__(self, other):
         '''
-        Defines adding with + for RNA objects.
+        Defines adding with + for Peptide objects.
 
         :param other: instance to be added to.
-        :type other: RNA
+        :type other: Peptide
 
         '''
 
-        tops = self.top + other.top
-        new_instance = RNA(tops, run_checks=False)
+        tops = self.peptide + other.peptide
+        new_instance = Peptide(tops, run_checks=False)
 
         return new_instance
 
     def __mul__(self, multiplier):
         '''
-        Multiply RNA by an integer to create concatenation.
+        Multiply Peptide by an integer to create concatenation.
 
         :param multiplier: Factor by which to multiply the sequence.
         :type multiplier: int
@@ -201,17 +159,18 @@ class RNA(object):
         except:
             raise Exception('Failed to add, so cannot multiply.')
 
-        # Isolate top and bottom strands, multiply strings, recreate DNA
-        tops = self.top * multiplier
-        new_instance = RNA(tops, run_checks=False)
+        # Isolate sequence strands, multiply strings, recreate Peptide
+        tops = self.peptide * multiplier
+        new_instance = Peptide(tops, run_checks=False)
 
         return new_instance
 
     def __eq__(self, other):
         '''
-        Test RNA object equality.
+        Test Peptide object equality.
 
         '''
+
         if vars(self) == vars(other):
             return True
         else:
@@ -219,7 +178,8 @@ class RNA(object):
 
     def __ne__(self, other):
         '''
-        Test RNA object equality.
+        Test Peptide object equality.
 
         '''
+
         return not (self == other)

@@ -32,7 +32,7 @@ class DNA(object):
         :type bottom: str
         :param topology: Topology of DNA - 'linear' or 'circular'.
         :type topology: str
-        :param stranded: Strandednes of DNA - 'ss' for single-stranded or
+        :param stranded: Strandedness of DNA - 'ss' for single-stranded or
                          'ds' for double-stranded.
         :type stranded: str
         :param features: List of annotated features.

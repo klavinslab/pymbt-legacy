@@ -1,7 +1,7 @@
 '''Tests sequence_manipulation module.'''
 
 from nose.tools import assert_equals
-from pymbt.sequence import utils
+from pymbt import sequence
 
 
 def test_reverse_complement():
@@ -9,10 +9,10 @@ def test_reverse_complement():
 
     seq = 'ATGCNatgcn'
     rev_seq = 'ngcatNGCAT'
-    assert_equals(utils.reverse_complement(seq, 'dna'), rev_seq)
+    assert_equals(sequence.utils.reverse_complement(seq, 'dna'), rev_seq)
 
 
-def test_translate_seq():
+def test_convert_sequence():
     '''Tests DNA translation function.'''
 
     seq = 'atggtgagcaagggcgaggagctgttcaccggggtggtgcccatcctggtcgagctggacggc' + \
@@ -27,9 +27,12 @@ def test_translate_seq():
           'ggcgacggccccgtgctgctgcccgacaaccactacctgagctaccagtccgccctgagcaaa' + \
           'gaccccaacgagaagcgcgatcacatggtcctgctggagttcgtgaccgccgccgggatcact' + \
           'ctcggcatggacgagctgtacaagtaa'
+    dna = sequence.DNA(seq)
     prot = 'MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLV' + \
            'TTFGYGLQCFARYPDHMKQHDFFKSAMPEGYVQERTIFFKDDGNYKTRAEVKFEGDTLVNRI' + \
            'ELKGIDFKEDGNILGHKLEYNYNSHNVYIMADKQKNGIKVNFKIRHNIEDGSVQLADHYQQN' + \
            'TPIGDGPVLLPDNHYLSYQSALSKDPNEKRDHMVLLEFVTAAGITLGMDELYK'
-    trans = utils.translate_seq(seq)
-    assert_equals(trans, prot)
+    prot = prot.lower()
+    rna = sequence.utils.convert_sequence(dna, 'dna', 'rna')
+    trans = sequence.utils.convert_sequence(rna, 'rna', 'peptide')
+    assert_equals(str(trans), prot)

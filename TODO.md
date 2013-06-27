@@ -6,7 +6,8 @@
     * DNA objects need sequence feature model first
 
 ## Convert to oo API:
-* Minimize use of sequence.utils.reverse_complement, use of sequence.utils in general
+* Make sequences (DNA, RNA, Peptide) inherit from MutableSequence ABC
+* Remove use of sequence.utils outside of sequence module, if possible
   * Functions that currently require use of strings for DNA should be addressed as follows:
     1. Replace with DNA objects - if they're too slow, optimize DNA object methods.
     2. Remove from module (put in an extension)

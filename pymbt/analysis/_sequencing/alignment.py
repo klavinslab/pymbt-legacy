@@ -7,7 +7,7 @@ import math
 from matplotlib import pyplot
 from matplotlib import cm
 
-from pymbt.analysis.sequencing.needle import needle
+from pymbt.analysis._sequencing.needle import needle
 
 # TODO:
 # consensus / master sequence for plotting / report / analysis
