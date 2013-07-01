@@ -8,7 +8,7 @@ from collections import Counter
 # TODO: implement version that works for circular DNA
 
 
-class FindRepeats(object):
+class Repeats(object):
     '''
     Count repeats in a DNA sequence.
 

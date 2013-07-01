@@ -3,7 +3,6 @@ Generate random codons.
 
 '''
 
-# TODO: combine WeightedCodons and RandomCodons into single class
 import random
 from pymbt.data.common import CODON_FREQ_SC_NESTED
 from pymbt import reaction

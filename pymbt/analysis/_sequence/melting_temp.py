@@ -8,11 +8,6 @@ from math import log
 from pymbt.sequence.utils import reverse_complement
 from pymbt.analysis._sequence import tm_params
 
-# TODO: Add Breslauer, SantaLucia98, and Sugimoto methods
-# See doi: 10.1093/bioinformatics/bti066 for good comparison
-#   "Comparison of different melting temperature calculation
-#    methods for short DNA sequences"
-
 
 class Tm(object):
     '''

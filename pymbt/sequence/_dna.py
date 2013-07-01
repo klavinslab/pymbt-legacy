@@ -384,10 +384,16 @@ class DNA(object):
         if self.topology == 'circular' or other.topology == 'circular':
             raise Exception('Can only add linear DNA.')
 
-        forward_discontinuity = self.top[-1] == '-' and other.bottom[-1] == '-'
-        rev_discontinuity = self.bottom[0] == '-' and other.top[0] == '-'
+        discontinuity = [False, False]
+        if len(self) != 0 and len(other) != 0:
+        # If either is empty, let things proceed anyways
+            discontinuity[0] = self.top[-1] == '-' and other.bottom[-1] == '-'
+            discontinuity[1] = self.bottom[0] == '-' and other.top[0] == '-'
 
-        if forward_discontinuity or rev_discontinuity:
+        for_discontinuity = discontinuity[0]
+        rev_discontinuity = discontinuity[1]
+
+        if for_discontinuity or rev_discontinuity:
             msg = "Concatenated DNA would be discontinuous."
             raise Exception(msg)
 

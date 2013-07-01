@@ -19,10 +19,12 @@ from pymbt.design import WeightedCodons
 from pymbt.sequence.utils import reverse_complement as r_c
 from pymbt.sequence.utils import check_alphabet
 
+
 # TODO: allow OrthoSeq to take config file and previous run as keyword inputs.
 # then the config file can be placed in a separate dir
-
 # TODO: make this compatible with DNA objects
+# TODO: Remove this and place in a separate module.
+# TODO: Use a bin/ script for running
 
 
 class OrthoSeq(object):
