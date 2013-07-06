@@ -13,5 +13,5 @@ def test_find_repeats():
     reference_result = [('atg', 2), ('gat', 2), ('tag', 4), ('gta', 3),
                         ('agt', 3), ('ccc', 2)]
 
-    output_result = analysis.Repeats(reference_seq, 3).run()
+    output_result = analysis.repeats(reference_seq, 3)
     assert_equal(output_result, reference_result)

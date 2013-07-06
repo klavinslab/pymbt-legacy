@@ -15,7 +15,6 @@ import socket
 import time
 from pymbt.analysis import Nupack, nupack_multiprocessing
 from pymbt.design import RandomCodons
-from pymbt.design import WeightedCodons
 from pymbt.sequence.utils import reverse_complement as r_c
 from pymbt.sequence.utils import check_alphabet
 
@@ -343,13 +342,14 @@ def _gen_oligo(prot_seq, min_score, freq_threshold, weighted, conc):
         # coding sequence for the specified peptide
         # Ensure it has an mfe of 0
         if weighted:
-            choice = WeightedCodons(prot_seq,
-                                    frequency_table='sc',
-                                    material='pep')
+            choice = RandomCodons(prot_seq,
+                                  weighted=True,
+                                  table='sc',
+                                  frequency_threshold=freq_threshold)
             new_oligo = choice.generate()
         else:
             choice = RandomCodons(prot_seq,
-                                  threshold=freq_threshold)
+                                  frequency_threshold=freq_threshold)
             new_oligo = choice.generate()
 
         # Check oligo for self-self binding and mfe

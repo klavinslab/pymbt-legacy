@@ -147,7 +147,7 @@ def _design_primer(dna_object, tm=72, min_len=10, tm_undershoot=1,
     '''
 
     # Check Tm of input sequence to see if it's already too low
-    seq_tm = analysis.Tm(dna_object, method=tm_method).run()
+    seq_tm = analysis.tm(dna_object, method=tm_method)
     if seq_tm < (tm - tm_undershoot):
         msg = 'Input sequence Tm is lower than primer Tm setting'
         raise Exception(msg)
@@ -164,7 +164,7 @@ def _design_primer(dna_object, tm=72, min_len=10, tm_undershoot=1,
 
     while last_tm <= max_tm and (bases != len(dna_object)):
         new_primer = dna_object[0:bases]
-        last_tm = analysis.Tm(new_primer, method=tm_method).run()
+        last_tm = analysis.tm(new_primer, method=tm_method)
         primer_tm = (new_primer, last_tm)
         primers_tms.append(primer_tm)
         bases += 1

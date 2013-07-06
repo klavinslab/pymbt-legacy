@@ -22,7 +22,7 @@ class Repeats(object):
 
         '''
 
-        self.template = str(dna)
+        self.template = dna
         self.size = size
 
     def run(self):
@@ -30,11 +30,11 @@ class Repeats(object):
         Execute function.
 
         '''
-        check = _repeat_check(self.template, self.size)
+        check = repeats(self.template, self.size)
         return check
 
 
-def _repeat_check(sequence, size):
+def repeats(sequence, size):
     '''
     Evaluate sequence repeats in a given sequence.
 
@@ -44,6 +44,7 @@ def _repeat_check(sequence, size):
     :type size: int
 
     '''
+    sequence = str(sequence)
 
     n_mers = [sequence[i:i + size] for i in range(len(sequence) - size + 1)]
     counted = Counter(n_mers)

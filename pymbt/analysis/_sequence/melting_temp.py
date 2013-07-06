@@ -42,17 +42,17 @@ class Tm(object):
         Execute class function.
 
         '''
-        melt = _calc_tm(str(self.template), self.dna_conc, self.salt_conc,
-                        self.method)
+        melt = tm(str(self.template), self.dna_conc, self.salt_conc,
+                  self.method)
         return melt
 
 
-def _calc_tm(sequence, dna_conc=50, salt_conc=50, method='finnzymes'):
+def tm(sequence, dna_conc=50, salt_conc=50, method='finnzymes'):
     '''
     Returns DNA/DNA tm using nearest neighbor thermodynamics.
 
     :param sequence: DNA sequence.
-    :type sequence: str
+    :type sequence: DNA
     :param dna_conc: DNA concentration in nM.
     :type dna_conc: float
     :param salt_conc: Salt concentration in mM.
@@ -63,7 +63,7 @@ def _calc_tm(sequence, dna_conc=50, salt_conc=50, method='finnzymes'):
 
     '''
 
-    sequence = sequence.upper()
+    sequence = str(sequence).upper()
 
     if method == 'finnzymes':
         params = tm_params.FINNZYMES_PARAMS
