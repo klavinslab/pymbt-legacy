@@ -15,7 +15,6 @@ import socket
 import time
 from pymbt.analysis import Nupack, nupack_multiprocessing
 from pymbt.design import RandomCodons
-from pymbt.sequence.utils import reverse_complement as r_c
 
 
 # TODO: allow OrthoSeq to take config file and previous run as keyword inputs.
@@ -127,7 +126,8 @@ class OrthoSeq(object):
             for combo in combos:
                 for seq in combo:
                     newlist = [seq]
-                    newlist += [r_c(x, 'dna') for x in combo if x != seq]
+                    newlist += [x.reverse_complement() for x in combo if
+                                x != seq]
                     reversed_combos.append(newlist)
 
             # a list of Nupack's 'complexes' that's m * (m + n) long

@@ -5,7 +5,6 @@ using the Finnzymes modified Breslauer 1986 parameters.
 '''
 
 from math import log
-from pymbt.sequence.utils import reverse_complement
 from pymbt.analysis._sequence import tm_params
 
 
@@ -63,8 +62,6 @@ def tm(sequence, dna_conc=50, salt_conc=50, method='finnzymes'):
 
     '''
 
-    sequence = str(sequence).upper()
-
     if method == 'finnzymes':
         params = tm_params.FINNZYMES_PARAMS
     else:
@@ -76,24 +73,25 @@ def tm(sequence, dna_conc=50, salt_conc=50, method='finnzymes'):
     pars_error = {'delta_h': params['delta_h_err'],
                   'delta_s': params['delta_s_err']}
 
-    # Sum up the nearest-neighbor enthalpy and entropy
-    deltas = []
-    for delta in ['delta_h', 'delta_s']:
-        keys = pars[delta].keys()
-        deltas.append(sum(_pair_count(sequence, key) * pars[delta][key]
-                      for key in keys))
-
-    # Error corrections
-    at_count = [x for x in sequence if x == 'A' or x == 'T']
+    # Error corrections - done first for use of reverse_complement method
+    deltas = [0, 0]
+    at_count = [x for x in sequence.top if x == 'A' or x == 'T']
     for i, delta in enumerate(['delta_h', 'delta_s']):
-        if 'G' in sequence or 'C' in sequence:
+        if 'G' in sequence.top or 'C' in sequence.top:
             deltas[i] += pars_error[delta]['initGC']
         if len(at_count) == len(sequence):
             deltas[i] += pars_error[delta]['initAT']
-        if sequence.startswith('T') and delta == 'delta_h':
+        if sequence.top.startswith('T') and delta == 'delta_h':
             deltas[i] += pars_error[delta]['5termT']
-        if sequence == reverse_complement(sequence, 'dna'):
+        if sequence == sequence.reverse_complement():
             deltas[i] += pars_error[delta]['symm']
+
+    # Sum up the nearest-neighbor enthalpy and entropy
+    sequence = str(sequence).upper()
+    for i, delta in enumerate(['delta_h', 'delta_s']):
+        keys = pars[delta].keys()
+        deltas[i] += (sum(_pair_count(sequence, key) * pars[delta][key]
+                      for key in keys))
 
     # Unit corrections
     salt_conc /= 1e3

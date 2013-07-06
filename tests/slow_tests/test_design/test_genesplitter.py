@@ -5,7 +5,7 @@ Tests GeneSplitter design class.
 
 from nose.tools import assert_equals
 from pymbt import design
-from pymbt.sequence import dna
+from pymbt import sequence
 
 
 def test_genesplitter():
@@ -76,7 +76,7 @@ def test_genesplitter():
                    'tggatggtaaatcttggaatccagaaggtactgttggtac',
                    'tggttgtaattggcaagaagctacttctatttaacaccca',
                    'gctttcttgtacaaagtggtcccc'])
-    dna_seq = dna.DNA(seq)
+    dna_seq = sequence.DNA(seq)
     gs_instance = design.GeneSplitter(dna_seq)
     split = gs_instance.split(max_len=1100, min_context=200, core=60,
                               context=90, step=10, force_exhaustive=False)
@@ -130,7 +130,6 @@ def test_genesplitter():
            'TCTTGGAATCCAGAAGGTACTGTTGGTACTGGTTGTAATTGGCAAGAAGCTACTTCTATTTA' + \
            'ACACCCAGCTTTCTTGTACAAAGTGGTCCCC'
     # Prepare sequences to ensure comparability
-    output_seqs = [str(sequence).lower() for sequence in
-                   split['split_sequences']]
+    output_seqs = [str(s).lower() for s in split['split_sequences']]
     reference_seqs = [seq1.lower(), seq2.lower(), seq3.lower()]
     assert_equals(output_seqs, reference_seqs)

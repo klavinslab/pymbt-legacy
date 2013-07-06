@@ -10,7 +10,7 @@ from tempfile import mkdtemp
 from shutil import rmtree
 from os.path import isdir
 from os import environ
-from pymbt.sequence.utils import sequence_type
+from pymbt.analysis import utils
 
 
 class Nupack(object):
@@ -50,8 +50,8 @@ class Nupack(object):
             self.seq_list = seq_list
 
         # Figure out material based on input and ensure it's consistent
-        self.material = sequence_type(self.seq_list[0])
-        if not all([sequence_type(seq) == self.material for seq in
+        self.material = utils.sequence_type(self.seq_list[0])
+        if not all([utils.sequence_type(seq) == self.material for seq in
                    self.seq_list]):
             raise ValueError('Sequence inputs were of mixed types.')
 

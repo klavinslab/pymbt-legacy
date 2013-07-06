@@ -7,7 +7,6 @@ import re
 from pymbt.data.common import ALPHABETS
 from pymbt.data.common import COMPLEMENTS
 # TODO: arguably this should not be imported - circular dependencies
-import pymbt.sequence
 
 
 def reverse_complement(sequence, material):
@@ -53,28 +52,6 @@ def check_alphabet(sequence, material):
     if re.search('[^' + alphabet + ']', sequence):
         raise ValueError('Sequence has a non-%s character' % err_msg)
     return sequence
-
-
-def sequence_type(seq):
-    '''
-    Validates a DNA or RNA sequence instance.
-
-    :param sequence_in: input DNA sequence.
-    :type sequence_in: DNA
-    :param material: 'dna' or 'rna'.
-    :type material: str
-
-    '''
-    if isinstance(seq, pymbt.sequence.DNA):
-        material = 'dna'
-    elif isinstance(seq, pymbt.sequence.RNA):
-        material = 'rna'
-    elif isinstance(seq, pymbt.sequence.Peptide):
-        material = 'peptide'
-    else:
-        raise Exception("Input was not a recognized pymbt.sequence object.")
-
-    return material
 
 
 def check_seq(seq, material):
