@@ -1,9 +1,8 @@
-# TODO: write Sanger tests
 # Tests to write:
 #
 # analysis:
 # TODO: write nupack_multiprocessing tests
-# TODO: write palindrome tests
+# TODO: write Sanger tests
 #
 # design:
 # TODO: write RandomBases tests
