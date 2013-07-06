@@ -88,10 +88,25 @@ def tm(sequence, dna_conc=50, salt_conc=50, method='finnzymes'):
 
     # Sum up the nearest-neighbor enthalpy and entropy
     sequence = str(sequence).upper()
-    for i, delta in enumerate(['delta_h', 'delta_s']):
-        keys = pars[delta].keys()
-        deltas[i] += (sum(_pair_count(sequence, key) * pars[delta][key]
-                      for key in keys))
+#    for i, delta in enumerate(['delta_h', 'delta_s']):
+#        keys = pars[delta].keys()
+#        deltas[i] += sum(_pair_count(sequence, key) * pars[delta][key]
+#                         for key in keys)
+
+    # This method is off from the previous one by ~1e-13% from the previous.
+    # Not sure why but it doesn't matter. This method is 2X faster.
+    def pair_deltas(sequence):
+        delta0 = 0
+        delta1 = 0
+        for i in range(len(sequence) - 1):
+            curchar = sequence[i:i + 2]
+            delta0 += pars['delta_h'][curchar]
+            delta1 += pars['delta_s'][curchar]
+        return delta0, delta1
+
+    new_delt = pair_deltas(sequence)
+    deltas[0] += new_delt[0]
+    deltas[1] += new_delt[1]
 
     # Unit corrections
     salt_conc /= 1e3
@@ -125,6 +140,9 @@ def _pair_count(sequence, pattern):
     :type pattern: str
 
     '''
+
+    # Note: 85% of the tm function's time is spent here - this is the only
+    # place to consider optimizing speed
 
     # Faster than Biopython's overcount
     count = 0

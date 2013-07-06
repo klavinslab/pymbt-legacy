@@ -4,10 +4,6 @@
 # TODO: write nupack_multiprocessing tests
 # TODO: write Sanger tests
 #
-# design:
-# TODO: write RandomBases tests
-# TODO: write RandomCodons tests
-#
 # reaction:
 # TODO: write ReverseTranscription tests
 # TODO: write Transcription tests

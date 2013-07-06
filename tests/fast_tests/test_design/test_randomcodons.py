@@ -6,6 +6,7 @@ Tests for RandomCodons class of analysis module.
 from nose.tools import assert_equal
 from nose.tools import assert_not_equal
 from pymbt import reaction
+from pymbt import sequence
 from pymbt import design
 
 
@@ -16,11 +17,11 @@ def test_randomcodons():
 
     '''
 
-    reference_seq = 'AUGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAATAG'
+    reference_seq = sequence.RNA('AUGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAUAG')
     reference_peptide = reaction.Translation(reference_seq).run()
     output = design.RandomCodons(reference_peptide).run()
     output_peptide = reaction.Translation(reference_seq).run()
 
-    assert_equal(len(output), len(reference_seq))
+    assert_equal(len(output), len(reference_seq) - 3)
     assert_equal(reference_peptide, output_peptide)
     assert_not_equal(reference_seq, output)
