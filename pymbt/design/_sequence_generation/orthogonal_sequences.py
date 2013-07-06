@@ -16,7 +16,6 @@ import time
 from pymbt.analysis import Nupack, nupack_multiprocessing
 from pymbt.design import RandomCodons
 from pymbt.sequence.utils import reverse_complement as r_c
-from pymbt.sequence.utils import check_alphabet
 
 
 # TODO: allow OrthoSeq to take config file and previous run as keyword inputs.
@@ -50,9 +49,6 @@ class OrthoSeq(object):
                           score
 
         '''
-
-        # Make sure sequence only includes amino acids
-        check_alphabet(prot_seq, material='pep')
 
         # Attributes
         self.prot_seq = prot_seq

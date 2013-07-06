@@ -6,6 +6,7 @@ Reactions for the central dogma of biology - transcription and translation.
 
 import math
 from pymbt import sequence
+from pymbt.reaction import utils
 
 
 class Transcription(object):
@@ -32,7 +33,7 @@ class Transcription(object):
 
         '''
 
-        self.rna = sequence.utils.convert_sequence(self.dna, 'dna', 'rna')
+        self.rna = utils.convert_sequence(self.dna, 'dna', 'rna')
 
         return self.rna
 
@@ -97,9 +98,9 @@ class Translation(object):
 
         '''
 
-        self.peptide = sequence.utils.convert_sequence(self.rna,
-                                                       'rna',
-                                                       'peptide')
+        self.peptide = utils.convert_sequence(self.rna,
+                                              'rna',
+                                              'peptide')
 
         return self.peptide
 
@@ -140,9 +141,9 @@ class Translation(object):
     def get_coding_peptide(self):
         if not self.coding_rna:
             self.get_coding_rna()
-        self.coding_peptide = sequence.utils.convert_sequence(self.coding_rna,
-                                                              'rna',
-                                                              'peptide')
+        self.coding_peptide = utils.convert_sequence(self.coding_rna,
+                                                     'rna',
+                                                     'peptide')
 
         return self.coding_peptide
 
@@ -169,6 +170,6 @@ class ReverseTranscription(object):
 
         '''
 
-        self.dna = sequence.utils.convert_sequence(self.rna, 'rna', 'dna')
+        self.dna = utils.convert_sequence(self.rna, 'rna', 'dna')
 
         return self.dna

@@ -104,7 +104,7 @@ class Restriction(object):
 
 
 # Inverted repeat checking - should be done here, not core DNA class
-#        inverted_repeat = utils.check_inv(pattern)
+#        inverted_repeat = analysis.palindrome(pattern)
 #        if inverted_repeat:
 #            # subtract all occurrences in top from bottom
 #            subtract = [len(self.top) - index - len(pattern) for index in
