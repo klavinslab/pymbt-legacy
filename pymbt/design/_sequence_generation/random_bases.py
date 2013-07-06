@@ -1,5 +1,5 @@
 '''
-Generate random DNA or RNA sequences.
+Generate a random DNA sequence.
 
 '''
 
@@ -7,20 +7,20 @@ import random
 from pymbt import sequence
 
 
-class RandomBases(object):
+class RandomDNA(object):
     '''
-    Generate random DNA or RNA sequences.
+    Generate a random DNA sequence.
 
     '''
 
-    def __init__(self, size):
+    def __init__(self, length):
         '''
-        :param size: Output sequence length.
-        :type size: int
+        :param length: Output sequence length.
+        :type length: int
 
         '''
 
-        self.size = size
+        self.length = length
 
     def __repr__(self):
         '''
@@ -29,11 +29,14 @@ class RandomBases(object):
         '''
         return 'RandomBases generator for {} bases of DNA'.format(self.size)
 
+    def choose_base(self):
+        return sequence.DNA(random.choice('ATGC'))
+
     def run(self):
         '''
         Generate the sequence.
 
         '''
 
-        random_seq = ''.join([random.choice('ATGC') for x in range(self.size)])
+        random_seq = ''.join([self.choose_base() for i in range(self.length)])
         return sequence.DNA(random_seq)

@@ -1,10 +1,11 @@
-'''Tests for pymbt nupack module.'''
+'''
+Tests ContextWalker analysis class.
 
-# pylint: disable-msg=E0611
+'''
+
 from nose.tools import assert_equal
-# pylint: enable-msg=E0611
 from pymbt import analysis
-from pymbt.sequence import dna
+from pymbt import sequence
 
 
 def test_contextwalker():
@@ -22,7 +23,7 @@ def test_contextwalker():
           'ggcgacggccccgtgctgctgcccgacaaccactacctgagctaccagtccgccctgagcaaa' + \
           'gaccccaacgagaagcgcgatcacatggtcctgctggagttcgtgaccgccgccgggatcact' + \
           'ctcggcatggacgagctgtacaagtaa'
-    dna_seq = dna.DNA(seq)
+    dna_seq = sequence.dna.DNA(seq)
     walker = analysis.StructureWindows(dna_seq)
     walker.run(window_size=60, context_len=90, step=10)
     assert_equal(walker.scores,

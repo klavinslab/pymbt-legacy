@@ -17,6 +17,7 @@ def read_dna(path, file_format):
     :param file_format: BioPython-compatible format string.
     :type file_format: str
     '''
+
     # This needs to be cleaned up - is only barely working for now
     seq = SeqIO.read(path, file_format)
     dna = sequence.DNA(seq.seq.tostring())

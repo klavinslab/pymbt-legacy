@@ -1,10 +1,14 @@
-'''Helper functions for manipulating DNA, RNA, and peptide sequences.'''
+'''
+Helper functions for manipulating DNA, RNA, and peptide sequences.
+
+'''
 
 import math
 import re
 from pymbt.data.common import ALPHABETS
 from pymbt.data.common import COMPLEMENTS
 from pymbt.data.common import CODONS
+# TODO: arguably this should not be imported - circular dependencies
 import pymbt.sequence
 
 
@@ -53,7 +57,6 @@ def check_alphabet(sequence, material):
     return sequence
 
 
-# TODO: Split up dna/rna conversion from translation?
 def convert_sequence(seq, from_material, to_material):
     '''
     Translate a DNA sequence into peptide sequence.

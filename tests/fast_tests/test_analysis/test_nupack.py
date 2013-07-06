@@ -1,8 +1,9 @@
-'''Tests for pymbt nupack module.'''
+'''
+Tests for pymbt Nupack analysis class.
 
-# pylint: disable-msg=E0611
+'''
+
 from nose.tools import assert_equal
-# pylint: enable-msg=E0611
 from pymbt import analysis
 from pymbt import sequence
 
@@ -73,20 +74,3 @@ def test_nupack():
                  [(1, 17), (2, 17), (3, 17), (4, 17), (5, 17), (6, 17),
                   (7, 17), (8, 17), (9, 17), (10, 17), (11, 17), (12, 17),
                   (13, 17), (14, 17), (15, 17), (16, 17)])
-
-
-def test_finnzymes():
-    '''Tests finnzymes method output.'''
-
-    melt = analysis.Tm(sequence.DNA('ATGCGATAGCGATAGC'),
-                       method='finnzymes').run()
-    assert_equal(melt, 55.237003002075255)
-
-
-def test_find_repeats():
-    reference_seq = sequence.DNA('atgatgccccgatagtagtagtag')
-    reference_result = [('atg', 2), ('gat', 2), ('tag', 4), ('gta', 3),
-                        ('agt', 3), ('ccc', 2)]
-
-    output_result = analysis.FindRepeats(reference_seq, 3).run()
-    assert_equal(output_result, reference_result)

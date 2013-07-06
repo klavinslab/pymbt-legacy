@@ -139,6 +139,29 @@ class Peptide(object):
 
         return new_instance
 
+    def __radd__(self, other):
+        '''
+        Add unlike types (enables sum function).
+
+        :param self: object of self type.
+        :type self: Peptide
+        :param other: object of any other type.
+        :param other: anything
+
+        '''
+
+        if other == 0:
+            # sum(list) adds to zero first, so ignore it
+            return self
+        elif type(self) != type(other):
+            # Ensure types are the same
+            msg = 'unsupported operand type(s) for +: {} and {}'.format(self,
+                                                                        other)
+            raise TypeError(msg)
+        else:
+            # All is good - add the two DNA objects
+            return self + other
+
     def __mul__(self, multiplier):
         '''
         Multiply Peptide by an integer to create concatenation.

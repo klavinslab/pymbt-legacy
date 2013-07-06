@@ -6,6 +6,10 @@ Primer design tools.
 from pymbt import analysis
 
 
+# TODO: combine DesignPrimer and DesignPrimer gene in a sane way.
+# ideas:
+#   Give DesignPrimer a 'reverse' option that computes a reverse primer
+#   Give DesignPrimer a 'both' option that computes both
 class DesignPrimer(object):
     '''
     Design primer to a nearest-neighbor Tm setpoint.
@@ -192,6 +196,7 @@ def _design_primer(dna_object, tm=72, min_len=10, tm_undershoot=1,
     best_primer = best_primer.set_stranded('ss')
 
     if overhang:
+        overhang = overhang.set_stranded('ss')
         best_primer = overhang + best_primer
 
     return best_primer, best_tm

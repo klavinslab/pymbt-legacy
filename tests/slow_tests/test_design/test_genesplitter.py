@@ -1,4 +1,7 @@
-'''Tests primer design module.'''
+'''
+Tests GeneSplitter design class.
+
+'''
 
 from nose.tools import assert_equals
 from pymbt import design

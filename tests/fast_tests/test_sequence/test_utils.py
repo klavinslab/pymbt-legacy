@@ -1,4 +1,7 @@
-'''Tests sequence_manipulation module.'''
+'''
+Tests utils submodule of sequence module.
+
+'''
 
 from nose.tools import assert_equals
 from pymbt import sequence

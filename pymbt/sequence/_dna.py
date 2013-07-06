@@ -6,14 +6,12 @@ DNA object classes.
 import re
 from pymbt.sequence import utils
 
-# TODO: if sequence is mutable, core data structure should be list?
 # TODO: figure out what to do with bottom-strand-only ssDNA. Should it be
 # flipped automatically or represented as-is? __setitem__ depends on this and
 # is currently incomplete. Also has implications for __add__.
-# Flipping automatically solves lots of problems, but would user expect it?
-# TODO: Features
-# TODO: set method for topology?
-# TODO: method for converting ungapped dsDNA to top-strand ssDNA?
+#   It should not be flipped automatically (unexpected, limits expressibility)
+# TODO: Features: .features list and .extract method
+# TODO: set method for topology
 
 
 class DNA(object):
@@ -61,14 +59,21 @@ class DNA(object):
             self.bottom = bottom
             if run_checks:
                 self.bottom = utils.check_seq(bottom, 'dna')
-
-            # TODO: check for complementation between top/bottom if allowing
-            # manual bottom strand input. Mismatched complexes should
-            # not be implemented yet
+                if len(self.bottom) != len(self.top):
+                    msg = 'Manually-specified bottom strand is too short.'
+                    raise ValueError(msg)
+                r_bottom = utils.reverse_complement(self.bottom)
+                mismatches = [1 for t, b in zip(self.top, r_bottom) if
+                              (t != b and (t != '-' or b != '-'))]
+                if mismatches:
+                    msg = 'Manually-specified bottom strand has mismatches.'
+                    raise ValueError(msg)
         elif stranded == 'ss':
             self.bottom = ''.join('-' for x in self.top)
         elif stranded == 'ds':
             self.bottom = utils.reverse_complement(self.top, 'dna')
+
+        self.id = None
 
     def reverse_complement(self):
         '''
@@ -157,7 +162,6 @@ class DNA(object):
 
         return new_instance
 
-    # TODO: this can be replaced with __setattr__
     def set_stranded(self, stranded):
         '''
         Change DNA strandedness
@@ -409,6 +413,29 @@ class DNA(object):
                            stranded=stranded, run_checks=False)
 
         return new_instance
+
+    def __radd__(self, other):
+        '''
+        Add unlike types (enables sum function).
+
+        :param self: object of self type.
+        :type self: DNA
+        :param other: object of any other type.
+        :param other: anything
+
+        '''
+
+        if other == 0:
+            # sum(list) adds to zero first, so ignore it
+            return self
+        elif type(self) != type(other):
+            # Ensure types are the same
+            msg = 'unsupported operand type(s) for +: {} and {}'.format(self,
+                                                                        other)
+            raise TypeError(msg)
+        else:
+            # All is good - add the two DNA objects
+            return self + other
 
     def __mul__(self, multiplier):
         '''
