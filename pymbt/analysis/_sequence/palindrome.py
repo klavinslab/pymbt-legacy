@@ -3,8 +3,6 @@ Module for analyzing palindromic sequences.
 
 '''
 
-import math
-
 
 def palindrome(pattern):
     '''
@@ -15,7 +13,7 @@ def palindrome(pattern):
     '''
 
     pattern_len = len(pattern)
-    wing = int(math.floor(pattern_len / 2))
+    wing = pattern_len // 2
 
     if pattern_len % 2 != 0:
         l_wing = pattern[0:wing + 1]

@@ -4,7 +4,6 @@ Reactions for the central dogma of biology - transcription and translation.
 '''
 
 
-import math
 from pymbt import sequence
 from pymbt.reaction import utils
 
@@ -40,7 +39,7 @@ class Transcription(object):
     def get_coding_rna(self):
         if not self.rna:
             self.run()
-        codons_left = math.floor(len(self.rna) / 3)
+        codons_left = len(self.rna) // 3
         start_codon = sequence.RNA('aug')
         stop_codons = [sequence.RNA('uag'), sequence.RNA('uga'),
                        sequence.RNA('uaa')]
@@ -106,7 +105,7 @@ class Translation(object):
 
     # REFACTOR: this is totally redundant with the Transcription equivalent
     def get_coding_rna(self):
-        codons_left = math.floor(len(self.rna) / 3)
+        codons_left = len(self.rna) // 3
         start_codon = sequence.RNA('aug')
         stop_codons = [sequence.RNA('uag'), sequence.RNA('uga'),
                        sequence.RNA('uaa')]

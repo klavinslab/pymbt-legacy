@@ -3,7 +3,6 @@ Sanger sequencing alignment tools.
 
 '''
 
-import math
 from matplotlib import pyplot
 from matplotlib import cm
 
@@ -238,7 +237,7 @@ class Sanger(object):
             qual = feature.qualifiers['label'][0]
             feature_start = feature.location.start.position
             feature_end = feature.location.end.position
-            mid = int(math.ceil((feature_start + feature_end) / 2))
+            mid = (feature_start + feature_end) // 2
             centered = (feature_bin + 1) * 10
             sub1.broken_barh([(feature_start, feature_end-feature_start)],
                              (centered, 9),

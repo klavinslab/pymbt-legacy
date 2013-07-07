@@ -5,7 +5,6 @@ from a gene sequence.
 '''
 
 import csv
-from math import floor
 from pymbt import analysis
 from pymbt.design import DesignPrimerGene
 
@@ -246,7 +245,7 @@ def _grow_overlaps(seq, tm, require_even, length_max, overlap_min,
     # put the AT-rich region in the middle of the spanning oligo
 
     # Try bare minimum number of oligos
-    oligo_n = int(floor(float(len(seq)) / length_max) + 1)
+    oligo_n = len(seq) // length_max + 1
 
     # Adjust number of oligos if even number required
     if require_even:
@@ -256,11 +255,9 @@ def _grow_overlaps(seq, tm, require_even, length_max, overlap_min,
     else:
         oligo_increment = 1
 
-    # Double check whether current oligos can even span the sequence
-    oligo_len = float(len(seq)) / oligo_n
-    while oligo_len > length_max:
+    # Increase oligo number until the minimum oligo_len is less than length_max
+    while float(len(seq)) / oligo_n > length_max:
         oligo_n += oligo_increment
-        oligo_len = float(len(seq)) / oligo_n
 
     # Loop until all overlaps meet minimum Tm and length
     tm_met = False
@@ -269,11 +266,10 @@ def _grow_overlaps(seq, tm, require_even, length_max, overlap_min,
     while(not tm_met or not len_met):
         # Calculate initial number of overlaps
         overlap_n = oligo_n - 1
-        min_oligo_len = float(len(seq)) / oligo_n
 
-        # Calculate overlap locations
-        starts = [int(floor((x + 1) * min_oligo_len)) for x in
-                  range(overlap_n)]
+        # Place overlaps approximately equidistant over sequence length
+        overlap_interval = float(len(seq)) / oligo_n
+        starts = [int(overlap_interval * (i + 1)) for i in range(overlap_n)]
         ends = [index + 1 for index in starts]
 
         # Fencepost for while loop
