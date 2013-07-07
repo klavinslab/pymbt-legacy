@@ -3,24 +3,23 @@ Utils for analysis module.
 
 '''
 
-import pymbt.sequence
+from pymbt import sequence
 
 
 def sequence_type(seq):
     '''
-    Validates a DNA or RNA sequence instance.
+    Validates a pymbt.sequence data type.
 
     :param sequence_in: input DNA sequence.
-    :type sequence_in: DNA
-    :param material: 'dna' or 'rna'.
-    :type material: str
+    :type sequence_in: any
 
     '''
-    if isinstance(seq, pymbt.sequence.DNA):
+
+    if isinstance(seq, sequence.DNA):
         material = 'dna'
-    elif isinstance(seq, pymbt.sequence.RNA):
+    elif isinstance(seq, sequence.RNA):
         material = 'rna'
-    elif isinstance(seq, pymbt.sequence.Peptide):
+    elif isinstance(seq, sequence.Peptide):
         material = 'peptide'
     else:
         raise Exception("Input was not a recognized pymbt.sequence object.")

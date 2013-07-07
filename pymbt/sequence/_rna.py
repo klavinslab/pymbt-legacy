@@ -12,10 +12,11 @@ class RNA(object):
     Core RNA sequence object.
 
     '''
-    def __init__(self, sequence, run_checks=True):
+
+    def __init__(self, seq, run_checks=True):
         '''
-        :param sequence: Input sequence (RNA).
-        :type sequence: str
+        :param seq: Input sequence (RNA).
+        :type seq: str
         :param run_checks: Check inputs / formats (disabling increases speed):
                            alphabet check
                            case
@@ -23,9 +24,10 @@ class RNA(object):
 
         '''
 
-        self.top = sequence
         if run_checks:
-            self.top = utils.check_seq(sequence, 'rna')
+            self.top = utils.process_seq(seq, 'rna')
+        else:
+            self.top = seq
 
         self.bottom = ''.join('-' for x in self.top)
 
@@ -51,6 +53,7 @@ class RNA(object):
         '''
 
         new_instance = self[n_bases::]
+
         return new_instance
 
     def three_resect(self, n_bases):
@@ -63,6 +66,7 @@ class RNA(object):
         '''
 
         new_instance = self[:-n_bases]
+
         return new_instance
 
     def locate(self, pattern):
@@ -89,6 +93,7 @@ class RNA(object):
 
         # Alphabet checking disabled on copy to improve performance
         new_instance = RNA(self.top, run_checks=False)
+
         return new_instance
 
     def __getitem__(self, key):

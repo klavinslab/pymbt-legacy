@@ -10,19 +10,20 @@ from collections import Counter
 
 class Repeats(object):
     '''
-    Count repeats in a DNA sequence.
+    Count repeats in a DNA or RNA sequence.
 
     '''
-    def __init__(self, dna, size):
+
+    def __init__(self, seq, size):
         '''
-        param dna_object: DNA sequence.
-        type dna_object: DNA
-        param size: size of repeat to detect (in bp).
-        type size: int
+        :param dna_object: DNA or RNA sequence to test for repeats.
+        :type dna_object: pymbt.sequence.DNA or pymbt.sequence.RNA
+        :param size: size of repeat to detect (in bp).
+        :type size: int
 
         '''
 
-        self.template = dna
+        self.template = seq
         self.size = size
 
     def run(self):
@@ -34,19 +35,19 @@ class Repeats(object):
         return check
 
 
-def repeats(sequence, size):
+def repeats(seq, size):
     '''
     Evaluate sequence repeats in a given sequence.
 
     :param seq: Input sequence.
-    :type seq: str
+    :type seq: pymbt.sequence.DNA or pymbt.sequence.RNA
     :param size: Size of the repeat to count.
     :type size: int
 
     '''
-    sequence = str(sequence)
+    seq = str(seq)
 
-    n_mers = [sequence[i:i + size] for i in range(len(sequence) - size + 1)]
+    n_mers = [seq[i:i + size] for i in range(len(seq) - size + 1)]
     counted = Counter(n_mers)
     repeats = [(key, value) for key, value in counted.iteritems() if value > 1]
     return repeats

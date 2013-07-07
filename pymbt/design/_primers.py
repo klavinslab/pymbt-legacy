@@ -10,18 +10,19 @@ from pymbt import analysis
 # ideas:
 #   Give DesignPrimer a 'reverse' option that computes a reverse primer
 #   Give DesignPrimer a 'both' option that computes both
+#   Provide DesignPrimer with 'forward' and 'reverse' methods
 class DesignPrimer(object):
     '''
     Design primer to a nearest-neighbor Tm setpoint.
 
     '''
 
-    def __init__(self, dna_object, tm=72, min_len=10, tm_undershoot=1,
+    def __init__(self, dna, tm=72, min_len=10, tm_undershoot=1,
                  tm_overshoot=3, end_gc=False, tm_method='finnzymes',
                  overhang=None):
         '''
-        :param dna_object: object of type DNA.
-        :type dna_object: DNA
+        :param dna: Sequence for which primers will be designed.
+        :type dna: pymbt.sequence.DNA
         :param tm: Ideal primer Tm in degrees C.
         :type tm: float
         :param min_len: Minimum primer length.
@@ -42,7 +43,7 @@ class DesignPrimer(object):
         # TODO: deal with sticky ended inputs or require a new DNA type
         # that can't have them (dsDNA)
 
-        self.template = dna_object
+        self.template = dna
 
         # Storing inputs as attributes so they can be modified in-place?
         self.tm = tm
@@ -70,12 +71,12 @@ class DesignPrimerGene(object):
 
     '''
 
-    def __init__(self, dna_object, tm=72, min_len=10, tm_undershoot=1,
+    def __init__(self, dna, tm=72, min_len=10, tm_undershoot=1,
                  tm_overshoot=3, end_gc=False, tm_method='finnzymes',
                  overhangs=None):
         '''
-        :param dna_object: object of type DNA.
-        :type dna_object: DNA
+        :param dna: Sequence for which to design primers.
+        :type dna: pymbt.sequence.DNA
         :param tm: Ideal primer Tm in degrees C.
         :type tm: float
         :param min_len: Minimum primer length.
@@ -97,7 +98,7 @@ class DesignPrimerGene(object):
         # that can't have them (dsDNA)
 
         # Type checking on input
-        self.template = dna_object
+        self.template = dna
 
         # Storing inputs as attributes so they can be modified in-place?
         self.tm = tm
@@ -121,14 +122,14 @@ class DesignPrimerGene(object):
         return primers_list
 
 
-def _design_primer(dna_object, tm=72, min_len=10, tm_undershoot=1,
+def _design_primer(dna, tm=72, min_len=10, tm_undershoot=1,
                    tm_overshoot=3, end_gc=False, tm_method='finnzymes',
                    overhang=None):
     '''
     Design primer to a nearest-neighbor Tm setpoint.
 
-    :param dna_object: Input DNA.
-    :type dna_object: DNA object.
+    :param dna: Sequence for which to design a primer.
+    :type dna: pymbt.sequence.DNA
     :param tm: Ideal primer Tm in degrees C.
     :type tm: float
     :param min_len: Minimum primer length.
@@ -147,13 +148,13 @@ def _design_primer(dna_object, tm=72, min_len=10, tm_undershoot=1,
     '''
 
     # Check Tm of input sequence to see if it's already too low
-    seq_tm = analysis.tm(dna_object, method=tm_method)
+    seq_tm = analysis.tm(dna, method=tm_method)
     if seq_tm < (tm - tm_undershoot):
         msg = 'Input sequence Tm is lower than primer Tm setting'
         raise Exception(msg)
 
     # Focus on first 90 bases - shouldn't need more than 90bp to anneal
-    dna_object = dna_object[0:90]
+    dna = dna[0:90]
 
     # Generate primers from min_len to 'tm' + tm_overshoot
     primers_tms = []
@@ -162,8 +163,8 @@ def _design_primer(dna_object, tm=72, min_len=10, tm_undershoot=1,
     max_tm = tm + tm_overshoot
     bases = min_len
 
-    while last_tm <= max_tm and (bases != len(dna_object)):
-        new_primer = dna_object[0:bases]
+    while last_tm <= max_tm and (bases != len(dna)):
+        new_primer = dna[0:bases]
         last_tm = analysis.tm(new_primer, method=tm_method)
         primer_tm = (new_primer, last_tm)
         primers_tms.append(primer_tm)
@@ -202,14 +203,14 @@ def _design_primer(dna_object, tm=72, min_len=10, tm_undershoot=1,
     return best_primer, best_tm
 
 
-def _design_primer_gene(dna_object, tm=72, min_len=10, tm_undershoot=1,
+def _design_primer_gene(dna, tm=72, min_len=10, tm_undershoot=1,
                         tm_overshoot=3, end_gc=False, tm_method='finnzymes',
                         overhangs=None):
     '''
     Design primer to a nearest-neighbor Tm setpoint.
 
-    :param seq: Input sequence.
-    :type seq: str
+    :param dna: Input sequence.
+    :type dna: pymbt.sequence.DNA
     :param tm: Ideal primer Tm in degrees C.
     :type tm: float
     :param min_len: Minimum primer length.
@@ -229,7 +230,7 @@ def _design_primer_gene(dna_object, tm=72, min_len=10, tm_undershoot=1,
     if not overhangs:
         overhangs = [None, None]
 
-    templates = [dna_object, dna_object.reverse_complement()]
+    templates = [dna, dna.reverse_complement()]
     primer_list = []
 
     for template, overhang in zip(templates, overhangs):

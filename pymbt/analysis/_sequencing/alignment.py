@@ -22,10 +22,10 @@ class Sanger(object):
     def __init__(self, reference, results):
         '''
         :param reference: Reference sequence.
-        :type reference: DNA object
+        :type reference: pymbt.sequence.DNA
         :param results: Sequencing result string. A list of DNA objects is also
                         valid.
-        :type results: DNA object
+        :type results: list of pymbt.sequence.DNA elements
 
         '''
 
@@ -339,16 +339,16 @@ class Sanger(object):
 
 
 # TODO: why is this necessary?
-def _findgap(list_in):
+def _findgap(result):
     '''
     Iterate over string list, return 'X' if has non-\'-\' value.
 
-    :param list_in: String list.
-    :type list_in: list
+    :param result: String list.
+    :type result: list
 
     '''
 
-    for base in list_in:
+    for base in result:
         if base != '-':
             return 'X'
     return '-'

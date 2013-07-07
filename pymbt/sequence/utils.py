@@ -6,15 +6,14 @@ Helper functions for manipulating DNA, RNA, and peptide sequences.
 import re
 from pymbt.data.common import ALPHABETS
 from pymbt.data.common import COMPLEMENTS
-# TODO: arguably this should not be imported - circular dependencies
 
 
-def reverse_complement(sequence, material):
+def reverse_complement(seq, material):
     '''
-    Reverse complement a DNA sequence.
+    Reverse complement a DNA or RNA sequence.
 
-    :param sequence: Input sequence.
-    :type sequence: str
+    :param seq: Input sequence.
+    :type seq: str
     :param material: 'dna' or 'rna'.
     :type material: str
 
@@ -24,17 +23,18 @@ def reverse_complement(sequence, material):
     origin = complements[0]
     destination = complements[1]
     code = dict(zip(origin, destination))
-    complemented = ''.join(code.get(k, k) for k in sequence)
+    complemented = ''.join(code.get(base) for base in seq)
     reverse_complemented = complemented[::-1]
+
     return reverse_complemented
 
 
-def check_alphabet(sequence, material):
+def check_alphabet(seq, material):
     '''
     Verify that a given string is made only of DNA, RNA, or peptide characters.
 
-    :param sequence: DNA, RNA, or peptide sequence.
-    :type sequence: str
+    :param seq: DNA, RNA, or peptide sequence.
+    :type seq: str
     :param material: Input material - 'dna', 'rna', or 'pepide'.
     :type sequence: str
 
@@ -47,15 +47,16 @@ def check_alphabet(sequence, material):
     else:
         msg = "Input material must be 'dna', 'rna', or 'peptide'."
         raise ValueError(msg)
-    # This is a bottleneck for a lot of code.
+    # This is a bottleneck when modifying sequence - hence the run_checks
+    # optional parameter in sequence objects..
     # First attempt with cython was slower. Could also try pypy.
-    if re.search('[^' + alphabet + ']', sequence):
+    if re.search('[^' + alphabet + ']', seq):
         raise ValueError('Sequence has a non-%s character' % err_msg)
-    return sequence
 
 
-def check_seq(seq, material):
+def process_seq(seq, material):
     '''Do input checks / string processing.'''
     check_alphabet(seq, material)
     seq = seq.lower()
+
     return seq

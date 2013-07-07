@@ -20,11 +20,11 @@ class DNA(object):
 
     '''
 
-    def __init__(self, sequence, bottom=None, topology='linear', stranded='ds',
+    def __init__(self, seq, bottom=None, topology='linear', stranded='ds',
                  features=None, run_checks=True):
         '''
-        :param sequence: Input sequence (DNA).
-        :type sequence: str
+        :param seq: Input sequence (DNA).
+        :type seq: str
         :param bottom: Manual input of bottom-strand sequence. Enables both
                        mismatches and initializing ssDNA.
         :type bottom: str
@@ -42,9 +42,10 @@ class DNA(object):
 
         '''
 
-        self.top = sequence
         if run_checks:
-            self.top = utils.check_seq(sequence, 'dna')
+            self.top = utils.process_seq(seq, 'dna')
+        else:
+            self.top = seq
 
         self.topology = topology
         if not features:
@@ -58,7 +59,7 @@ class DNA(object):
         if bottom:
             self.bottom = bottom
             if run_checks:
-                self.bottom = utils.check_seq(bottom, 'dna')
+                self.bottom = utils.process_seq(bottom, 'dna')
                 if len(self.bottom) != len(self.top):
                     msg = 'Manually-specified bottom strand is too short.'
                     raise ValueError(msg)
@@ -482,6 +483,7 @@ class DNA(object):
         Test DNA object equality.
 
         '''
+
         return not (self == other)
 
 
@@ -490,10 +492,11 @@ class RestrictionSite(object):
     Defines the recognition site and properties of a restriction endonuclease.
 
     '''
+
     def __init__(self, recognition_site, cut_site, name=None):
         '''
-        :param recognition_site: Input sequence (DNA).
-        :type recognition_site: DNA object.
+        :param recognition_site: Input sequence.
+        :type recognition_site: pymbt.sequence.DNA
         :param cut_site: 0-indexed indices where DNA is nicked (top, then
                          bottom strand). For an n-sized recognition site, there
                          are n + 1 positions at which to cut.

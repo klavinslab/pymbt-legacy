@@ -12,10 +12,11 @@ class Peptide(object):
     Core Peptide sequence object.
 
     '''
-    def __init__(self, sequence, run_checks=True):
+
+    def __init__(self, seq, run_checks=True):
         '''
-        :param sequence: Input sequence (peptide).
-        :type sequence: str
+        :param seq: Input sequence (peptide).
+        :type seq: str
         :param run_checks: Check inputs / formats (disabling increases speed):
                            alphabet check
                            case
@@ -23,9 +24,10 @@ class Peptide(object):
 
         '''
 
-        self.peptide = sequence
         if run_checks:
-            self.peptide = utils.check_seq(sequence, 'peptide')
+            self.peptide = utils.process_seq(seq, 'peptide')
+        else:
+            self.peptide = seq
 
     def locate(self, pattern):
         '''
@@ -51,6 +53,7 @@ class Peptide(object):
 
         # Alphabet checking disabled on copy to improve performance
         new_instance = Peptide(self.peptide, run_checks=False)
+
         return new_instance
 
     def __getitem__(self, key):

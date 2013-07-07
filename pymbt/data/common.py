@@ -1,10 +1,12 @@
 '''Defines data and parameters in an easily resuable format.'''
 
+
 # Common sequence alphabets.
 ALPHABETS = {
     'dna': 'ATGCNatgcn-',
     'rna': 'AUGCNaugcn',
     'peptide': 'ACDEFGHIKLMNPQRSTVWYacdefghiklmnpqrstvwy'}
+
 
 COMPLEMENTS = {
     'dna': ('ATGCNatgcn-', 'TACGNtacgn-'),
@@ -106,6 +108,7 @@ CODON_FREQ = {
         'GUU': 0.391481704636128,
         'GUC': 0.208837466820824}}
 
+
 # Codon usage organized by organism, then amino acid
 CODON_FREQ_BY_AA = {
     'sc': {
@@ -173,6 +176,7 @@ CODON_FREQ_BY_AA = {
               'GUA': 0.208783185960798,
               'GUU': 0.391481704636128,
               'GUC': 0.208837466820824}}}
+
 
 # Complete list of codons.
 CODONS = {'AAA': 'K',

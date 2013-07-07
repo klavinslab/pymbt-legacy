@@ -14,11 +14,11 @@ class Tm(object):
 
     '''
 
-    def __init__(self, dna_object, dna_conc=50, salt_conc=50,
+    def __init__(self, seq, dna_conc=50, salt_conc=50,
                  method='finnzymes'):
         '''
-        :param dna_object: DNA sequence.
-        :type dna_object: DNA object
+        :param seq: Sequence for which to calculate the Tm.
+        :type seq: pymbt.sequence.DNA
         :param dna_conc: DNA concentration in nM.
         :type dna_conc: float
         :param salt_conc: Salt concentration in mM.
@@ -29,7 +29,7 @@ class Tm(object):
 
         '''
 
-        self.template = dna_object
+        self.template = seq
 
         # store params as attributes for modification?
         self.dna_conc = dna_conc
@@ -41,17 +41,17 @@ class Tm(object):
         Execute class function.
 
         '''
-        melt = tm(str(self.template), self.dna_conc, self.salt_conc,
+        melt = tm(self.template, self.dna_conc, self.salt_conc,
                   self.method)
         return melt
 
 
-def tm(sequence, dna_conc=50, salt_conc=50, method='finnzymes'):
+def tm(seq, dna_conc=50, salt_conc=50, method='finnzymes'):
     '''
     Returns DNA/DNA tm using nearest neighbor thermodynamics.
 
-    :param sequence: DNA sequence.
-    :type sequence: DNA
+    :param seq: Sequence for which to calculate the tm.
+    :type seq: pymbt.sequence.DNA
     :param dna_conc: DNA concentration in nM.
     :type dna_conc: float
     :param salt_conc: Salt concentration in mM.
@@ -75,36 +75,36 @@ def tm(sequence, dna_conc=50, salt_conc=50, method='finnzymes'):
 
     # Error corrections - done first for use of reverse_complement method
     deltas = [0, 0]
-    at_count = [x for x in sequence.top if x == 'A' or x == 'T']
+    at_count = [x for x in seq.top if x == 'A' or x == 'T']
     for i, delta in enumerate(['delta_h', 'delta_s']):
-        if 'G' in sequence.top or 'C' in sequence.top:
+        if 'G' in seq.top or 'C' in seq.top:
             deltas[i] += pars_error[delta]['initGC']
-        if len(at_count) == len(sequence):
+        if len(at_count) == len(seq):
             deltas[i] += pars_error[delta]['initAT']
-        if sequence.top.startswith('T') and delta == 'delta_h':
+        if seq.top.startswith('T') and delta == 'delta_h':
             deltas[i] += pars_error[delta]['5termT']
-        if sequence == sequence.reverse_complement():
+        if seq == seq.reverse_complement():
             deltas[i] += pars_error[delta]['symm']
 
     # Sum up the nearest-neighbor enthalpy and entropy
-    sequence = str(sequence).upper()
+    dna = str(seq).upper()
 #    for i, delta in enumerate(['delta_h', 'delta_s']):
 #        keys = pars[delta].keys()
-#        deltas[i] += sum(_pair_count(sequence, key) * pars[delta][key]
+#        deltas[i] += sum(_pair_count(dna, key) * pars[delta][key]
 #                         for key in keys)
 
     # This method is off from the previous one by ~1e-13% from the previous.
     # Not sure why but it doesn't matter. This method is 2X faster.
-    def pair_deltas(sequence):
+    def pair_deltas(dna):
         delta0 = 0
         delta1 = 0
-        for i in range(len(sequence) - 1):
-            curchar = sequence[i:i + 2]
+        for i in range(len(dna) - 1):
+            curchar = dna[i:i + 2]
             delta0 += pars['delta_h'][curchar]
             delta1 += pars['delta_s'][curchar]
         return delta0, delta1
 
-    new_delt = pair_deltas(sequence)
+    new_delt = pair_deltas(dna)
     deltas[0] += new_delt[0]
     deltas[1] += new_delt[1]
 
@@ -133,7 +133,7 @@ def _pair_count(sequence, pattern):
     '''
     Collect and count sequence pairs in the sequence.
 
-    :param sequence: Any string (in this case, DNA or RNA).
+    :param sequence: The string in which to count instances of the pattern.
     :type sequence: str
     :param pattern: Pair of strings to search for (in this case,
                     two bases).

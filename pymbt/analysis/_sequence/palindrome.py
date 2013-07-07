@@ -4,23 +4,24 @@ Module for analyzing palindromic sequences.
 '''
 
 
-def palindrome(pattern):
+def palindrome(seq):
     '''
-    Check whether pattern is palindrome.
-    :param pattern: pattern to test.
-    :type pattern: DNA
+    Test whether a sequence is palindrome.
+
+    :param seq: Sequence to analyze (DNA or RNA).
+    :type seq: pymbt.sequence.DNA or pymbt.sequence.RNA
 
     '''
 
-    pattern_len = len(pattern)
-    wing = pattern_len // 2
+    seq_len = len(seq)
+    wing = seq_len // 2
 
-    if pattern_len % 2 != 0:
-        l_wing = pattern[0:wing + 1]
-        r_wing = pattern[wing:]
+    if seq_len % 2 != 0:
+        l_wing = seq[0:wing + 1]
+        r_wing = seq[wing:]
     else:
-        l_wing = pattern[0: wing]
-        r_wing = pattern[wing:]
+        l_wing = seq[0: wing]
+        r_wing = seq[wing:]
     if l_wing == r_wing.reverse_complement():
         return True
     else:

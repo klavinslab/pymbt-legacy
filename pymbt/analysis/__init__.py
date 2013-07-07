@@ -1,3 +1,9 @@
+'''
+Analysis functions and classes that take sequence inputs and produce results
+like alignments and predicted physical properties.
+
+'''
+
 from pymbt.analysis._sequence.melting_temp import tm
 from pymbt.analysis._sequence.palindrome import palindrome
 from pymbt.analysis._sequence.repeats import repeats

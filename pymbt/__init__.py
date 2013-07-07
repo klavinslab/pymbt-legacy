@@ -1,3 +1,8 @@
+'''
+pymbt (python molecular biology tool), a cloning-oriented DNA design module.
+
+'''
+
 from pymbt import analysis
 from pymbt import data
 from pymbt import design

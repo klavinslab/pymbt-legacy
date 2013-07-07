@@ -17,8 +17,8 @@ class Transcription(object):
 
     def __init__(self, dna):
         '''
-        :param dna: DNA input sequence.
-        :type dna: DNA
+        :param seq: Sequence to transcribe (DNA).
+        :type seq: pymbt.sequence.DNA
 
         '''
 
@@ -32,7 +32,7 @@ class Transcription(object):
 
         '''
 
-        self.rna = utils.convert_sequence(self.dna, 'dna', 'rna')
+        self.rna = utils.convert_sequence(self.dna, 'rna')
 
         return self.rna
 
@@ -81,8 +81,8 @@ class Translation(object):
 
     def __init__(self, rna):
         '''
-        :param dna: RNA input sequence.
-        :type dna: RNA
+        :param rna: Sequence to translate (RNA).
+        :type rna: pymbt.sequence.RNA
 
         '''
 
@@ -98,7 +98,6 @@ class Translation(object):
         '''
 
         self.peptide = utils.convert_sequence(self.rna,
-                                              'rna',
                                               'peptide')
 
         return self.peptide
@@ -141,7 +140,6 @@ class Translation(object):
         if not self.coding_rna:
             self.get_coding_rna()
         self.coding_peptide = utils.convert_sequence(self.coding_rna,
-                                                     'rna',
                                                      'peptide')
 
         return self.coding_peptide
@@ -155,8 +153,8 @@ class ReverseTranscription(object):
 
     def __init__(self, rna):
         '''
-        :param dna: RNA input sequence.
-        :type dna: RNA
+        :param rna: Sequence to reverse transcribe (RNA).
+        :type rna: pymbt.sequence.RNA
 
         '''
 
@@ -169,6 +167,6 @@ class ReverseTranscription(object):
 
         '''
 
-        self.dna = utils.convert_sequence(self.rna, 'rna', 'dna')
+        self.dna = utils.convert_sequence(self.rna, 'dna')
 
         return self.dna

@@ -26,14 +26,14 @@ class GeneSplitter(object):
 
     '''
 
-    def __init__(self, dna_object):
+    def __init__(self, dna):
         '''
-        :param seq: Input sequence - a DNA object.
-        :type seq: DNA object
+        :param dna: Input sequence.
+        :type dna: pymbt.sequence.DNA
 
         '''
 
-        self.template = dna_object
+        self.template = dna
 
         self.overlaps = []
         self.scores = []

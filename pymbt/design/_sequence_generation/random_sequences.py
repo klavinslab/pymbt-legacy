@@ -58,8 +58,9 @@ class RandomCodons(object):
     def __init__(self, peptide, frequency_cutoff=0.0, weighted=False,
                  table=data.common.CODON_FREQ_BY_AA['sc']):
         '''
-        :param peptide: Sequence for which to generate randomized codons.
-        :type peptide: Peptide
+        :param peptide: Peptide sequence for which to generate randomized
+                        codons.
+        :type peptide: pymbt.sequence.Peptide
         :param frequency_cutoff: Relative codon usage cutoff - codons that
                                  are rarer will not be used. Frequency is
                                  relative to average over all codons for a

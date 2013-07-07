@@ -9,15 +9,17 @@ class Restriction(object):
     Restriction endonuclease reaction.
 
     '''
-    def __init__(self, template_dna, restriction_site):
+
+    def __init__(self, dna, restriction_site):
         '''
-        :param template_dna: DNA template to cut.
-        :type template_dna: DNA
+        :param dna: DNA template to digest.
+        :type dna: pymbt.sequence.DNA
         :param restriction_site: Restriction site to use.
         :type restriction_site: RestrictionSite
 
         '''
-        self.template_dna = template_dna
+
+        self.template = dna
         self.restriction_site = restriction_site
         self.output = []
 
@@ -26,6 +28,7 @@ class Restriction(object):
         Execute Restriction and return results.
 
         '''
+
         # TODO: search for top *and* bottom strand match - currently succeeds
         # if only one matches, but enzymes don't work that way
         # TODO: Figure out what to do with ambiguities.
@@ -41,14 +44,14 @@ class Restriction(object):
         #           5! * 4! = 120 * 24 = 2880 permutations.
         #           Hopefully these operations are very fast!
         dna_pattern = str(self.restriction_site.recognition_site)
-        both_indices = self.template_dna.locate(dna_pattern)
+        both_indices = self.template.locate(dna_pattern)
         if both_indices:
             if both_indices[0]:
                 cut1 = both_indices[0][0]
                 return self._cut(cut1)
         else:
             print 'Restriction site not present in template DNA.'
-            return [self.template_dna]
+            return [self.template]
 
         # Check for circular - if so cut once then proceed
 
@@ -61,6 +64,7 @@ class Restriction(object):
         Cuts template once at the specified index.
 
         '''
+
         dna_list = []
 
         cut_site = self.restriction_site.cut_site
@@ -69,17 +73,17 @@ class Restriction(object):
         top_cut = leftmost + cut_site[0]
         bottom_cut = leftmost + cut_site[1]
 
-        if self.template_dna.type == 'circular':
+        if self.template.type == 'circular':
             # List contains only linearized DNA
-            dna_list.append(self.template_dna.linearize(leftmost))
+            dna_list.append(self.template.linearize(leftmost))
         else:
             # List has left piece, then right piece in digest
-            dna_list.append(self.template_dna[0:leftmost])
-            dna_list.append(self.template_dna[leftmost:])
+            dna_list.append(self.template[0:leftmost])
+            dna_list.append(self.template[leftmost:])
 
         if top_cut != bottom_cut:
             # Find sequence between cut sites
-            between = self.template_dna[leftmost:index + max(cut_site)]
+            between = self.template[leftmost:index + max(cut_site)]
             between_rev = between.reverse_complement()
 
             # Prepare ssDNA versions of overhangs
@@ -91,7 +95,7 @@ class Restriction(object):
             if top_cut > bottom_cut:
                 top_overhang = top_overhang.reverse_complement()
                 bottom_overhang = bottom_overhang.reverse_complement()
-            if self.template_dna.type == 'circular':
+            if self.template.type == 'circular':
                 dna_list[0] = dna_list[0][len(between):]
                 dna_list[0] += top_overhang
                 dna_list[0] = bottom_overhang + dna_list[0]

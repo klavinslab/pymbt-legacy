@@ -22,7 +22,8 @@ class Nupack(object):
     def __init__(self, seq_list, rna1999=False, temp=50, nupack_home=None):
         '''
         :param seq_list: Input sequence(s).
-        :type seq_list: DNA, RNA, or list of either.
+        :type seq_list: pymbt.sequence.DNA, pymbt.sequence.RNA, or list of
+                        either.
         :param rna1999: Use RNA 1999 settings.
         :type rna1999: bool
         :param temp: Temperature in C.
@@ -294,7 +295,7 @@ def nupack_multiprocessing(seqs, material, cmd, arguments, report=True):
     '''
     Provides access to NUPACK commands with multiprocessing support.
 
-    :param inputs: List of sequences.
+    :param inputs: List of sequences, same format as for pymbt.analysis.Nupack.
     :type inpus: list
     :param material: Input material: 'dna' or 'rna'.
     :type material: str

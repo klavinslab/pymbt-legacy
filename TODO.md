@@ -6,7 +6,6 @@
     * DNA objects need sequence feature model first
 * Things that violate API scheme:
   * Nupack methods
-  * OrthoSeq
 
 ## Convert to oo API:
 * Make sequences (DNA, RNA, Peptide) inherit from MutableSequence ABC
@@ -17,7 +16,6 @@
 
 ## Organization:
 * Remove features that don't contribute to core workflow?:
-  * OrthoSeq
   * NUPACK
   * Gene splitting
 
@@ -29,7 +27,7 @@
 
 
 * Choose best primer from database for sequencing
-* Repeat detection for OrthoSeq, OligoAssembly
+* Repeat detection for OligoAssembly
 * Check cloning primers for self-self, pair structure using Nupack
 * Check Gibson object for whether the desired overlap is a high-probability structure
 * Add RNAfold / RNAStructure / Vienna as drop-in NUPACK replacements

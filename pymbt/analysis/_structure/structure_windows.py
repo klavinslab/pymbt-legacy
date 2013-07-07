@@ -15,14 +15,14 @@ class StructureWindows(object):
 
     '''
 
-    def __init__(self, dna_object):
+    def __init__(self, dna):
         '''
-        :param dna_object: Input sequence - DNA object.
-        :type seq: DNA object
+        :param dna: DNA sequence to analyze.
+        :type dna: pymbt.sequence.DNA
 
         '''
 
-        self.template = dna_object
+        self.template = dna
 
         self.walked = []
         self.core_starts = []
@@ -66,13 +66,13 @@ class StructureWindows(object):
             raise Exception("Run calculate() first so there\'s data to plot!")
 
 
-def _context_walk(dna_object, window_size, context_len, step):
+def _context_walk(dna, window_size, context_len, step):
     '''
     Generate context-dependent 'non-boundedness' series of scores for a given
     DNA sequence. Uses NUPACK's pair probabilities to derive the score.
 
-    :param dna_object: DNA object.
-    :type dna_object: DNA object
+    :param dna: Sequence to score.
+    :type dna: pymbt.sequence.DNA
     :param window_size: Window size in base pairs.
     :type window_size: int
     :param context_len: The number of bases of context to use when analyzing
@@ -84,7 +84,7 @@ def _context_walk(dna_object, window_size, context_len, step):
     '''
 
     # Generate window indices
-    window_start_ceiling = len(dna_object) - context_len - window_size
+    window_start_ceiling = len(dna) - context_len - window_size
     window_starts = range(context_len - 1, window_start_ceiling, step)
     window_ends = [start + window_size for start in window_starts]
 
@@ -92,13 +92,13 @@ def _context_walk(dna_object, window_size, context_len, step):
     l_starts = [step * i for i in range(len(window_starts))]
     l_seqs = []
     for start, end in zip(l_starts, window_ends):
-        l_seqs.append(dna_object[start:end])
+        l_seqs.append(dna[start:end])
 
     # Generate right-context subsequences
     r_ends = [x + window_size + context_len for x in window_starts]
     r_seqs = []
     for start, end in zip(window_starts, r_ends):
-        r_seqs.append(dna_object[start:end])
+        r_seqs.append(dna[start:end])
     r_seqs = [r_seq.reverse_complement() for r_seq in r_seqs]
 
     # Combine and calculate nupack pair probabilities

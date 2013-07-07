@@ -29,6 +29,6 @@ def test_convert_sequence():
            'ELKGIDFKEDGNILGHKLEYNYNSHNVYIMADKQKNGIKVNFKIRHNIEDGSVQLADHYQQN' + \
            'TPIGDGPVLLPDNHYLSYQSALSKDPNEKRDHMVLLEFVTAAGITLGMDELYK'
     prot = prot.lower()
-    rna = reaction.utils.convert_sequence(dna, 'dna', 'rna')
-    trans = reaction.utils.convert_sequence(rna, 'rna', 'peptide')
+    rna = reaction.utils.convert_sequence(dna, 'rna')
+    trans = reaction.utils.convert_sequence(rna, 'peptide')
     assert_equals(str(trans), prot)
