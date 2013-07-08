@@ -1,6 +1,5 @@
 '''
-Calculate the thermodynamic melting temperatures of nucleotide sequences
-using the Finnzymes modified Breslauer 1986 parameters.
+Calculate the thermodynamic melting temperatures of nucleotide sequences.
 
 '''
 
@@ -25,7 +24,9 @@ class Tm(object):
         :type salt_conc: float
         :param parameters: Nearest-neighbor parameter set. Available options:
                            'breslauer': Breslauer86 parameters
-                           'santalucia': SantaLuca98 parameters
+                           'sugimoto': Sugimoto96 parameters
+                           'santalucia96': SantaLucia96 parameters
+                           'santalucia98': SantaLucia98 parameters
                            'cloning': breslauer without corrections
         :type parameters: str
 
@@ -60,18 +61,24 @@ def tm(seq, dna_conc=50, salt_conc=50, parameters='cloning'):
     :type salt_conc: float
     :param parameters: Nearest-neighbor parameter set. Available options:
                        'breslauer': Breslauer86 parameters
-                       'santalucia': SantaLuca98 parameters
+                       'sugimoto': Sugimoto96 parameters
+                       'santalucia96': SantaLucia96 parameters
+                       'santalucia98': SantaLucia98 parameters
                        'cloning': breslauer without corrections
     :type parameters: str
 
     '''
 
-    if parameters == 'cloning':
-        params = tm_params.CLONING
-    elif parameters == 'breslauer':
+    if parameters == 'breslauer':
         params = tm_params.BRESLAUER
-    elif parameters == 'santalucia':
+    elif parameters == 'sugimoto':
+        params = tm_params.SUGIMOTO
+    elif parameters == 'santalucia96':
+        params = tm_params.SANTALUCIA96
+    elif parameters == 'santalucia98':
         params = tm_params.SANTALUCIA98
+    elif parameters == 'cloning':
+        params = tm_params.CLONING
     else:
         raise ValueError('Unsupported parameter set.')
 
@@ -83,12 +90,16 @@ def tm(seq, dna_conc=50, salt_conc=50, parameters='cloning'):
     # Error corrections - done first for use of reverse_complement parameters
     if parameters == 'breslauer':
         deltas = breslauer_corrections(seq, pars_error)
+    elif parameters == 'sugimoto':
+        deltas = breslauer_corrections(seq, pars_error)
+    elif parameters == 'santalucia96':
+        deltas = breslauer_corrections(seq, pars_error)
+    elif parameters == 'santalucia98':
+        deltas = santalucia98_corrections(seq, pars_error)
     elif parameters == 'cloning':
         deltas = breslauer_corrections(seq, pars_error)
         deltas[0] += 3.4
         deltas[1] += 12.4
-    elif parameters == 'santalucia':
-        deltas = santalucia_corrections(seq, pars_error)
 
     # Sum up the nearest-neighbor enthalpy and entropy
     seq = str(seq).upper()
@@ -173,7 +184,7 @@ def breslauer_corrections(seq, pars_error):
     return deltas_corr
 
 
-def santalucia_corrections(seq, pars_error):
+def santalucia98_corrections(seq, pars_error):
     deltas_corr = [0, 0]
     first = seq.top[0]
     last = seq.top[-1]

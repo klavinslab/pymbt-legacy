@@ -13,12 +13,6 @@
   * Gene splitting
 
 ## Wishlist:
-* Add Breslauer, SantaLucia98, and Sugimoto methods
- See doi: 10.1093/bioinformatics/bti066 for good comparison
-   "Comparison of different melting temperature calculation
-    methods for short DNA sequences"
-
-
 * Choose best primer from database for sequencing
 * Repeat detection for OligoAssembly
 * Check cloning primers for self-self, pair structure using Nupack

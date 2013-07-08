@@ -109,6 +109,53 @@ SANTALUCIA96 = {
         'terminalT': 0.0}}
 
 
+SUGIMOTO = {
+    'delta_h': {
+        'AA': 8.0,
+        'TT': 8.0,
+        'AT': 5.6,
+        'TA': 6.6,
+        'CA': 8.2,
+        'TG': 8.2,
+        'GT': 9.4,
+        'AC': 9.4,
+        'CT': 6.6,
+        'AG': 6.6,
+        'GA': 8.8,
+        'TC': 8.8,
+        'CG': 11.8,
+        'GC': 10.5,
+        'GG': 10.9,
+        'CC': 10.9},
+    'delta_h_err': {
+        'anyGC': -0.6,
+        'onlyAT': -0.6,
+        'symmetry': 0.0,
+        'terminalT': 0.0},
+    'delta_s': {
+        'AA': 21.9,
+        'TT': 21.9,
+        'AT': 15.2,
+        'TA': 18.4,
+        'CA': 21.0,
+        'TG': 21.0,
+        'GT': 25.5,
+        'AC': 25.5,
+        'CT': 16.4,
+        'AG': 16.4,
+        'GA': 23.5,
+        'TC': 23.5,
+        'CG': 29.0,
+        'GC': 26.4,
+        'GG': 28.4,
+        'CC': 28.4},
+    'delta_s_err': {
+        'anyGC': 9.0,
+        'onlyAT': 9.0,
+        'symmetry': 1.4,
+        'terminalT': 0.0}}
+
+
 SANTALUCIA98 = {
     'delta_h': {
         'AA': 7.9,
