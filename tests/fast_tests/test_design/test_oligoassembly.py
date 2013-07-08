@@ -37,7 +37,7 @@ def test_oligo_assembly():
                         olig9, olig10]
     reference_tms = [73.513413945987, 72.73367624289534, 73.73563193690484,
                      72.70706564878299, 72.72193323127533, 72.23050918438184,
-                     72.07546311550101, 72.27046461560093, 73.67230272019759]
+                     72.07546311550101, 72.27046461560099, 73.67230272019759]
 
     # Run oligo synthesis on BBa_K082003
     seq = 'atgcgtaaaggagaagaacttttcactggagttgtcccaattcttgttgaattagatggtgat' + \

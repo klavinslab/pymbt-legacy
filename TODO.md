@@ -4,19 +4,12 @@
 * Things that are not working (and should have tests written for them):
   * Plotting sequencing analysis
     * DNA objects need sequence feature model first
-* Things that violate API scheme:
-  * Nupack methods
 
-## Convert to oo API:
+## OO API:
 * Make sequences (DNA, RNA, Peptide) inherit from MutableSequence ABC
-* Remove use of sequence.utils outside of sequence module, if possible
-  * Functions that currently require use of strings for DNA should be addressed as follows:
-    1. Replace with DNA objects - if they're too slow, optimize DNA object methods.
-    2. Remove from module (put in an extension)
 
 ## Organization:
 * Remove features that don't contribute to core workflow?:
-  * NUPACK
   * Gene splitting
 
 ## Wishlist:
@@ -33,4 +26,4 @@
 * Add RNAfold / RNAStructure / Vienna as drop-in NUPACK replacements
 * Drop emboss dependency by using pycogent / pycogent approach for needleman-wunsch
   * pycogent method (pure python) is significantly slower than emboss
-  * try numpy and / or c
+  * try numpy or cython

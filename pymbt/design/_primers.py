@@ -18,7 +18,7 @@ class DesignPrimer(object):
     '''
 
     def __init__(self, dna, tm=72, min_len=10, tm_undershoot=1,
-                 tm_overshoot=3, end_gc=False, tm_method='finnzymes',
+                 tm_overshoot=3, end_gc=False, tm_parameters='cloning',
                  overhang=None):
         '''
         :param dna: Sequence for which primers will be designed.
@@ -33,8 +33,8 @@ class DesignPrimer(object):
         :type tm_overshoot: float
         :param end_gc: Obey the 'end on G or C' rule.
         :type end_gc: bool
-        :param tm_method: Melting temp calculator method to use.
-        :type tm_method: string
+        :param tm_parameters: Melting temp calculator method to use.
+        :type tm_parameters: string
         :param overhang: Append the primer to this overhang sequence.
         :type overhang: DNA
 
@@ -51,7 +51,7 @@ class DesignPrimer(object):
         self.tm_undershoot = tm_undershoot
         self.tm_overshoot = tm_overshoot
         self.end_gc = end_gc
-        self.tm_method = tm_method
+        self.tm_parameters = tm_parameters
         self.overhang = overhang
 
     def run(self):
@@ -61,7 +61,8 @@ class DesignPrimer(object):
         '''
         primer, tm = _design_primer(self.template, self.tm, self.min_len,
                                     self.tm_undershoot, self.tm_overshoot,
-                                    self.end_gc, self.tm_method, self.overhang)
+                                    self.end_gc, self.tm_parameters,
+                                    self.overhang)
         return primer, tm
 
 
@@ -72,7 +73,7 @@ class DesignPrimerGene(object):
     '''
 
     def __init__(self, dna, tm=72, min_len=10, tm_undershoot=1,
-                 tm_overshoot=3, end_gc=False, tm_method='finnzymes',
+                 tm_overshoot=3, end_gc=False, tm_parameters='cloning',
                  overhangs=None):
         '''
         :param dna: Sequence for which to design primers.
@@ -87,8 +88,8 @@ class DesignPrimerGene(object):
         :type tm_overshoot: float
         :param end_gc: Obey the 'end on G or C' rule.
         :type end_gc: bool
-        :param tm_method: Melting temp calculator method to use.
-        :type tm_method: string
+        :param tm_parameters: Melting temp calculator method to use.
+        :type tm_parameters: string
         :param overhangs: Sequences to append to the primers (2-tuple).
         :type overhangs: tuple of DNA object
 
@@ -106,7 +107,7 @@ class DesignPrimerGene(object):
         self.tm_undershoot = tm_undershoot
         self.tm_overshoot = tm_overshoot
         self.end_gc = end_gc
-        self.tm_method = tm_method
+        self.tm_parameters = tm_parameters
         self.overhangs = overhangs
 
     def run(self):
@@ -118,12 +119,12 @@ class DesignPrimerGene(object):
         primers_list = _design_primer_gene(template, self.tm, self.min_len,
                                            self.tm_undershoot,
                                            self.tm_overshoot, self.end_gc,
-                                           self.tm_method, self.overhangs)
+                                           self.tm_parameters, self.overhangs)
         return primers_list
 
 
 def _design_primer(dna, tm=72, min_len=10, tm_undershoot=1,
-                   tm_overshoot=3, end_gc=False, tm_method='finnzymes',
+                   tm_overshoot=3, end_gc=False, tm_parameters='cloning',
                    overhang=None):
     '''
     Design primer to a nearest-neighbor Tm setpoint.
@@ -140,15 +141,15 @@ def _design_primer(dna, tm=72, min_len=10, tm_undershoot=1,
     :type tm_overshoot: float
     :param end_gc: Obey the 'end on G or C' rule.
     :type end_gc: bool
-    :param tm_method: Melting temp calculator method to use.
-    :type tm_method: string
+    :param tm_parameters: Melting temp calculator method to use.
+    :type tm_parameters: string
     :param overhang: Append the primer to this overhang sequence.
     :type overhang: str
 
     '''
 
     # Check Tm of input sequence to see if it's already too low
-    seq_tm = analysis.tm(dna, method=tm_method)
+    seq_tm = analysis.tm(dna, parameters=tm_parameters)
     if seq_tm < (tm - tm_undershoot):
         msg = 'Input sequence Tm is lower than primer Tm setting'
         raise Exception(msg)
@@ -165,7 +166,7 @@ def _design_primer(dna, tm=72, min_len=10, tm_undershoot=1,
 
     while last_tm <= max_tm and (bases != len(dna)):
         new_primer = dna[0:bases]
-        last_tm = analysis.tm(new_primer, method=tm_method)
+        last_tm = analysis.tm(new_primer, parameters=tm_parameters)
         primer_tm = (new_primer, last_tm)
         primers_tms.append(primer_tm)
         bases += 1
@@ -204,7 +205,8 @@ def _design_primer(dna, tm=72, min_len=10, tm_undershoot=1,
 
 
 def _design_primer_gene(dna, tm=72, min_len=10, tm_undershoot=1,
-                        tm_overshoot=3, end_gc=False, tm_method='finnzymes',
+                        tm_overshoot=3, end_gc=False,
+                        tm_parameters='cloning',
                         overhangs=None):
     '''
     Design primer to a nearest-neighbor Tm setpoint.
@@ -221,8 +223,8 @@ def _design_primer_gene(dna, tm=72, min_len=10, tm_undershoot=1,
     :type tm_overshoot: float
     :param end_gc: Obey the 'end on G or C' rule.
     :type end_gc: bool
-    :param tm_method: Melting temp calculator method to use.
-    :type tm_method: string
+    :param tm_parameters: Melting temp calculator method to use.
+    :type tm_parameters: string
     :param overhangs: 2-tuple of overhang sequences.
     :type overhangs: tuple
 
@@ -237,7 +239,7 @@ def _design_primer_gene(dna, tm=72, min_len=10, tm_undershoot=1,
         primer, tm = _design_primer(template, tm=tm, min_len=min_len,
                                     tm_undershoot=tm_undershoot,
                                     tm_overshoot=tm_overshoot, end_gc=end_gc,
-                                    tm_method=tm_method,
+                                    tm_parameters=tm_parameters,
                                     overhang=overhang)
         primer_list.append((primer, tm))
     return primer_list

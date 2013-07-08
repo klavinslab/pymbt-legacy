@@ -14,5 +14,5 @@ def test_finnzymes():
 
     '''
 
-    melt = analysis.tm(sequence.DNA('ATGCGATAGCGATAGC'), method='finnzymes')
-    assert_equal(melt, 55.237003002075255)
+    melt = analysis.tm(sequence.DNA('ATGCGATAGCGATAGC'), parameters='cloning')
+    assert_equal(melt, 55.2370030020752)

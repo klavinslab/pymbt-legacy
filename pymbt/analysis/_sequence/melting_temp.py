@@ -15,7 +15,7 @@ class Tm(object):
     '''
 
     def __init__(self, seq, dna_conc=50, salt_conc=50,
-                 method='finnzymes'):
+                 parameters='cloning'):
         '''
         :param seq: Sequence for which to calculate the Tm.
         :type seq: pymbt.sequence.DNA
@@ -23,9 +23,11 @@ class Tm(object):
         :type dna_conc: float
         :param salt_conc: Salt concentration in mM.
         :type salt_conc: float
-        :param method: computation method to use. Only available method is
-                       'finnzymes'.
-        :type method: str
+        :param parameters: Nearest-neighbor parameter set. Available options:
+                           'breslauer': Breslauer86 parameters
+                           'santalucia': SantaLuca98 parameters
+                           'cloning': breslauer without corrections
+        :type parameters: str
 
         '''
 
@@ -34,7 +36,7 @@ class Tm(object):
         # store params as attributes for modification?
         self.dna_conc = dna_conc
         self.salt_conc = salt_conc
-        self.method = method
+        self.parameters = parameters
 
     def run(self):
         '''
@@ -42,11 +44,11 @@ class Tm(object):
 
         '''
         melt = tm(self.template, self.dna_conc, self.salt_conc,
-                  self.method)
+                  self.parameters)
         return melt
 
 
-def tm(seq, dna_conc=50, salt_conc=50, method='finnzymes'):
+def tm(seq, dna_conc=50, salt_conc=50, parameters='cloning'):
     '''
     Returns DNA/DNA tm using nearest neighbor thermodynamics.
 
@@ -56,55 +58,51 @@ def tm(seq, dna_conc=50, salt_conc=50, method='finnzymes'):
     :type dna_conc: float
     :param salt_conc: Salt concentration in mM.
     :type salt_conc: float
-    :param method: computation method to use. Only available method is
-                   'finnzymes'.
-    :type method: str
+    :param parameters: Nearest-neighbor parameter set. Available options:
+                       'breslauer': Breslauer86 parameters
+                       'santalucia': SantaLuca98 parameters
+                       'cloning': breslauer without corrections
+    :type parameters: str
 
     '''
 
-    if method == 'finnzymes':
-        params = tm_params.FINNZYMES_PARAMS
+    if parameters == 'cloning':
+        params = tm_params.CLONING
+    elif parameters == 'breslauer':
+        params = tm_params.BRESLAUER
+    elif parameters == 'santalucia':
+        params = tm_params.SANTALUCIA98
     else:
-        msg = "'finnzymes' is the only method that is currently supported"
-        raise ValueError(msg)
+        raise ValueError('Unsupported parameter set.')
 
     # Thermodynamic parameters
     pars = {'delta_h': params['delta_h'], 'delta_s': params['delta_s']}
     pars_error = {'delta_h': params['delta_h_err'],
                   'delta_s': params['delta_s_err']}
 
-    # Error corrections - done first for use of reverse_complement method
-    deltas = [0, 0]
-    at_count = [x for x in seq.top if x == 'A' or x == 'T']
-    for i, delta in enumerate(['delta_h', 'delta_s']):
-        if 'G' in seq.top or 'C' in seq.top:
-            deltas[i] += pars_error[delta]['initGC']
-        if len(at_count) == len(seq):
-            deltas[i] += pars_error[delta]['initAT']
-        if seq.top.startswith('T') and delta == 'delta_h':
-            deltas[i] += pars_error[delta]['5termT']
-        if seq == seq.reverse_complement():
-            deltas[i] += pars_error[delta]['symm']
+    # Error corrections - done first for use of reverse_complement parameters
+    if parameters == 'breslauer':
+        deltas = breslauer_corrections(seq, pars_error)
+    elif parameters == 'cloning':
+        deltas = breslauer_corrections(seq, pars_error)
+        deltas[0] += 3.4
+        deltas[1] += 12.4
+    elif parameters == 'santalucia':
+        deltas = santalucia_corrections(seq, pars_error)
 
     # Sum up the nearest-neighbor enthalpy and entropy
-    dna = str(seq).upper()
-#    for i, delta in enumerate(['delta_h', 'delta_s']):
-#        keys = pars[delta].keys()
-#        deltas[i] += sum(_pair_count(dna, key) * pars[delta][key]
-#                         for key in keys)
+    seq = str(seq).upper()
 
-    # This method is off from the previous one by ~1e-13% from the previous.
-    # Not sure why but it doesn't matter. This method is 2X faster.
-    def pair_deltas(dna):
+    def pair_deltas(seq):
         delta0 = 0
         delta1 = 0
-        for i in range(len(dna) - 1):
-            curchar = dna[i:i + 2]
+        for i in range(len(seq) - 1):
+            curchar = seq[i:i + 2]
             delta0 += pars['delta_h'][curchar]
             delta1 += pars['delta_s'][curchar]
         return delta0, delta1
 
-    new_delt = pair_deltas(dna)
+    new_delt = pair_deltas(seq)
     deltas[0] += new_delt[0]
     deltas[1] += new_delt[1]
 
@@ -113,18 +111,18 @@ def tm(seq, dna_conc=50, salt_conc=50, method='finnzymes'):
     dna_conc /= 1e9
     deltas[0] *= 1e3
 
-    salt_conc_adjusted = 16.6 * log(salt_conc) / log(10.0)
-
     # Universal gas constant (R)
     gas_constant = 1.9872
 
-    # These corrections are unaccounted for but are required
-    # for the 'finnzymes' method to be accurate.
-    if method == 'finnzymes':
-        deltas[0] += 3400
-        deltas[1] += 12.4
-        pre_salt = -deltas[0] / (gas_constant * log(dna_conc / 16) - deltas[1])
-        melt = pre_salt + salt_conc_adjusted - 273.15
+    if parameters == 'breslauer' or parameters == 'cloning':
+        salt_adjusted = 16.6 * log(salt_conc) / log(10.0)
+        pre_salt = -deltas[0] / (gas_constant * log(dna_conc / 16.0) -
+                                 deltas[1])
+        melt = pre_salt + salt_adjusted - 273.15
+    else:
+        salt_adjusted = 0.368 * (len(seq) - 1) * log(salt_conc) - deltas[1]
+        melt = -deltas[0] / (salt_adjusted + gas_constant *
+                             log(dna_conc / 4.0)) - 273.15
 
     return melt
 
@@ -153,3 +151,46 @@ def _pair_count(sequence, pattern):
             count += 1
         else:
             return count
+
+
+def breslauer_corrections(seq, pars_error):
+    deltas_corr = [0, 0]
+    contains_gc = 'G' in seq.top or 'C' in seq.top
+    only_at = seq.top.count('a') + seq.top.count('t') == len(seq)
+    symmetric = seq == seq.reverse_complement()
+    terminal_t = seq.top.startswith('t') + seq.top.endswith('t')
+
+    for i, delta in enumerate(['delta_h', 'delta_s']):
+        if contains_gc:
+            deltas_corr[i] += pars_error[delta]['anyGC']
+        if only_at:
+            deltas_corr[i] += pars_error[delta]['onlyAT']
+        if symmetric:
+            deltas_corr[i] += pars_error[delta]['symmetry']
+        if terminal_t and delta == 'delta_h':
+            deltas_corr[i] += pars_error[delta]['terminalT'] * terminal_t
+
+    return deltas_corr
+
+
+def santalucia_corrections(seq, pars_error):
+    deltas_corr = [0, 0]
+    first = seq.top[0]
+    last = seq.top[-1]
+
+    startGC = first == 'g' or first == 'c'
+    startAT = first == 'a' or first == 't'
+    endGC = last == 'g' or last == 'c'
+    endAT = last == 'a' or last == 't'
+    initGC = startGC + endGC
+    initAT = startAT + endAT
+
+    symmetric = seq == seq.reverse_complement()
+
+    for i, delta in enumerate(['delta_h', 'delta_s']):
+        deltas_corr[i] += initGC * pars_error[delta]['initGC']
+        deltas_corr[i] += initAT * pars_error[delta]['initAT']
+        if symmetric:
+            deltas_corr[i] += pars_error[delta]['symmetry']
+
+    return deltas_corr
