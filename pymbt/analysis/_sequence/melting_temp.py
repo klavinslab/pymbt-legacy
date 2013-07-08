@@ -3,7 +3,18 @@ Calculate the thermodynamic melting temperatures of nucleotide sequences.
 
 '''
 
-from math import log
+# TODO: Owczarzy et al 2004 has better salt correction
+# TODO: Remove sugimoto? It's missing important details (like salt correction)
+# TODO: Write adjusted santalucia method. Did a fit of 20000 sequences
+# comparing santalucia98 to finnzymes' modified breslauer method. As expected
+# they correlate heavily with offset of -6.014 and slope of 1.335 -
+# i.e. to get approximately the same result, do santalucia98, multiply by 1.335
+# , and subtract 6.
+# Double check those stats
+# TODO: Make new hybrid method - combine santalucia unified with owczarzy
+# corrections, compare to finnzymes.
+
+from math import log, log10
 from pymbt.analysis._sequence import tm_params
 
 
@@ -123,17 +134,52 @@ def tm(seq, dna_conc=50, salt_conc=50, parameters='cloning'):
     deltas[0] *= 1e3
 
     # Universal gas constant (R)
-    gas_constant = 1.9872
+    R = 1.9872
+
+    # Supposedly this is what dnamate does, but the output doesn't match theirs
+#    melt = (-deltas[0] / (-deltas[1] + R * log(dna_conc / 4.0))) +
+#                          16.6 * log(salt_conc) - 273.15
+#    return melt
+    # Overall equation is supposedly:
+    # sum{dH}/(sum{dS} + R ln(dna_conc/b)) - 273.15
+    # with salt corrections for the whole term (or for santalucia98,
+    # salt corrections added to the dS term.
+    # So far, implementing this as described does not give results that match
+    # any calculator but Biopython's
 
     if parameters == 'breslauer' or parameters == 'cloning':
-        salt_adjusted = 16.6 * log(salt_conc) / log(10.0)
-        pre_salt = -deltas[0] / (gas_constant * log(dna_conc / 16.0) -
-                                 deltas[1])
-        melt = pre_salt + salt_adjusted - 273.15
-    else:
-        salt_adjusted = 0.368 * (len(seq) - 1) * log(salt_conc) - deltas[1]
-        melt = -deltas[0] / (salt_adjusted + gas_constant *
-                             log(dna_conc / 4.0)) - 273.15
+        numerator = -deltas[0]
+        # Modified dna_conc denominator
+        denominator = (-deltas[1]) + R * log(dna_conc / 16.0)
+        # Modified Schildkraut-Lifson equation adjustment
+        salt_adjustment = 16.6 * log(salt_conc) / log(10.0)
+        melt = numerator / denominator + salt_adjustment - 273.15
+    elif parameters == 'santalucia98':
+        # This one is definitely correct
+        # TODO: dna_conc should be divided by 2.0 when dna_conc >> template
+        # (like PCR)
+        numerator = -deltas[0]
+        # SantaLucia 98 salt correction
+        salt_adjustment = 0.368 * (len(seq) - 1) * log(salt_conc)
+        denominator = -deltas[1] + salt_adjustment + R * log(dna_conc / 4.0)
+        melt = -deltas[0] / denominator - 273.15
+    elif parameters == 'santalucia96':
+        # TODO: find a way to test whether the code below matches another
+        # algorithm. It appears to be correct, but need to test it.
+        numerator = -deltas[0]
+        denominator = -deltas[1] + R * log(dna_conc / 4.0)
+        # SantaLucia 96 salt correction
+        salt_adjustment = 12.5 * log10(salt_conc)
+        melt = numerator / denominator + salt_adjustment - 273.15
+    elif parameters == 'sugimoto':
+        # TODO: the stuff below is untested and probably wrong
+        numerator = -deltas[0]
+        denominator = -deltas[1] + R * log(dna_conc / 4.0)
+        # Sugimoto parameters were fit holding salt concentration constant
+        # Salt correction can be chosen / ignored? Remove sugimoto set since
+        # it's so similar to santalucia98?
+        salt_correction = 16.6 * log10(salt_conc)
+        melt = numerator / denominator + salt_correction - 273.15
 
     return melt
 
@@ -169,7 +215,7 @@ def breslauer_corrections(seq, pars_error):
     contains_gc = 'G' in seq.top or 'C' in seq.top
     only_at = seq.top.count('a') + seq.top.count('t') == len(seq)
     symmetric = seq == seq.reverse_complement()
-    terminal_t = seq.top.startswith('t') + seq.top.endswith('t')
+    terminal_t = seq.top[0] == 't' + seq.top[-1] == 't'
 
     for i, delta in enumerate(['delta_h', 'delta_s']):
         if contains_gc:
