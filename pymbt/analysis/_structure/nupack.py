@@ -10,7 +10,7 @@ from tempfile import mkdtemp
 from shutil import rmtree
 from os.path import isdir
 from os import environ
-from pymbt.analysis import utils
+from pymbt.analysis.utils import sequence_type
 
 
 class Nupack(object):
@@ -51,15 +51,15 @@ class Nupack(object):
             self.seq_list = seq_list
 
         # Figure out material based on input and ensure it's consistent
-        self.material = utils.sequence_type(self.seq_list[0])
-        if not all([utils.sequence_type(seq) == self.material for seq in
+        self.material = sequence_type(self.seq_list[0])
+        if not all([sequence_type(seq) == self.material for seq in
                    self.seq_list]):
             raise ValueError('Sequence inputs were of mixed types.')
 
         # Convert seq object(s) to string(s)
         self.seq_list = [str(seq) for seq in self.seq_list]
 
-        # Shared temperature
+        # Shared temperature input
         self.temp = temp
 
         # Handle rna1999 setting
@@ -71,12 +71,12 @@ class Nupack(object):
         # Create temp dir
         self.tmpdir = mkdtemp()
 
-        # Track whether complexes has been run
+        # Track whether complexes has been run to avoid redundant computation
         self.complexes_run = False
 
     def complexes(self, max_complexes, mfe=True):
         '''
-        Run \'complexes\'.
+        Run NUPACK's \'complexes\'.
 
         :param max_complexes: Maximum complex size (integer).
         :type max_complexes: int
@@ -92,7 +92,6 @@ class Nupack(object):
         seqs = '\n'.join(self.seq_list)
         max_complexes = str(max_complexes)
         complexes_input = '\n'.join([n_seqs, seqs, max_complexes])
-
         with open(self.tmpdir + '/nupack.in', 'w') as input_handle:
             input_handle.write(complexes_input)
 
@@ -148,7 +147,7 @@ class Nupack(object):
         self._temp_dir()
 
         # If complexes has already been run with the same settings, keep the
-        # result (more efficient). Otherwise, run 'concentrations'
+        # result (more efficient). Otherwise, run complexes.
         if self.complexes_run == (max_complexes, mfe):
             pass
         else:
@@ -156,7 +155,6 @@ class Nupack(object):
 
         # Prepare input file
         input_concs = '\n'.join([str(conc) for x in self.seq_list])
-
         with open(self.tmpdir + '/nupack.con', 'w') as input_handle:
             input_handle.write(input_concs)
 
@@ -172,7 +170,6 @@ class Nupack(object):
         # Remove rank information
         for concentration in con_results:
             concentration.pop(0)
-
         con_types = []
         for result in con_results:
             eq_cx_i = []
@@ -180,6 +177,7 @@ class Nupack(object):
                 eq_cx_i.append(int(float(result.pop(0))))
             con_types.append(eq_cx_i)
 
+        # Extract energies and concentrations
         energies = [x.pop(0) for x in con_results]
         concentrations = [float(x[0]) for x in con_results]
 
@@ -227,7 +225,7 @@ class Nupack(object):
         # Sequence at the specified index
         sequence = self.seq_list[index]
 
-        # Input file
+        # Prepare input file
         with open(self.tmpdir + '/nupack.in', 'w') as input_handle:
             input_handle.write(sequence)
 
@@ -237,11 +235,13 @@ class Nupack(object):
 
         # Parse the output of 'pairs'
         # Only look at the last n rows - unbound probabilities
-        # TODO: return both unbound and bound as separate keys
+        # TODO: return both unbound and bound under separate keys
         with open(self.tmpdir + '/nupack.ppairs', 'r+') as handle:
             pairs = handle.readlines()[-len(sequence):]
             pairs = [pair for pair in pairs if '%' not in pair]
 
+        # Extract pair probability types and pair_probabilities. These are in
+        # Nupack's raw text format
         types = [(int(x.split()[0]), int(x.split()[1])) for x in pairs]
         pair_probabilities = [float(x.split()[2]) for x in pairs]
 
@@ -339,8 +339,8 @@ def nupack_multiprocessing(seqs, material, cmd, arguments, report=True):
 
 def run_nupack(kwargs):
     '''
-    Create Nupack instance, run command with arguments. Goal is to be
-    picklable.
+    Create Nupack instance, run command with arguments. Is a top-level function
+    because it has to be picklable.
 
     :param kwargs: keyword arguments to pass to Nupack
 

@@ -8,6 +8,7 @@ from matplotlib import cm
 
 from pymbt.analysis._sequencing.needle import needle
 
+# bigger TODO: This module doesn't work at all right now. Fix it.
 # TODO:
 # consensus / master sequence for plotting / report / analysis
 # too much work is done initializing Sanger. Move calculations to methods.
@@ -39,10 +40,11 @@ class Sanger(object):
             seq = str(seq)
         reference = str(reference)
 
+        # HACK: - results have a name. Is this up to spec?
         self.ref_raw = reference
         self.resnames = [x.name for x in results]
 
-        # Reduce results to largest non-N segment
+        # Remove Ns from sequencing results - keep largest remaining segment
         for seq in results:
             split = seq.split('N')
             sizes = [len(x) for x in split]
@@ -53,7 +55,8 @@ class Sanger(object):
         self.alignments = self.needle['alignments']
         self.scores = self.needle['scores']
 
-        # If score is too low, try reverse complement of result
+        # If score is too low, may be a 'reverse' sequencing reaction
+        # Try reverse complement
         for i, score in enumerate(self.scores):
             if score < 1300:
                 new_needle = needle(reference, results[i].reverse_complement())
@@ -61,11 +64,13 @@ class Sanger(object):
                 score = new_needle['scores']
 
         # Extract aligned sequences
-        # Actually, need n ref sequences in case of insertions
-        # - ref would have - inserted in that case.
+        #   Need N-containing ref sequences in case of insertions. reference
+        #   would have '-' in that case?
         aligned_refs = [x[0].seq.tostring().upper() for x in self.alignments]
         aligned_res = [x[1].seq.tostring().upper() for x in self.alignments]
 
+        # Find flanking strings of '-' and remove them (leading and trailing
+        # blanks in alignment)
         for a_ref, a_reses in zip(aligned_refs, aligned_res):
             frontcount = 0
             backcount = 0
@@ -84,24 +89,27 @@ class Sanger(object):
             a_ref = a_ref[frontcount:]
             a_reses = a_reses[frontcount:]
 
+        # Store processed, aligned reference and result sequences
         self.ref = aligned_refs
         self.res = aligned_res
 
+        # Store reference vs. result tuple for every result for easy reuse
         self.aligned = [(a_ref, a_reses) for a_ref, a_reses in
                         zip(aligned_refs, aligned_res)]
 
-        # Degap
+        # Find gaps in sequencing results
         self.gaps = []
         for result in enumerate(aligned_res):
             new_gap = ''.join([_findgap([x]) for x in result])
             self.gaps.append(new_gap)
         self.ranges = []
+        # Based on gaps, find ranges for which there is coverage (no gaps)
         for gap in self.gaps:
             first = gap.find('X')
             last = (len(gap) - gap[::-1].find('X'))
             self.ranges.append((first, last))
 
-        # Mismatches, Insertions, and Deletions
+        # Calculate mismatches, insertions, and deletions
         self.mismatches = {}
         self.insertions = {}
         self.deletions = {}
@@ -128,7 +136,9 @@ class Sanger(object):
                         else:
                             self.deletions[i_key] = [(j, j)]
 
-        # Group deletions that happen all in a row.
+        # Deletions and insertions are found on a per-base basis. If they occur
+        # one after another, group together as a single deletion or insertion
+        # Deletion grouping:
         for key, value in self.deletions.iteritems():
             last = (-2, -2)
             newlist = []
@@ -139,8 +149,7 @@ class Sanger(object):
                     newlist.append(deletion)
                 last = newlist[-1]
             self.deletions[key] = newlist
-
-        # Group insertions that happen all in a row.
+        # Insertion grouping:
         for key, value in self.insertions.iteritems():
             last = (-2, -2)
             newlist = []

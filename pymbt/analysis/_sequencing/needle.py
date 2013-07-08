@@ -26,10 +26,11 @@ def needle(reference, targets, gapopen=10, gapextend=0.5):
     # Make temporary dir
     workdir = mkdtemp()
 
+    # If input isn't a list, make it one
     if type(targets) != list:
         targets = [targets]
 
-    # Write input files (fasta format)
+    # Write input files to temp dir (fasta format)
     with open(workdir + '/ref.fasta', 'w') as ref_handle:
         ref_handle.write('>ref\n')
         ref_handle.write(reference)
