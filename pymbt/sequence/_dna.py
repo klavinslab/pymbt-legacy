@@ -63,7 +63,7 @@ class DNA(object):
                 if len(self.bottom) != len(self.top):
                     msg = 'Manually-specified bottom strand is too short.'
                     raise ValueError(msg)
-                r_bottom = utils.reverse_complement(self.bottom)
+                r_bottom = utils.reverse_complement(self.bottom, 'dna')
                 mismatches = [1 for t, b in zip(self.top, r_bottom) if
                               (t != b and (t != '-' or b != '-'))]
                 if mismatches:
@@ -110,18 +110,12 @@ class DNA(object):
         :param index: index at which to linearize.
         :type index: int
 
-
         '''
 
         if self.topology == 'linear':
             raise Exception('Cannot relinearize linear DNA.')
 
         new_instance = self.copy()
-        try:
-            new_instance[index]
-        except:
-            raise Exception('Index out of range.')
-
         new_instance = new_instance[index:] + new_instance[:index]
         new_instance.topology = 'linear'
 
@@ -142,6 +136,8 @@ class DNA(object):
         new_top = '-' * min(len(self.top), n_bases) + self.top[n_bases:]
         new_instance.top = new_top
         new_instance.remove_end_gaps()
+        if n_bases >= len(self):
+            self = self.set_stranded('ss')
 
         return new_instance
 
@@ -160,6 +156,8 @@ class DNA(object):
         new_top = self.top[:-n_bases] + '-' * min(len(self.top), n_bases)
         new_instance.top = new_top
         new_instance.remove_end_gaps()
+        if n_bases >= len(self):
+            self = self.set_stranded('ss')
 
         return new_instance
 
@@ -187,10 +185,6 @@ class DNA(object):
                 new_instance.top = reverse_seq.bottom
             elif all(char == '-' for char in self.bottom):
                 new_instance.bottom = reverse_seq.top
-            else:
-                # TODO: this shouldn't be necessary?
-                raise Exception('Sequence is not really single stranded.')
-
             new_instance.stranded = 'ds'
         else:
             raise ValueError("'stranded' must be 'ss' or 'ds'.")
@@ -359,9 +353,7 @@ class DNA(object):
 
         '''
 
-        gaps = sum([1 for x in self.top if x == '-'])
-
-        if gaps:
+        if '-' in self.top:
             msg = 'No string coercion method sequences with top-strand gaps.'
             raise Exception(msg)
         else:
@@ -473,6 +465,7 @@ class DNA(object):
         Test DNA object equality.
 
         '''
+
         if vars(self) == vars(other):
             return True
         else:
@@ -485,6 +478,17 @@ class DNA(object):
         '''
 
         return not (self == other)
+
+    def __contains__(self, pattern):
+        '''
+        Specially-defined `x in y` behavior
+
+        '''
+
+        if str(pattern) in str(self):
+            return True
+        else:
+            return False
 
 
 class RestrictionSite(object):

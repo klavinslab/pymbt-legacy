@@ -27,7 +27,7 @@ def convert_sequence(seq, to_material):
         # Transcribe
 
         # Can't transcribe a gap
-        if sequence.DNA('-') in seq:
+        if '-' in seq:
             raise ValueError('Cannot transcribe gapped DNA')
         # Convert DNA chars to RNA chars
         origin = data.common.ALPHABETS['dna'][:-1]

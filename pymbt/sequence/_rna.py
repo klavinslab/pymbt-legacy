@@ -120,8 +120,12 @@ class RNA(object):
 
         '''
 
-        self.top = self.top[0:index] + self.top[index + 1:]
-        self.bottom = self.bottom[1:]
+        top_list = list(self.top)
+        bottom_list = list(self.top)
+        top_list.pop(index)
+        bottom_list.pop(index)
+        self.top = ''.join(top_list)
+        self.bottom = ''.join(top_list)
 
     def __setitem__(self, index, new_value):
         '''
@@ -129,10 +133,10 @@ class RNA(object):
 
         '''
 
+        top_list = list(self.top)
         insert = RNA(new_value)
-        new = self[0:index] + insert + self[index + 1:]
-        self.top = new.top
-        self.bottom = new.bottom
+        top_list[index] = str(insert)
+        self.top = ''.join(top_list)
 
     def __repr__(self):
         '''
@@ -206,9 +210,6 @@ class RNA(object):
             msg = 'unsupported operand type(s) for +: {} and {}'.format(self,
                                                                         other)
             raise TypeError(msg)
-        else:
-            # All is good - add the two DNA objects
-            return self + other
 
     def __mul__(self, multiplier):
         '''
@@ -223,12 +224,6 @@ class RNA(object):
         if multiplier != int(multiplier):
             msg = 'can\'t multiply sequence by non-integer.'
             raise TypeError(msg)
-
-        # Test concatenation by adding once
-        try:
-            self + self
-        except:
-            raise Exception('Failed to add, so cannot multiply.')
 
         # Isolate top and bottom strands, multiply strings, recreate RNA
         tops = self.top * multiplier
@@ -260,6 +255,7 @@ class RNA(object):
         Specially-defined `x in y` behavior
 
         '''
+
         if str(pattern) in str(self):
             return True
         else:

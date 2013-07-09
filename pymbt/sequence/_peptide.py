@@ -79,7 +79,9 @@ class Peptide(object):
 
         '''
 
-        self.peptide = self.peptide[0:index] + self.peptide[index + 1:]
+        peptide_list = list(self.peptide)
+        peptide_list.pop(index)
+        self.peptide = ''.join(peptide_list)
 
     def __setitem__(self, index, new_value):
         '''
@@ -88,8 +90,9 @@ class Peptide(object):
         '''
 
         insert = Peptide(new_value)
-        new = self[0:index] + insert + self[index + 1:]
-        self.peptide = new.peptide
+        peptide_list = list(self.peptide)
+        peptide_list[index] = str(insert)
+        self.peptide = ''.join(peptide_list)
 
     def __repr__(self):
         '''
@@ -161,9 +164,6 @@ class Peptide(object):
             msg = 'unsupported operand type(s) for +: {} and {}'.format(self,
                                                                         other)
             raise TypeError(msg)
-        else:
-            # All is good - add the two DNA objects
-            return self + other
 
     def __mul__(self, multiplier):
         '''
@@ -178,12 +178,6 @@ class Peptide(object):
         if multiplier != int(multiplier):
             msg = 'can\'t multiply sequence by non-integer.'
             raise TypeError(msg)
-
-        # Test concatenation by adding once
-        try:
-            self + self
-        except:
-            raise Exception('Failed to add, so cannot multiply.')
 
         # Isolate sequence strands, multiply strings, recreate Peptide
         tops = self.peptide * multiplier
@@ -209,3 +203,14 @@ class Peptide(object):
         '''
 
         return not (self == other)
+
+    def __contains__(self, pattern):
+        '''
+        Specially-defined `x in y` behavior
+
+        '''
+
+        if str(pattern) in str(self):
+            return True
+        else:
+            return False
