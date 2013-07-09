@@ -55,6 +55,12 @@ def needle(reference, targets, gapopen=10, gapextend=0.5):
     alignments = [x for x in AlignIO.parse(workdir + '/alignments.txt',
                   'emboss')]
 
+    # Process them into a list of tuples of form: [(ref, res1), (ref, res2)],
+    # etc
+    aligned_refs = [x[1].seq.tostring().upper() for x in alignments]
+    aligned_res = [x[0].seq.tostring().upper() for x in alignments]
+    alignments = zip(aligned_refs, aligned_res)
+
     # Manually grab the score (AlignIO doesn't get it for some reason)
     scores = []
     with open(workdir + '/alignments.txt', 'r') as align_file:

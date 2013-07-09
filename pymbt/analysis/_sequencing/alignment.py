@@ -51,9 +51,9 @@ class Sanger(object):
             seq = split[sizes.index(max(sizes))]
 
         # Align
-        self.needle = [needle(reference, result) for result in results]
-        self.alignments = self.needle['alignments']
-        self.scores = self.needle['scores']
+        needle_aligned = [needle(reference, result) for result in results]
+        self.alignments = needle_aligned['alignments']
+        self.scores = needle_aligned['scores']
 
         # If score is too low, may be a 'reverse' sequencing reaction
         # Try reverse complement
@@ -66,8 +66,9 @@ class Sanger(object):
         # Extract aligned sequences
         #   Need N-containing ref sequences in case of insertions. reference
         #   would have '-' in that case?
-        aligned_refs = [x[0].seq.tostring().upper() for x in self.alignments]
-        aligned_res = [x[1].seq.tostring().upper() for x in self.alignments]
+#        aligned_refs = [x[0].seq.tostring().upper() for x in self.alignments]
+#        aligned_res = [x[1].seq.tostring().upper() for x in self.alignments]
+        aligned_refs, aligned_res = zip(*self.alignments)
 
         # Find flanking strings of '-' and remove them (leading and trailing
         # blanks in alignment)
@@ -167,9 +168,9 @@ class Sanger(object):
 
         '''
 
-        print 'mismatches: ' + str(self.mismatches)
-        print 'insertions: ' + str(self.insertions)
-        print 'deletions: ' + str(self.deletions)
+        print 'mismatches: {}'.format(self.mismatches)
+        print 'insertions: {}'.format(self.insertions)
+        print 'deletions: {}'.format(self.deletions)
         if len(self.mismatches) > 0:
             print '----------------------'
             print '----- MISMATCHES -----'
@@ -189,7 +190,7 @@ class Sanger(object):
             print '----------------------'
             for key, value in self.insertions.iteritems():
                 index = int(key)
-                print '  ' + self.resnames[index]
+                print '  {}'.format(self.resnames[index])
                 for insertion in value:
                     print ''
                     refi = self.ref[index]
@@ -203,7 +204,7 @@ class Sanger(object):
             print '---------------------'
             for key, value in self.deletions.iteritems():
                 index = int(key)
-                print '  ' + self.resnames[index]
+                print '  {}'.format(self.resnames[index])
                 for deletion in value:
                     print ''
                     refi = self.ref[index]
@@ -398,9 +399,9 @@ def _sequences_display(seqs, start, stop, context=10, indent=4):
     indent = ' ' * indent
 
     if start != stop:
-        print indent + 'Positions {0} to {1}:'.format(start, stop)
+        print '{0}Positions {1} to {2}:'.format(indent, start, stop)
     else:
-        print indent + 'Position {}:'.format(start)
+        print '{0}Position {1}:'.format(indent, start)
     print indent + top
     print indent + middle
     print indent + bottom

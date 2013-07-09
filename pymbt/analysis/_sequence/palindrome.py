@@ -14,18 +14,16 @@ def palindrome(seq):
     '''
 
     seq_len = len(seq)
-    wing = seq_len // 2
 
-    if seq_len % 2 != 0:
-        # Sequence has odd number of bases, need middle base to test complement
-        l_wing = seq[0:wing + 1]
-        r_wing = seq[wing:]
-    else:
+    if seq_len % 2 == 0:
         # Sequence has even number of bases, can test non-overlapping seqs
+        wing = seq_len / 2
         l_wing = seq[0: wing]
         r_wing = seq[wing:]
-
-    if l_wing == r_wing.reverse_complement():
-        return True
+        if l_wing == r_wing.reverse_complement():
+            return True
+        else:
+            return False
     else:
+        # Sequence has odd number of bases and cannot be a palindrome
         return False

@@ -8,33 +8,6 @@ from collections import Counter
 # TODO: implement version that works for circular DNA
 
 
-class Repeats(object):
-    '''
-    Count repeats in a DNA or RNA sequence.
-
-    '''
-
-    def __init__(self, seq, size):
-        '''
-        :param dna_object: DNA or RNA sequence to test for repeats.
-        :type dna_object: pymbt.sequence.DNA or pymbt.sequence.RNA
-        :param size: size of repeat to detect (in bp).
-        :type size: int
-
-        '''
-
-        self.template = seq
-        self.size = size
-
-    def run(self):
-        '''
-        Execute function.
-
-        '''
-        check = repeats(self.template, self.size)
-        return check
-
-
 def repeats(seq, size):
     '''
     Evaluate sequence repeats in a given sequence.
