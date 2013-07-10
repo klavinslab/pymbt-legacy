@@ -9,8 +9,6 @@
 * Make sequences (DNA, RNA, Peptide) inherit from MutableSequence ABC
 
 ## Organization:
-* Remove features that don't contribute to core workflow?:
-  * Gene splitting
 
 ## Wishlist:
 * Choose best primer from database for sequencing

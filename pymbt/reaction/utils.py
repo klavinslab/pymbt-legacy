@@ -39,8 +39,6 @@ def convert_sequence(seq, to_material):
     elif isinstance(seq, sequence.RNA):
         if to_material == 'dna':
             # Reverse transcribe
-
-            # Convert RNA chars to DNA chars
             origin = data.common.ALPHABETS['rna']
             destination = data.common.ALPHABETS['dna'][:-1]
             code = dict(zip(origin, destination))
@@ -49,10 +47,7 @@ def convert_sequence(seq, to_material):
             converted = sequence.DNA(converted)
         elif to_material == 'peptide':
             # Translate
-
-            # Make a list for easier processing
             seq_list = list(str(seq))
-
             # Convert to peptide until stop codon is found.
             converted = []
             while True:

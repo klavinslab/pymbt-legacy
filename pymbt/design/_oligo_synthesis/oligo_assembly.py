@@ -64,9 +64,13 @@ class OligoAssembly(object):
                        'min_exception': min_exception}
 
         self.template = dna
+        self.oligos = None
+        self.overlaps = None
+        self.overlap_tms = None
 
         self.settings = {'primers': True, 'primer_tm': primer_tm}
         self._has_run = False
+        self.warning = None
 
     def run(self):
         '''
@@ -91,6 +95,9 @@ class OligoAssembly(object):
             assembly_dict = {'oligos': oligos, 'overlaps': overlaps,
                              'overlap_tms': overlap_tms}
 
+            self.oligos = assembly_dict['oligos']
+            self.overlaps = assembly_dict['overlaps']
+            self.overlap_tms = assembly_dict['overlap_tms']
             return assembly_dict
 
         if oligo_number:
@@ -101,6 +108,9 @@ class OligoAssembly(object):
             current_oligo_n = oligo_number + 1
             oligo_n_met = False
             above_min_len = length_max > length_range[0]
+            # TODO: fix this control flow. It's stupid.
+            if not(not oligo_n_met and above_min_len):
+                raise Exception('Failed!')
             while not oligo_n_met and above_min_len:
                 # Starting with low range and going up doesnt work for longer
                 # sequence (overlaps become longer than 80)
@@ -147,10 +157,13 @@ class OligoAssembly(object):
             self.primer_tms = [x[1] for x in self.primers_tms]
 
         for i in range(len(self.overlap_indices) - 1):
+            # TODO: either raise an exception or prevent this from happening
+            # at all
             current_start = self.overlap_indices[i + 1][0]
             current_end = self.overlap_indices[i][1]
             if current_start <= current_end:
-                print 'warning: overlapping overlaps!'
+                self.warning = 'warning: overlapping overlaps!'
+                print self.warning
 
         self._has_run = True
 

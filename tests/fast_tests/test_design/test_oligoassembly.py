@@ -3,13 +3,16 @@ Tests for the OligoAssembly design class.
 
 '''
 
-from nose.tools import assert_equals
+from nose.tools import assert_equal
 from pymbt import design
 from pymbt import sequence
 
 
 def test_oligo_assembly():
-    '''Tests output of OligoAssembly class.'''
+    '''
+    Tests output of OligoAssembly class.
+
+    '''
 
     # Expected outputs
     olig1 = 'ATGCGTAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGAATTAGATGGTG' + \
@@ -64,8 +67,15 @@ def test_oligo_assembly():
     output_oligos = [str(oligo).lower() for oligo in assembly.oligos]
     reference_oligos = [oligo.lower() for oligo in reference_oligos]
 
-    print [abs(x / y - 1) for x, y in zip(assembly.overlap_tms, reference_tms)]
-    print assembly.overlap_tms
-    print reference_tms
-    assert_equals(output_oligos, reference_oligos)
-    assert_equals(assembly.overlap_tms, reference_tms)
+    assert_equal(output_oligos, reference_oligos)
+    assert_equal(assembly.overlap_tms, reference_tms)
+
+    # Test too short of oligo input
+    too_short = sequence.DNA(seq[0:100])
+    too_short_assembly = design.OligoAssembly(too_short,
+                                              tm=72,
+                                              length_range=(120, 120),
+                                              require_even=True,
+                                              start_5=True)
+    too_short_assembly.run()
+    assert_equal(str(too_short_assembly.oligos[0]), str(too_short))
