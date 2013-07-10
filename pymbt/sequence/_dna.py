@@ -587,7 +587,7 @@ class Feature(object):
 
     '''
 
-    def __init__(self, name, start, stop, feature_type):
+    def __init__(self, name, start, stop, feature_type, strand=0):
         '''
         :param name: Name of the feature. Used during feature extraction.
         :type name: str
@@ -599,6 +599,8 @@ class Feature(object):
                                 'coding', 'primer', 'promoter', 'terminator',
                                 'rbs'
         :type name: str
+        :param strand: Watson (0) or Crick (1) strand of the feature.
+        :type strand: int
 
         '''
 
@@ -606,9 +608,10 @@ class Feature(object):
         self.start = int(start)
         self.stop = int(stop)
         self.modified = False
+        self.strand = strand
 
         allowed_types = ['coding', 'primer', 'promoter', 'terminator', 'rbs',
-                         'misc']
+                         'misc', 'origin']
 
         if feature_type in allowed_types:
             self.feature_type = feature_type
@@ -640,5 +643,6 @@ class Feature(object):
                                                          self.feature_type)
         else:
             part1 = "{} '{}' feature ".format(self.name, self.feature_type)
-        part2 = 'from {0} to {1}.'.format(self.start, self.stop)
+        part2 = '({0} to {1}) on strand {2}'.format(self.start, self.stop,
+                                                    self.strand)
         return part1 + part2

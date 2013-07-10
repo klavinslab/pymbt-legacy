@@ -19,10 +19,21 @@ def read_dna(path, file_format):
     :type file_format: str
     '''
 
-    # This needs to be cleaned up - is only barely working for now
     seq = SeqIO.read(path, file_format)
     dna = sequence.DNA(seq.seq.tostring())
     dna.name = seq.name
+
+    # Features
+    for feature in seq.features:
+        feature_name = feature.qualifiers['label'][0]
+        feature_start = int(feature.location.start)
+        feature_stop = int(feature.location.end)
+        feature_type = _process_feature_type(feature.type)
+        feature_strand = max(feature.location.strand, 0)
+        dna.features.append(sequence.Feature(feature_name, feature_start,
+                                             feature_stop, feature_type,
+                                             strand=feature_strand))
+    dna.features = sorted(dna.features, key=lambda feature: feature.start)
 
     return dna
 
@@ -44,3 +55,25 @@ def read_sequencing(dirpath):
     sequences = seq_seqs + abi_seqs
 
     return sequences
+
+
+def _process_feature_type(feature_type):
+    '''
+    Translate BioPython / genbank feature types into those used by
+    pymbt.sequence.Feature
+
+    '''
+
+    conversion = {'misc_feature': 'misc',
+                  'CDS': 'coding',
+                  'gene': 'coding',
+                  'site': 'misc',
+                  'primer_bind': 'primer',
+                  'rep_origin': 'origin',
+                  'promoter': 'promoter',
+                  'terminator': 'terminator'}
+    try:
+        name = conversion[feature_type]
+    except KeyError:
+        raise ValueError('Unrecognized feature type: {}'.format(feature_type))
+    return name
