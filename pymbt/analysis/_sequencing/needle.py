@@ -6,16 +6,18 @@ from Bio.Emboss.Applications import NeedleallCommandline
 from Bio import AlignIO
 
 # Important note: does not produce a 'consensus' reference sequence
+# TODO: return a triple instead of a dict - ref, res, score
+# TODO: return pymbt.sequence.DNA objects
 
 
-def needle(reference, targets, gapopen=10, gapextend=0.5):
+def needle(reference, target, gapopen=10, gapextend=0.5):
     '''
     Do Needleman-Wunsch alignment.
 
     :param reference: Reference sequence.
     :type reference: str
-    :param targets: Sequence(s) to align against the reference.
-    :type targets: str
+    :param target: Sequence to align against the reference.
+    :type target: str
     :param gapopen: Penalty for opening a gap.
     :type gapopen: float
     :param gapextend: Penalty for extending a gap.
@@ -26,50 +28,45 @@ def needle(reference, targets, gapopen=10, gapextend=0.5):
     # Make temporary dir
     workdir = mkdtemp()
 
-    # If input isn't a list, make it one
-    if type(targets) != list:
-        targets = [targets]
-
     # Write input files to temp dir (fasta format)
-    with open(workdir + '/ref.fasta', 'w') as ref_handle:
-        ref_handle.write('>ref\n')
-        ref_handle.write(reference)
-    with open(workdir + '/targets.fasta', 'w') as targets_handle:
-        for i, target in enumerate(targets):
-            targets_handle.write('>target{}\n'.format(i + 1))
-            targets_handle.write('{}\n'.format(target))
+    with open(workdir + '/reference.fasta', 'w') as reference_handle:
+        reference_handle.write('>reference\n')
+        reference_handle.write('{}\n'.format(reference))
+    with open(workdir + '/target.fasta', 'w') as target_handle:
+        target_handle.write('>target\n')
+        target_handle.write('{}\n'.format(target))
 
     # Set up Emboss 'needle' command
     cline = NeedleallCommandline(cmd='needleall')
     cline.gapopen = gapopen
     cline.gapextend = gapextend
-    cline.bsequence = workdir + '/ref.fasta'
-    cline.asequence = workdir + '/targets.fasta'
+    cline.bsequence = workdir + '/reference.fasta'
+    cline.asequence = workdir + '/target.fasta'
     cline.aformat = 'srspair'
-    cline.outfile = workdir + '/alignments.txt'
+    cline.outfile = workdir + '/alignment.txt'
 
     # Run 'needle'
     cline()
 
-    # Grab the alignments using AlignIO
-    alignments = [x for x in AlignIO.parse(workdir + '/alignments.txt',
-                  'emboss')]
+    # Grab the alignment using AlignIO
+    alignio = AlignIO.read(workdir + '/alignment.txt', 'emboss')
 
     # Process them into a list of tuples of form: [(ref, res1), (ref, res2)],
     # etc
-    aligned_refs = [x[1].seq.tostring().upper() for x in alignments]
-    aligned_res = [x[0].seq.tostring().upper() for x in alignments]
-    alignments = zip(aligned_refs, aligned_res)
+    aligned_reference = alignio[1].seq.tostring()
+    aligned_result = alignio[0].seq.tostring()
 
     # Manually grab the score (AlignIO doesn't get it for some reason)
-    scores = []
-    with open(workdir + '/alignments.txt', 'r') as align_file:
+    with open(workdir + '/alignment.txt', 'r') as align_file:
         for line in align_file.readlines():
             if line.startswith('# Score'):
                 score = float(line.strip().lstrip('# Score: '))
-                scores.append(score)
+    if not score:
+        raise Exception("Could not find alignment score (needle)!")
 
     # Delete temporary dir
     rmtree(workdir)
 
-    return {'alignments': alignments, 'scores': scores}
+    # 'alignment' is a list. Each element of the list is a tuple of (1)
+    # the aligned reference sequence and (2) the aligned target sequene
+    return aligned_reference, aligned_result, score

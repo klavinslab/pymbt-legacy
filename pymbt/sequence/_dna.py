@@ -27,7 +27,7 @@ class DNA(object):
     '''
 
     def __init__(self, seq, bottom=None, topology='linear', stranded='ds',
-                 features=None, run_checks=True, id=None):
+                 features=None, run_checks=True, id=None, name=None):
         '''
         :param seq: Input sequence (DNA).
         :type seq: str
@@ -45,8 +45,10 @@ class DNA(object):
                            alphabet check
                            case
         :type run_checks: bool
-        :param id: An optional naming/id field for your DNA sequence.
+        :param id: An optional (unique) id field for your DNA sequence.
         :type id: str
+        :param name: Optional name field for your DNA sequence.
+        :type name: str
 
         '''
 

@@ -53,6 +53,7 @@ def read_sequencing(dirpath):
     seq_seqs = [read_dna(dirpath + x, 'fasta') for x in seq_paths]
     abi_seqs = [read_dna(dirpath + x, 'abi') for x in abi_paths]
     sequences = seq_seqs + abi_seqs
+    sequences = [seq.set_stranded('ss') for seq in sequences]
 
     return sequences
 

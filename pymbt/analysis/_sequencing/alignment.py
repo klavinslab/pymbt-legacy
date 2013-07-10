@@ -34,108 +34,98 @@ class Sanger(object):
         if type(results) != list:
             results = [results]
 
-        # Coerce inputs to string
-        results = [str(seq) for seq in results]
-        for seq in results:
-            seq = str(seq)
-        reference = str(reference)
-
-        # HACK: - results have a name. Is this up to spec?
-        self.ref_raw = reference
-        self.resnames = [x.name for x in results]
+        self.reference_input = reference
+        self.results_input = results
 
         # Remove Ns from sequencing results - keep largest remaining segment
+        self.processed = []
         for seq in results:
-            split = seq.split('N')
+            split = seq.top.split('n')
             sizes = [len(x) for x in split]
-            seq = split[sizes.index(max(sizes))]
+            largest = split[sizes.index(max(sizes))]
+            seq_start = seq.top.index(largest)
+            seq_stop = seq_start + len(largest)
+            self.processed.append(seq[seq_start:seq_stop])
 
         # Align
-        needle_aligned = [needle(reference, result) for result in results]
-        self.alignments = needle_aligned['alignments']
-        self.scores = needle_aligned['scores']
+        needle_result = [needle(str(reference), str(seq)) for seq in
+                         self.processed]
+        self.alignments = [result['alignments'][0] for result in needle_result]
+        self.scores = [result['scores'][0] for result in needle_result]
 
         # If score is too low, may be a 'reverse' sequencing reaction
         # Try reverse complement
         for i, score in enumerate(self.scores):
             if score < 1300:
-                new_needle = needle(reference, results[i].reverse_complement())
-                self.alignments[i] = new_needle['alignments']
+                new_needle = needle(str(reference),
+                                    str(results[i].reverse_complement()))
+                self.alignments[i] = new_needle['alignments'][0]
                 score = new_needle['scores']
 
-        # Extract aligned sequences
-        #   Need N-containing ref sequences in case of insertions. reference
-        #   would have '-' in that case?
-#        aligned_refs = [x[0].seq.tostring().upper() for x in self.alignments]
-#        aligned_res = [x[1].seq.tostring().upper() for x in self.alignments]
-        aligned_refs, aligned_res = zip(*self.alignments)
-
-        # Find flanking strings of '-' and remove them (leading and trailing
-        # blanks in alignment)
-        for a_ref, a_reses in zip(aligned_refs, aligned_res):
+        # Find leading/trailing '-' and 1) note their location and 2)
+        # make versions that remove them.
+        self.alignment_coverage = []
+        for ref, res in zip(*self.alignments):
             frontcount = 0
             backcount = 0
-            while True:
-                if a_ref[-backcount - 1] == '-':
-                    backcount += 1
-                else:
-                    break
-            while True:
-                if a_ref[frontcount] == '-':
-                    frontcount += 1
-                else:
-                    break
-            a_ref = a_ref[:len(a_ref) - backcount]
-            a_reses = a_reses[:len(a_reses) - backcount]
-            a_ref = a_ref[frontcount:]
-            a_reses = a_reses[frontcount:]
-
-        # Store processed, aligned reference and result sequences
-        self.ref = aligned_refs
-        self.res = aligned_res
-
-        # Store reference vs. result tuple for every result for easy reuse
-        self.aligned = [(a_ref, a_reses) for a_ref, a_reses in
-                        zip(aligned_refs, aligned_res)]
+            while ref[-backcount - 1] == '-':
+                backcount += 1
+            while ref[frontcount] == '-':
+                frontcount += 1
+            frontcount
+            len(ref) - backcount
+            len(res) - backcount
 
         # Find gaps in sequencing results
         self.gaps = []
-        for result in enumerate(aligned_res):
-            new_gap = ''.join([_findgap([x]) for x in result])
-            self.gaps.append(new_gap)
-        self.ranges = []
+        for reference, result in zip(*self.alignments):
+            temp_gap = []
+            for i, ref_base in enumerate(reference):
+                if ref_base == '-' and results[i] == '-':
+                    temp_gap.append(i)
+            self.gaps.append(temp_gap)
+
+
         # Based on gaps, find ranges for which there is coverage (no gaps)
+        self.ranges = []
         for gap in self.gaps:
             first = gap.find('X')
             last = (len(gap) - gap[::-1].find('X'))
             self.ranges.append((first, last))
 
         # Calculate mismatches, insertions, and deletions
-        self.mismatches = {}
-        self.insertions = {}
-        self.deletions = {}
+        self.mismatches = []
+        self.insertions = []
+        self.deletions = []
+
         # TODO: This is unreadable. Rewrite it.
-        for i, reference in enumerate(aligned_refs):
-            i_key = str(i)
-            for j in range(len(reference)):
-                if aligned_refs[i][j] != '-' and aligned_res[i][j] != '-':
-                    if aligned_refs[i][j] != aligned_res[i][j]:
-                        if i_key in self.mismatches:
-                            self.mismatches[i_key].append((j, j))
-                        else:
-                            self.mismatches[i_key] = [(j, j)]
-                elif aligned_refs[i][j] == '-' and aligned_res[i][j] != '-':
+        # Got through each alignment
+        for ref, res in zip(*self.alignments):
+            # Go through each alignment base by base
+            for j, refbase in enumerate(ref):
+                # If both bases are a gap, it's a terminal gap (ignore it)
+                if refbase == '-' and res[j] == '-':
+                    pass
+                # If only the reference base is a '-', report insertion
+                elif refbase == '-':
                     if j in range(self.ranges[i][0], self.ranges[i][1]):
                         if i_key in self.insertions:
                             self.insertions[i_key].append((j, j))
                         else:
                             self.insertions[i_key] = [(j, j)]
-                elif aligned_refs[i][j] != '-' and aligned_res[i][j] == '-':
+                # If only the reference base is a '-', report deletion
+                elif res[j] == '-':
                     if j in range(self.ranges[i][0], self.ranges[i][1]):
                         if i_key in self.deletions:
                             self.deletions[i_key].append((j, j))
                         else:
                             self.deletions[i_key] = [(j, j)]
+                # If bases don't match, report mismatch
+                elif refbase != res[j]:
+                    if i_key in self.mismatches:
+                        self.mismatches[i_key].append((j, j))
+                    else:
+                        self.mismatches[i_key] = [(j, j)]
 
         # Deletions and insertions are found on a per-base basis. If they occur
         # one after another, group together as a single deletion or insertion
@@ -348,7 +338,6 @@ class Sanger(object):
         pass
 
 
-# TODO: why is this necessary?
 def _findgap(result):
     '''
     Iterate over string list, return 'X' if has non-\'-\' value.
