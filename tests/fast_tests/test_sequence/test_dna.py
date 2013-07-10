@@ -16,6 +16,15 @@ class TestDNA(object):
     def __init__(self):
         self.test_dna = sequence.DNA('atgc')
 
+    def bad_feature(self):
+        def duckfeature():
+            sequence.DNA('atgc', features='duck')
+        assert_raises(ValueError, duckfeature)
+
+        def duckfeaturelist():
+            sequence.DNA('atgc', features=['duck'])
+        assert_raises(ValueError, duckfeaturelist)
+
     def test_reverse_complement(self):
         assert_equal(self.test_dna.reverse_complement().top, 'gcat')
 
@@ -199,3 +208,9 @@ def test_stranded_complemented():
     assert_equal(ss_dna.bottom, r_ss_dna.bottom)
     assert_equal(ss_dna.top, sequence.utils.reverse_complement(r_ss_dna.top,
                                                                'dna'))
+
+
+def test_feature():
+    def badtype():
+        sequence.Feature('yEVenus', 0, 717, 'duck')
+    assert_raises(ValueError, badtype)

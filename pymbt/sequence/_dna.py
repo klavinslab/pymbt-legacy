@@ -10,7 +10,13 @@ from pymbt.sequence import utils
 # flipped automatically or represented as-is? __setitem__ depends on this and
 # is currently incomplete. Also has implications for __add__.
 #   It should not be flipped automatically (unexpected, limits expressibility)
-# TODO: Features: .features list and .extract method
+# TODO: Feature mode is weak, may need to be redesigned
+#       Examples:
+#           How to track modifications to features? If I have gfp and linearize
+#           in it, then recircularize, how can it be restored to 'unmodified'
+#           version? Would need sequence information / a history of
+#           modifications.
+#       Feature updater - if a feature has all negative indices, should update
 # TODO: set method for topology
 
 
@@ -21,7 +27,7 @@ class DNA(object):
     '''
 
     def __init__(self, seq, bottom=None, topology='linear', stranded='ds',
-                 features=None, run_checks=True):
+                 features=None, run_checks=True, id=None):
         '''
         :param seq: Input sequence (DNA).
         :type seq: str
@@ -39,6 +45,8 @@ class DNA(object):
                            alphabet check
                            case
         :type run_checks: bool
+        :param id: An optional naming/id field for your DNA sequence.
+        :type id: str
 
         '''
 
@@ -51,7 +59,15 @@ class DNA(object):
         if not features:
             self.features = []
         else:
-            self.features = features
+            if isinstance(features, Feature):
+                self.features = [features]
+            elif type(features) == list:
+                if all(isinstance(feature, Feature) for feature in features):
+                    self.features = features
+                else:
+                    raise Exception('Invalid feature input')
+            else:
+                raise Exception('Invalid feature input')
         # TODO: eliminate this attribute - just let it be implicit / checkable
         # with a method e.g. DNA.stranded()
         self.stranded = stranded
@@ -74,7 +90,8 @@ class DNA(object):
         elif stranded == 'ds':
             self.bottom = utils.reverse_complement(self.top, 'dna')
 
-        self.id = None
+        # TODO: What should happen when a DNA sequence with an id is modified?
+        self.id = id
 
     def reverse_complement(self):
         '''
@@ -226,6 +243,28 @@ class DNA(object):
             bottom_starts = [start - roff + 1 for start in bottom_starts]
 
         return (top_starts, bottom_starts)
+
+    def extract(self, feature_name):
+        '''
+        Extract a feature from the DNA sequence.
+
+        :param feature_name: Name of the future. Must be unique.
+        :type feature_name: str
+
+        '''
+
+        found_feature = False
+        for feature in self.features:
+            if feature.name == feature_name:
+                if found_feature:
+                    msg = 'Feature name was not unique, found more than one.'
+                    raise ValueError(msg)
+                else:
+                    found_feature = feature
+        if found_feature:
+            return self[found_feature.start:found_feature.stop]
+        else:
+            raise ValueError('Feature name does not appear in features list')
 
     def copy(self):
         '''
@@ -540,3 +579,66 @@ class RestrictionSite(object):
             pass
 
         return '\n'.join([top_w_cut, bottom_w_cut])
+
+
+class Feature(object):
+    '''
+    A DNA feature - annotate and extract sequence by metadata.
+
+    '''
+
+    def __init__(self, name, start, stop, feature_type):
+        '''
+        :param name: Name of the feature. Used during feature extraction.
+        :type name: str
+        :param start: Where the feature starts
+        :type start: int
+        :param stop: Where the feature stops
+        :type stop: int
+        :param feature_type: The type of the feature. Allowed types:
+                                'coding', 'primer', 'promoter', 'terminator',
+                                'rbs'
+        :type name: str
+
+        '''
+
+        self.name = name
+        self.start = int(start)
+        self.stop = int(stop)
+        self.modified = False
+
+        allowed_types = ['coding', 'primer', 'promoter', 'terminator', 'rbs',
+                         'misc']
+
+        if feature_type in allowed_types:
+            self.feature_type = feature_type
+        else:
+            msg1 = 'feature_type'
+            msg2 = 'must be one of the following: {}'.format(allowed_types)
+            raise ValueError(msg1 + msg2)
+
+    def move(self, bases):
+        '''
+        Move the start and stop positions.
+
+        :param bases: bases to move - can be negative
+        :type bases: int
+
+        '''
+
+        self.start += bases
+        self.stop += bases
+
+    def __repr__(self):
+        '''
+        Representation of the feature.
+
+        '''
+
+        if self.modified:
+            part1 = "(Modified) {} '{}' feature ".format(self.name,
+                                                         self.feature_type)
+        else:
+            part1 = "{} '{}' feature ".format(self.name, self.feature_type)
+        part2 = 'from {0} to {1}.'.format(self.start, self.stop)
+        return part1 + part2
