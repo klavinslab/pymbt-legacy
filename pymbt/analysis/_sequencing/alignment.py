@@ -6,7 +6,7 @@ Sanger sequencing alignment tools.
 from matplotlib import pyplot
 from matplotlib import cm
 
-from pymbt.analysis._sequencing.needle import needle
+from pymbt.analysis import needle
 
 # bigger TODO: This module doesn't work at all right now. Fix it.
 # TODO:
@@ -36,6 +36,7 @@ class Sanger(object):
 
         self.reference_input = reference
         self.results_input = results
+        self.names = [seq.name for seq in results]
 
         # Remove Ns from sequencing results - keep largest remaining segment
         self.processed = []
@@ -50,107 +51,59 @@ class Sanger(object):
         # Align
         needle_result = [needle(str(reference), str(seq)) for seq in
                          self.processed]
-        self.alignments = [result['alignments'][0] for result in needle_result]
-        self.scores = [result['scores'][0] for result in needle_result]
+        self.alignments = [(result[0], result[1]) for result in needle_result]
+        self.scores = [result[2] for result in needle_result]
 
         # If score is too low, may be a 'reverse' sequencing reaction
         # Try reverse complement
         for i, score in enumerate(self.scores):
             if score < 1300:
+                reversed_result = self.processed[i].reverse_complement()
                 new_needle = needle(str(reference),
-                                    str(results[i].reverse_complement()))
-                self.alignments[i] = new_needle['alignments'][0]
-                score = new_needle['scores']
+                                    str(reversed_result))
+                self.alignments[i] = (new_needle[0], new_needle[1])
+                score = new_needle[2]
 
-        # Find leading/trailing '-' and 1) note their location and 2)
-        # make versions that remove them.
-        self.alignment_coverage = []
-        for ref, res in zip(*self.alignments):
+        # Find leading/trailing '-' and record coverage indices
+        self.coverage = []
+        for ref, res in self.alignments:
             frontcount = 0
             backcount = 0
-            while ref[-backcount - 1] == '-':
+            while res[-backcount - 1] == '-':
                 backcount += 1
-            while ref[frontcount] == '-':
+            while res[frontcount] == '-':
                 frontcount += 1
-            frontcount
-            len(ref) - backcount
-            len(res) - backcount
-
-        # Find gaps in sequencing results
-        self.gaps = []
-        for reference, result in zip(*self.alignments):
-            temp_gap = []
-            for i, ref_base in enumerate(reference):
-                if ref_base == '-' and results[i] == '-':
-                    temp_gap.append(i)
-            self.gaps.append(temp_gap)
-
-
-        # Based on gaps, find ranges for which there is coverage (no gaps)
-        self.ranges = []
-        for gap in self.gaps:
-            first = gap.find('X')
-            last = (len(gap) - gap[::-1].find('X'))
-            self.ranges.append((first, last))
+            self.coverage.append((frontcount, len(ref) - backcount))
 
         # Calculate mismatches, insertions, and deletions
-        self.mismatches = []
-        self.insertions = []
-        self.deletions = []
+        self.mismatches = [[]] * len(self.alignments)
+        self.insertions = [[]] * len(self.alignments)
+        self.deletions = [[]] * len(self.alignments)
 
         # TODO: This is unreadable. Rewrite it.
         # Got through each alignment
-        for ref, res in zip(*self.alignments):
+        for i, (reference, result) in enumerate(self.alignments):
             # Go through each alignment base by base
-            for j, refbase in enumerate(ref):
-                # If both bases are a gap, it's a terminal gap (ignore it)
-                if refbase == '-' and res[j] == '-':
-                    pass
-                # If only the reference base is a '-', report insertion
-                elif refbase == '-':
-                    if j in range(self.ranges[i][0], self.ranges[i][1]):
-                        if i_key in self.insertions:
-                            self.insertions[i_key].append((j, j))
-                        else:
-                            self.insertions[i_key] = [(j, j)]
-                # If only the reference base is a '-', report deletion
-                elif res[j] == '-':
-                    if j in range(self.ranges[i][0], self.ranges[i][1]):
-                        if i_key in self.deletions:
-                            self.deletions[i_key].append((j, j))
-                        else:
-                            self.deletions[i_key] = [(j, j)]
-                # If bases don't match, report mismatch
-                elif refbase != res[j]:
-                    if i_key in self.mismatches:
-                        self.mismatches[i_key].append((j, j))
-                    else:
-                        self.mismatches[i_key] = [(j, j)]
+            ref_trim = reference[slice(*self.coverage[i])]
+            res_trim = result[slice(*self.coverage[i])]
+            for j, (refbase, resbase) in enumerate(zip(ref_trim, res_trim)):
+                # If only the reference base is a '-', is insertion
+                if refbase == '-':
+                    self.insertions[i].append((j, j))
+                # If only the reference base is a '-', is deletion
+                elif resbase == '-':
+                    self.deletions[i].append((j, j))
+                # If bases don't match, is mismatch
+                elif refbase != resbase:
+                    self.mismatches[i].append((j, j))
 
-        # Deletions and insertions are found on a per-base basis. If they occur
-        # one after another, group together as a single deletion or insertion
+        # Deletions and insertions were found on a per-base basis. They should
+        # be grouped togethre if they're one after another
         # Deletion grouping:
-        for key, value in self.deletions.iteritems():
-            last = (-2, -2)
-            newlist = []
-            for deletion in value:
-                if deletion[0] == last[1] + 1:
-                    newlist[-1] = (last[0], deletion[1])
-                else:
-                    newlist.append(deletion)
-                last = newlist[-1]
-            self.deletions[key] = newlist
-        # Insertion grouping:
-        for key, value in self.insertions.iteritems():
-            last = (-2, -2)
-            newlist = []
-            for j, deletion in enumerate(value):
-                if deletion[0] == last[1] + 1:
-                    newlist[-1] = (last[0], deletion[1])
-                else:
-                    newlist.append(deletion)
-                last = newlist[-1]
-            self.insertions[key] = newlist
+        for i, alignment_deletions in enumerate(self.deletions):
+            self.deletions[i] = _group_indels(alignment_deletions)
+        for i, alignment_insertions in enumerate(self.insertions):
+            self.deletions[i] = _group_indels(alignment_deletions)
 
     def report(self):
         '''
@@ -336,6 +289,28 @@ class Sanger(object):
         '''
 
         pass
+
+
+def _group_indels(indel_list):
+    '''
+    Group insertions or deletions that form a continuous block.
+
+    :param indel_list: list of deletion or insert indices (elements are
+                       2-tuples)
+    :type indel_list: list
+    '''
+
+    # By setting to (-2, -2), skips first base so that others can
+    # 'look back' to see whether the current deletion is last + 1
+    previous = (-2, -2)
+    grouped_indels = []
+    for indel in indel_list:
+        if previous[1] - indel[0] == 1:
+            grouped_indels[-1] = (previous[0], indel[1])
+        else:
+            grouped_indels.append(indel)
+        previous = grouped_indels[-1]
+    return grouped_indels
 
 
 def _findgap(result):

@@ -94,6 +94,7 @@ class DNA(object):
 
         # TODO: What should happen when a DNA sequence with an id is modified?
         self.id = id
+        self.name = name
 
     def reverse_complement(self):
         '''
