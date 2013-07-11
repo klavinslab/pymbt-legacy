@@ -8,10 +8,8 @@ from matplotlib import cm
 
 from pymbt.analysis import needle
 
-# bigger TODO: This module doesn't work at all right now. Fix it.
 # TODO:
 # consensus / master sequence for plotting / report / analysis
-# too much work is done initializing Sanger. Move calculations to methods.
 
 
 class Sanger(object):
@@ -127,24 +125,21 @@ class Sanger(object):
         feature_ranges = [(feature.start, feature.stop) for feature in
                           features]
         feature_bins = _disjoint_bins(feature_ranges)
-        feature_nbin = max(feature_bins)
-
-#        def plot_features(features):
-#            for i, feature in enumerate(features):
-#                name = feature.name
-#                feature_start = feature.start
-#                feature_end = feature.stop
-#                mid = (feature_start + feature_end) // 2
-#                centered = (feature_bins[i] + 1) * size
-#                pos = float(i) / len(features)
-#                sub1.broken_barh([(feature_start, feature_end-feature_start)],
-#                                 (centered, 9), facecolors=cm.Set3(pos),
-#                                 edgecolors='black')
-#                sub1.text(mid, centered + 7, name, rotation=90)
-#        plot_features(self.reference.features)
+        feature_nbin = len(feature_bins)
 
         # Bin the alignments so they don't overlap when plotted
         alignment_bins = _disjoint_bins(self.coverage)
+
+        # Calculate discrepancy coordinates
+        discrepancy_coords = [[], [], []]
+        discrepancies = [self.mismatches, self.insertions, self.deletions]
+        for i, result_bin in enumerate(alignment_bins):
+            for index in result_bin:
+                for j, discrepancy_type in enumerate(discrepancies):
+                    for discrepancy in discrepancy_type[index]:
+                        y = i
+                        x = (discrepancy[0] + discrepancy[1]) // 2
+                        discrepancy_coords[j].append((x, y))
 
         ############
         # Plotting #
@@ -163,74 +158,52 @@ class Sanger(object):
                          facecolors='black', edgecolors='none')
 
         # Plot the reference features on top of the bar
-        def plot_features(features):
-            for i, feature in enumerate(features):
+        # Plot the features by bin:
+        for i, feature_bin in enumerate(feature_bins):
+            for index in feature_bin:
+                feature = features[index]
                 name = feature.name
-                feature_start = feature.start
-                feature_end = feature.stop
-                mid = (feature_start + feature_end) // 2
-                centered = (feature_bins[i] + 1) * size
+
+                width = feature.stop - feature.start
+                height = size - 1
+                y_index = (i + 1) * size
+                mid = (feature.start + feature.stop) // 2
+
                 pos = float(i) / len(features)
-                sub1.broken_barh([(feature_start, feature_end-feature_start)],
-                                 (centered, 9), facecolors=cm.Set3(pos),
+                sub1.broken_barh([(feature.start, width)],
+                                 (y_index, height),
+                                 facecolors=cm.Set3(pos),
                                  edgecolors='black')
-                sub1.text(mid, centered + 7, name, rotation=90)
+                sub1.text(mid, y_index + size / 2, name, rotation=90)
 
-        plot_features(self.reference.features)
+        # Plot sequencing results by bin
+        for i, result_bin in enumerate(alignment_bins):
+            for index in result_bin:
+                start, stop = self.coverage[index]
+                name = self.names[index]
 
-        # Plot discrepancies
-        def plot_discrepancies(index, height):
-            '''
-            Add insertions, deletions, and mismatches to plot.
+                width = stop - start
+                height = size - 1
+                y_index = (i + 1) * size + size * (feature_nbin + 1)
+                text_x = start + (stop - start) // 6
 
-            :param height: height of the annotation (on plot).
-            :type height: int
+                sub1.broken_barh([(start, width)], (y_index, height),
+                                 facecolors='pink', edgecolors='black')
+                sub1.text(text_x, y_index + size // 3, _wrap_name(name),
+                          rotation=0)
 
-            '''
+        # Plot mismatches, insertions, deletions
+        sub1.plot(1000, 25)
+        shapes = ['o', 'x', 'v']
+        labels = ['mismatch', 'insertion', 'deletion']
+        for coords, shape, label in zip(discrepancy_coords, shapes, labels):
+            x_coords = [x[0] for x in coords]
+            y_coords = [(x[1] + feature_nbin + 2) * size for x in coords]
+            sub1.scatter(x_coords, y_coords, marker=shape, color='k',
+                         label=label)
+        sub1.legend()
 
-            sub1.plot(1000, 25)
-
-            mismatches = self.mismatches[index]
-            insertions = self.insertions[index]
-            deletions = self.deletions[index]
-            for mismatch in mismatches:
-                sub1.plot(mismatch[0], height, marker='o', color='k')
-            for insertion in insertions:
-                sub1.plot(insertion[0], height, marker='o', color='k')
-            for deletion in deletions:
-                sub1.plot(deletion[0], height, marker='o', color='k')
-
-        def wrap_name(str_in, wrap_len=10):
-            '''
-            Wrap plotted text to avoid overlaps (not perfect).
-
-            :param str_in: Input string.
-            :type str_in: str
-            :param wrap_len: Length at which to wrap lines.
-            :type wrap_len: str
-
-            '''
-
-            wrap_positions = range(0, len(str_in), wrap_len)
-            out = [str_in[i:i + wrap_len] for i in wrap_positions]
-            return '\n'.join(out)
-
-        # Step 3: plot results ranges
-        for i, (start, stop) in enumerate(self.coverage):
-            #gap = self.gaps[i]
-            #gap_index = gap.find('X')
-            #ends = (gap_index, len(gap) - gap[::-1].find('X') - gap_index)
-
-            ends = (start, stop)
-            centered = (alignment_bins[i] + 1) * size
-            centered += size + size * feature_nbin
-            sub1.broken_barh([ends], (centered, 9), facecolors='pink',
-                             edgecolors='black')
-            sub1.text(ends[0] + size, centered + 8,
-                      wrap_name(self.names[i]),
-                      verticalalignment='top')
-            plot_discrepancies(i, centered + 2)
-
+        # Plot labeling, etc
         sub1.set_xlim(0, reference_width)
         sub1.set_xlabel('Base pairs from origin')
         sub1.set_yticks([15, 15 + size * (feature_nbin + 1)])
@@ -478,24 +451,19 @@ def _sequences_display(seq1, seq2, start, stop, context=10, indent=4):
 
 def _disjoint_bins(ranges_list):
     '''
-    Construct disjoint bins given a list of 1-D ranges (tuples)
+    Construct disjoint bins given a list of 1-D ranges (tuples). Returns a list
+    of bins containing the index of each range that fell into that bin.
 
     :param range_tuple_list: A list of tuples containing range values.
     :type range_tuple_list: list
 
     '''
 
-    ranges_len = len(ranges_list)
+    # Keep track of the original order for reporting later
+    ranges_list = [(x[0], x[1], i) for i, x in enumerate(ranges_list)]
     ranges_list = sorted(ranges_list, key=lambda starts: starts[0])
-    rtl = ranges_list
-    # number the ranges (third value in tuple)
-    rtl = [(x[0], x[1], i) for i, x in enumerate(rtl)]
 
-    # sort by range start
-    rtl = sorted(rtl, key=lambda starts: starts[0])
-
-    remaining = rtl[:]
-
+    remaining = ranges_list[:]
     binned = []
     while True:
         current_bin = []
@@ -503,8 +471,8 @@ def _disjoint_bins(ranges_list):
         while remaining:
             last = remaining.pop(0)
             current_bin.append(last)
-            next_bin += [x for x in remaining if x[0] <= last[1]]
-            remaining = [x for x in remaining if x[0] > last[1]]
+            next_bin += [x for x in remaining if x[0] < last[1]]
+            remaining = [x for x in remaining if x[0] >= last[1]]
         binned.append(current_bin)
 
         if not remaining and not next_bin:
@@ -512,9 +480,23 @@ def _disjoint_bins(ranges_list):
         else:
             remaining = next_bin
 
-    bin_list = [0] * ranges_len
-    for i, bin_ranges in enumerate(binned):
-        for bin_range in bin_ranges:
-            bin_list[bin_range[2]] = i
+    bins_pre = [[x[2] for x in range_bin] for range_bin in binned]
+    bins = bins_pre
 
-    return bin_list
+    return bins
+
+
+def _wrap_name(str_in, wrap_len=15):
+    '''
+    Wrap plotted text to avoid overlaps (not perfect).
+
+    :param str_in: Input string.
+    :type str_in: str
+    :param wrap_len: Length at which to wrap lines.
+    :type wrap_len: str
+
+    '''
+
+    wrap_positions = range(0, len(str_in), wrap_len)
+    out = [str_in[i:i + wrap_len] for i in wrap_positions]
+    return '\n'.join(out)
