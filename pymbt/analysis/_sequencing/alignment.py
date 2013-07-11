@@ -9,6 +9,9 @@ from matplotlib import cm
 from pymbt.analysis import needle
 
 # TODO:
+# multiprocessing for alignment
+# sequencing that goes past 'end' of a circular reference
+# is reported as an insertion
 # consensus / master sequence for plotting / report / analysis
 
 
@@ -32,12 +35,12 @@ class Sanger(object):
         if type(results) != list:
             results = [results]
 
-        self.reference = reference
-        self.results_input = results
+        self._reference = reference
+        self._results_input = results
         self.names = [seq.name for seq in results]
 
         # Remove Ns from sequencing results - keep largest remaining segment
-        self.processed = [self._remove_n(x) for x in results]
+        self._processed = [self._remove_n(x) for x in results]
 
         # Align
         print '(Aligning...)'
@@ -88,15 +91,16 @@ class Sanger(object):
                 print '----------------------'
 
                 for i, result_disparity in enumerate(disparity['list']):
-                    result_name = self.names[i]
-                    print '  {}'.format(result_name)
-                    ref_i = self.alignments[i][0]
-                    res_i = self.alignments[i][1]
+                    if result_disparity:
+                        result_name = self.names[i]
+                        print '  {}'.format(result_name)
+                        ref_i = self.alignments[i][0]
+                        res_i = self.alignments[i][1]
 
-                    for start, end in result_disparity:
-                        print
-                        _sequences_display(ref_i, res_i, start, end)
-                        print
+                        for start, end in result_disparity:
+                            print
+                            _sequences_display(ref_i, res_i, start, end)
+                            print
 
     def plot(self):
         '''
@@ -121,7 +125,7 @@ class Sanger(object):
         reference_height = 1
 
         # Bin the features so they don't overlap when plotted
-        features = self.reference.features
+        features = self._reference.features
         feature_ranges = [(feature.start, feature.stop) for feature in
                           features]
         feature_bins = _disjoint_bins(feature_ranges)
@@ -215,7 +219,7 @@ class Sanger(object):
         pyplot.title('Alignment gap summary', fontstyle='normal')
         pyplot.show()
 
-    def write_alignment(self):
+    def write(self, path):
         '''
         Write alignment results to file - allows reanalysis and processing
         by other programs.
@@ -223,22 +227,6 @@ class Sanger(object):
         '''
 
         # custom format or standard (e.g. FASTA)? Implement both?
-        return NotImplemented
-
-    def write_plot(self):
-        '''
-        Save plot to image (png or svg).
-
-        '''
-
-        return NotImplemented
-
-    def fix_disrepancy(self, result, position, newvalue):
-        '''
-        Fix mismatch, deletion, or insertion manually.
-
-        '''
-
         return NotImplemented
 
     def _remove_n(self, seq):
@@ -261,14 +249,14 @@ class Sanger(object):
 
     def _align(self):
         '''
-        Aligns sequences in Sanger. self.reference and self.processed have to
+        Aligns sequences in Sanger. self._reference and self._processed have to
         exist first.
 
         '''
 
         # Align
-        needle_result = [needle(str(self.reference), str(seq)) for seq in
-                         self.processed]
+        needle_result = [needle(str(self._reference), str(seq)) for seq in
+                         self._processed]
 
         # Split into alignments and scores
         alignments = [(result[0], result[1]) for result in needle_result]
@@ -278,8 +266,8 @@ class Sanger(object):
         # Try reverse complement
         for i, score in enumerate(scores):
             if score < 1300:
-                reversed_result = self.processed[i].reverse_complement()
-                new_needle = needle(str(self.reference),
+                reversed_result = self._processed[i].reverse_complement()
+                new_needle = needle(str(self._reference),
                                     str(reversed_result))
                 alignments[i] = (new_needle[0], new_needle[1])
                 score = new_needle[2]
@@ -344,6 +332,17 @@ class Sanger(object):
             deletions[i] = _group_indels(alignment_deletions)
 
         return mismatches, insertions, deletions
+
+    def __repr__(self):
+        n_mismatches = sum([len(x) for x in self.mismatches])
+        n_insertions = sum([len(x) for x in self.insertions])
+        n_deletions = sum([len(x) for x in self.deletions])
+        str1 = 'Sanger sequencing alignment object.\n'
+        str2 = '\n'
+        str3 = '    {} mismatches, '.format(n_mismatches)
+        str4 = '{} insertions, '.format(n_insertions)
+        str5 = '{} deletions.'.format(n_deletions)
+        return str1 + str2 + str3 + str4 + str5
 
 
 def _group_indels(indel_list):
