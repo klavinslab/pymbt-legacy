@@ -3,21 +3,34 @@ Read and write DNA sequences.
 
 '''
 
-from os import listdir
+import os
 from Bio import SeqIO
 from pymbt import sequence
 
 
-def read_dna(path, file_format):
+def read_dna(path):
     '''
     Read DNA from file. Uses BioPython's tools and coerces to pymbt format.
 
     :param path: Full path to input file.
     :type path: str
-    :param file_format: BioPython-compatible format string, e.g. 'fasta',
-                        'genbank'.
-    :type file_format: str
+
     '''
+
+    base, ext = os.path.splitext(path)
+
+    genbank_exts = ['.gb', '.ape']
+    fasta_exts = ['.fasta', '.fa', '.seq']
+    abi_exts = ['.abi', '.ab1']
+
+    if any(ext == extension for extension in genbank_exts):
+        file_format = 'genbank'
+    elif any(ext == extension for extension in fasta_exts):
+        file_format = 'fasta'
+    elif any(ext == extension for extension in abi_exts):
+        file_format = 'abi'
+    else:
+        raise ValueError('File format not recognized.')
 
     seq = SeqIO.read(path, file_format)
     dna = sequence.DNA(seq.seq.tostring())
@@ -47,15 +60,10 @@ def read_sequencing(dirpath):
 
     '''
 
-    seq_paths = [x for x in listdir(dirpath) if x.endswith('.seq')]
-    abi_paths = [x for x in listdir(dirpath) if x.endswith('.abi')]
-    abi_paths += [x for x in listdir(dirpath) if x.endswith('.ab1')]
-
-    seq_seqs = [read_dna(dirpath + x, 'fasta') for x in seq_paths]
-    abi_seqs = [read_dna(dirpath + x, 'abi') for x in abi_paths]
-
-    sequences = seq_seqs + abi_seqs
-    sequences = [seq.set_stranded('ss') for seq in sequences]
+    seq_exts = ['.seq', '.abi', '.ab1']
+    dirfiles = os.listdir(dirpath)
+    seq_paths = [x for x in dirfiles if os.path.splitext(x)[1] in seq_exts]
+    sequences = [read_dna(dirpath + x).set_stranded('ss') for x in seq_paths]
 
     return sequences
 

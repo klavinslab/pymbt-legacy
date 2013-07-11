@@ -198,7 +198,7 @@ class Sanger(object):
         labels = ['mismatch', 'insertion', 'deletion']
         for coords, shape, label in zip(discrepancy_coords, shapes, labels):
             x_coords = [x[0] for x in coords]
-            y_coords = [(x[1] + feature_nbin + 2) * size for x in coords]
+            y_coords = [(x[1] + feature_nbin + 2) * size + 2 for x in coords]
             sub1.scatter(x_coords, y_coords, marker=shape, color='k',
                          label=label)
         sub1.legend()

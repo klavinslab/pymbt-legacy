@@ -1,9 +1,6 @@
-#TODO List
+# TODO List
 
 ## Fixes:
-* Things that are not working (and should have tests written for them):
-    * Plotting sequencing analysis
-        * DNA objects need sequence feature model first
 
 ## OO API:
 * Make sequences (DNA, RNA, Peptide) inherit from MutableSequence ABC
@@ -12,6 +9,7 @@
 
 ## Wishlist:
 * High Priority
+    * Read/write sequencing alignments (Sanger methods)
     * Drop emboss dependency by using pycogent / pycogent approach for needleman-wunsch
         * pycogent method (pure python) is significantly slower than emboss
         * try numpy or cython
