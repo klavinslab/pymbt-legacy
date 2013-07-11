@@ -278,7 +278,8 @@ class DNA(object):
         # Alphabet checking disabled on copy to improve performance
         new_instance = DNA(self.top, bottom=self.bottom,
                            topology=self.topology, stranded=self.stranded,
-                           features=self.features, run_checks=False)
+                           features=self.features, run_checks=False,
+                           id=self.id, name=self.name)
 
         return new_instance
 

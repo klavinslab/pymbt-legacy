@@ -34,76 +34,25 @@ class Sanger(object):
         if type(results) != list:
             results = [results]
 
-        self.reference_input = reference
+        self.reference = reference
         self.results_input = results
         self.names = [seq.name for seq in results]
 
         # Remove Ns from sequencing results - keep largest remaining segment
-        self.processed = []
-        for seq in results:
-            split = seq.top.split('n')
-            sizes = [len(x) for x in split]
-            largest = split[sizes.index(max(sizes))]
-            seq_start = seq.top.index(largest)
-            seq_stop = seq_start + len(largest)
-            self.processed.append(seq[seq_start:seq_stop])
+        self.processed = [self._remove_n(x) for x in results]
 
         # Align
-        needle_result = [needle(str(reference), str(seq)) for seq in
-                         self.processed]
-        self.alignments = [(result[0], result[1]) for result in needle_result]
-        self.scores = [result[2] for result in needle_result]
-
-        # If score is too low, may be a 'reverse' sequencing reaction
-        # Try reverse complement
-        for i, score in enumerate(self.scores):
-            if score < 1300:
-                reversed_result = self.processed[i].reverse_complement()
-                new_needle = needle(str(reference),
-                                    str(reversed_result))
-                self.alignments[i] = (new_needle[0], new_needle[1])
-                score = new_needle[2]
+        print '(Aligning...)'
+        self.alignments, self.scores = self._align()
 
         # Find leading/trailing '-' and record coverage indices
-        self.coverage = []
-        for ref, res in self.alignments:
-            frontcount = 0
-            backcount = 0
-            while res[-backcount - 1] == '-':
-                backcount += 1
-            while res[frontcount] == '-':
-                frontcount += 1
-            self.coverage.append((frontcount, len(ref) - backcount))
+        self.coverage = self._find_coverage()
 
         # Calculate mismatches, insertions, and deletions
-        self.mismatches = [[]] * len(self.alignments)
-        self.insertions = [[]] * len(self.alignments)
-        self.deletions = [[]] * len(self.alignments)
-
-        # TODO: This is unreadable. Rewrite it.
-        # Got through each alignment
-        for i, (reference, result) in enumerate(self.alignments):
-            # Go through each alignment base by base
-            ref_trim = reference[slice(*self.coverage[i])]
-            res_trim = result[slice(*self.coverage[i])]
-            for j, (refbase, resbase) in enumerate(zip(ref_trim, res_trim)):
-                # If only the reference base is a '-', is insertion
-                if refbase == '-':
-                    self.insertions[i].append((j, j))
-                # If only the reference base is a '-', is deletion
-                elif resbase == '-':
-                    self.deletions[i].append((j, j))
-                # If bases don't match, is mismatch
-                elif refbase != resbase:
-                    self.mismatches[i].append((j, j))
-
-        # Deletions and insertions were found on a per-base basis. They should
-        # be grouped togethre if they're one after another
-        # Deletion grouping:
-        for i, alignment_deletions in enumerate(self.deletions):
-            self.deletions[i] = _group_indels(alignment_deletions)
-        for i, alignment_insertions in enumerate(self.insertions):
-            self.deletions[i] = _group_indels(alignment_deletions)
+        discrepancies = self._find_discrepancies()
+        self.mismatches = discrepancies[0]
+        self.insertions = discrepancies[1]
+        self.deletions = discrepancies[2]
 
     def report(self):
         '''
@@ -111,90 +60,85 @@ class Sanger(object):
 
         '''
 
-        print 'mismatches: {}'.format(self.mismatches)
-        print 'insertions: {}'.format(self.insertions)
-        print 'deletions: {}'.format(self.deletions)
-        if len(self.mismatches) > 0:
-            print '----------------------'
-            print '----- MISMATCHES -----'
-            print '----------------------'
-            for key, value in self.mismatches.iteritems():
-                index = int(key)
-                print '  ' + self.resnames[index]
-                for mismatch in value:
-                    print ''
-                    refi = self.ref[index]
-                    resi = self.res[index]
-                    _sequences_display([refi, resi], mismatch[0], mismatch[1])
-                    print ''
-        if len(self.insertions) > 0:
-            print '----------------------'
-            print '----- INSERTIONS -----'
-            print '----------------------'
-            for key, value in self.insertions.iteritems():
-                index = int(key)
-                print '  {}'.format(self.resnames[index])
-                for insertion in value:
-                    print ''
-                    refi = self.ref[index]
-                    resi = self.res[index]
-                    _sequences_display([refi, resi], insertion[0],
-                                       insertion[1])
-                    print ''
-        if len(self.deletions) > 0:
-            print '---------------------'
-            print '----- DELETIONS -----'
-            print '---------------------'
-            for key, value in self.deletions.iteritems():
-                index = int(key)
-                print '  {}'.format(self.resnames[index])
-                for deletion in value:
-                    print ''
-                    refi = self.ref[index]
-                    resi = self.res[index]
-                    _sequences_display([refi, resi], deletion[0], deletion[1])
-                    print ''
+        n_mismatches = sum([len(x) for x in self.mismatches])
+        n_insertions = sum([len(x) for x in self.insertions])
+        n_deletions = sum([len(x) for x in self.deletions])
+
+        mismatch_dict = {'number': n_mismatches,
+                         'name': 'mismatches',
+                         'list': self.mismatches}
+        insertions_dict = {'number': n_insertions,
+                           'name': 'insertions',
+                           'list': self.insertions}
+        deletions_dict = {'number': n_deletions,
+                          'name': 'deletions',
+                          'list': self.deletions}
+        disparities = [mismatch_dict, insertions_dict, deletions_dict]
+
+        col1 = 'mismatches: {}  '.format(n_mismatches)
+        col2 = 'insertions: {}  '.format(n_insertions)
+        col3 = 'deletions: {}'.format(n_deletions)
+        print
+        print 'Report: '
+        print
+        print col1 + col2 + col3
+
+        for disparity in disparities:
+            if disparity['number']:
+                print '----------------------'
+                print '----- {}'.format(disparity['name'])
+                print '----------------------'
+
+                for i, result_disparity in enumerate(disparity['list']):
+                    result_name = self.names[i]
+                    print '  {}'.format(result_name)
+                    ref_i = self.alignments[i][0]
+                    res_i = self.alignments[i][1]
+
+                    for start, end in result_disparity:
+                        print
+                        _sequences_display(ref_i, res_i, start, end)
+                        print
 
     def plot(self):
         '''
-        Plot visualization of results using matplotlib.
+        Plot visualization of the alignment results using matplotlib.
 
         '''
 
-        # FIXME: have to implement features in order to plot them
+        # Controls spacing between bars, size of bars, etc
+        size = 10
 
-        # Step 1: turn results into ranges, bin those ranges for displaying
-        bins = _disjoint_bins(self.ranges)
+        # Calculations:
+        # Bin the alignments so they don't overlap when plotted
+        alignment_bins = _disjoint_bins(self.coverage)
 
-        # Step 2: plot 'reference' bar
-        fig = pyplot.figure()
-        sub1 = fig.add_subplot(111)
-        gr0 = (0, len(self.aligned[0][0]))
-        sub1.broken_barh([gr0], (14.25, 1), facecolors='black',
-                         edgecolors='none')
-
-        # Plot and color features
-        max_len = len(self.ref_raw.features)
-
-        # Bin the features for plotting
-        features = self.ref_raw.features
-        # + 1 to start since it seems to be indexed starting with 0
-        feature_ranges = [(feature.location.start.position + 1,
-                           feature.location.end.position)
-                          for feature in features]
+        # Bin the features so they don't overlap when plotted
+        features = self.reference.features
+        feature_ranges = [(feature.start, feature.stop) for feature in
+                          features]
         feature_bins = _disjoint_bins(feature_ranges)
         feature_nbin = max(feature_bins)
 
-        for i, feature in enumerate(self.ref_raw.features):
-            feature_bin = feature_bins[i]
-            qual = feature.qualifiers['label'][0]
-            feature_start = feature.location.start.position
-            feature_end = feature.location.end.position
+        # Plotting:
+        # Plot a bar from 0 to len(reference)
+        fig = pyplot.figure()
+        sub1 = fig.add_subplot(111)
+        gr0 = (0, len(self.alignments[0][0]))
+        sub1.broken_barh([gr0], (14.25, 1), facecolors='black',
+                         edgecolors='none')
+
+        # Plot the reference features on top of the bar
+        for i, feature in enumerate(self.reference.features):
+            qual = feature.name
+            feature_start = feature.start
+            feature_end = feature.stop
             mid = (feature_start + feature_end) // 2
-            centered = (feature_bin + 1) * 10
+            centered = (feature_bins[i] + 1) * size
+            pos = float(i) / len(self.reference.features)
             sub1.broken_barh([(feature_start, feature_end-feature_start)],
                              (centered, 9),
-                             facecolors=cm.Set3(float(i) / max_len),
+                             facecolors=cm.Set3(pos),
                              edgecolors='black')
             sub1.text(mid, centered + 7, qual,
                       rotation=90)
@@ -209,20 +153,25 @@ class Sanger(object):
             '''
 
             sub1.plot(1000, 25)
-            index = str(index)
 
-            for key, value in self.insertions.iteritems():
-                if key == index:
-                    for insertion in value:
-                        sub1.plot(insertion[0], height, marker='o', color='k')
-            for key, value in self.deletions.iteritems():
-                if key == index:
-                    for deletion in value:
-                        sub1.plot(deletion[0], height, marker='^', color='k')
-            for key, value in self.mismatches.iteritems():
-                if key == index:
-                    for mismatch in value:
-                        sub1.plot(mismatch[0], height, marker='*', color='k')
+            mismatches = self.mismatches[index]
+            insertions = self.insertions[index]
+            deletions = self.deletions[index]
+            for mismatch in mismatches:
+                sub1.plot(mismatch[0], height, marker='o', color='k')
+            for insertion in insertions:
+                sub1.plot(insertion[0], height, marker='o', color='k')
+            for deletion in deletions:
+                sub1.plot(deletion[0], height, marker='o', color='k')
+
+#            for key, value in self.deletions.iteritems():
+#                if key == index:
+#                    for deletion in value:
+#                        sub1.plot(deletion[0], height, marker='^', color='k')
+#            for key, value in self.mismatches.iteritems():
+#                if key == index:
+#                    for mismatch in value:
+#                        sub1.plot(mismatch[0], height, marker='*', color='k')
 
         def wrap_name(str_in, wrap_len=10):
             '''
@@ -240,22 +189,24 @@ class Sanger(object):
             return '\n'.join(out)
 
         # Step 3: plot results ranges
-        for i, current_range in enumerate(self.ranges):
-            for vals in current_range:
-                gap = self.gaps[i]
-                gap_index = gap.find('X')
-                ends = (gap_index, len(gap) - gap[::-1].find('X') - gap_index)
-                centered = (bins[i] + 1) * 10 + 10 + 10 * feature_nbin
-                sub1.broken_barh([ends], (centered, 9), facecolors='pink',
-                                 edgecolors='black')
-                sub1.text(ends[0] + 10, centered + 8,
-                          wrap_name(self.resnames[i]),
-                          verticalalignment='top')
-                add_discrepancies(i, centered + 2)
+        for i, (start, stop) in enumerate(self.coverage):
+            #gap = self.gaps[i]
+            #gap_index = gap.find('X')
+            #ends = (gap_index, len(gap) - gap[::-1].find('X') - gap_index)
+
+            ends = (start, stop)
+            centered = (alignment_bins[i] + 1) * size
+            centered += size + size * feature_nbin
+            sub1.broken_barh([ends], (centered, 9), facecolors='pink',
+                             edgecolors='black')
+            sub1.text(ends[0] + size, centered + 8,
+                      wrap_name(self.names[i]),
+                      verticalalignment='top')
+            add_discrepancies(i, centered + 2)
 
         sub1.set_xlim(0, gr0[1])
         sub1.set_xlabel('Base pairs from origin')
-        sub1.set_yticks([15, 15 + 10 * (feature_nbin + 1)])
+        sub1.set_yticks([15, 15 + size * (feature_nbin + 1)])
         sub1.set_yticklabels(['Reference', 'Results'])
         sub1.grid(True)
         sub1.xaxis.grid(False)
@@ -290,6 +241,110 @@ class Sanger(object):
 
         pass
 
+    def _remove_n(self, seq):
+        '''
+        Remove Ns from sequence - strategy is to find largest non-N segment
+        and return it.
+
+        :param seq: Sequence that contains Ns to remove
+        :type seq: str
+        '''
+
+        split = seq.top.split('n')
+        sizes = [len(x) for x in split]
+        largest = split[sizes.index(max(sizes))]
+        seq_start = seq.top.index(largest)
+        seq_stop = seq_start + len(largest)
+        processed = seq[seq_start:seq_stop]
+
+        return processed
+
+    def _align(self):
+        '''
+        Aligns sequences in Sanger. self.reference and self.processed have to
+        exist first.
+
+        '''
+
+        # Align
+        needle_result = [needle(str(self.reference), str(seq)) for seq in
+                         self.processed]
+
+        # Split into alignments and scores
+        alignments = [(result[0], result[1]) for result in needle_result]
+        scores = [result[2] for result in needle_result]
+
+        # If score is too low, may be a 'reverse' sequencing reaction
+        # Try reverse complement
+        for i, score in enumerate(scores):
+            if score < 1300:
+                reversed_result = self.processed[i].reverse_complement()
+                new_needle = needle(str(self.reference),
+                                    str(reversed_result))
+                alignments[i] = (new_needle[0], new_needle[1])
+                score = new_needle[2]
+
+        return alignments, scores
+
+    def _find_coverage(self):
+        '''
+        Finds coverage of the alignments, i.e. figures out where trailing
+        and leading gaps are. self.alignments has to exist.
+
+        '''
+
+        coverage = []
+        for ref, res in self.alignments:
+            frontcount = 0
+            backcount = 0
+            while res[-backcount - 1] == '-':
+                backcount += 1
+            while res[frontcount] == '-':
+                frontcount += 1
+            coverage.append((frontcount, len(ref) - backcount))
+
+        return coverage
+
+    def _find_discrepancies(self):
+        '''
+        Find discrepancies in the alignments - mismatches, insertions, and
+        deletions.
+
+        self.alignments and self.coverage must exist for this to work.
+
+        '''
+
+        mismatches = [[] for i in range(len(self.alignments))]
+        insertions = [[] for i in range(len(self.alignments))]
+        deletions = [[] for i in range(len(self.alignments))]
+        # Got through each alignment
+        for i, (reference, result) in enumerate(self.alignments):
+            # Go through each alignment base by base
+            coverage = self.coverage[i]
+            ref_trim = reference[slice(*coverage)]
+            res_trim = result[slice(*coverage)]
+            for j, (refbase, resbase) in enumerate(zip(ref_trim, res_trim)):
+                # If only the reference base is a '-', is insertion
+                position = j + coverage[0]
+                if refbase == '-':
+                    insertions[i].append((position, position))
+                # If only the reference base is a '-', is deletion
+                elif resbase == '-':
+                    deletions[i].append((position, position))
+                # If bases don't match, is mismatch
+                elif refbase != resbase:
+                    mismatches[i].append((position, position))
+
+        # Group mismatches/indels if they appear one after another
+        for i, alignment_mismatches in enumerate(mismatches):
+            mismatches[i] = _group_indels(alignment_mismatches)
+        for i, alignment_insertions in enumerate(insertions):
+            insertions[i] = _group_indels(alignment_insertions)
+        for i, alignment_deletions in enumerate(deletions):
+            deletions[i] = _group_indels(alignment_deletions)
+
+        return mismatches, insertions, deletions
+
 
 def _group_indels(indel_list):
     '''
@@ -305,38 +360,28 @@ def _group_indels(indel_list):
     previous = (-2, -2)
     grouped_indels = []
     for indel in indel_list:
-        if previous[1] - indel[0] == 1:
+        if indel[0] - previous[1] == 1:
             grouped_indels[-1] = (previous[0], indel[1])
         else:
             grouped_indels.append(indel)
         previous = grouped_indels[-1]
+
     return grouped_indels
 
 
-def _findgap(result):
-    '''
-    Iterate over string list, return 'X' if has non-\'-\' value.
-
-    :param result: String list.
-    :type result: list
-
-    '''
-
-    for base in result:
-        if base != '-':
-            return 'X'
-    return '-'
-
-
-def _sequences_display(seqs, start, stop, context=10, indent=4):
+def _sequences_display(seq1, seq2, start, stop, context=10, indent=4):
     '''
     Given two sequences to compare, display them and visualize non-matching
-    regions.
+    regions. Sequences should be about the same size, ideally.
 
-    :param seqs: Sequences to display.
-    :type seqs: list
-    :param start_stop: Indices to display.
-    :type start_stop: tuple
+    :param seq1: First sequence to compare.
+    :type seq1: str
+    :param seq2: Second sequence to compare.
+    :type seq2: str
+    :param start: Where to start displaying the sequence.
+    :type start: int
+    :param stop: Where to stop displaying the sequence.
+    :type stop: int
     :param context: Extra context to add on either side of the displayed
                     sequences.
     :type context: int
@@ -344,31 +389,64 @@ def _sequences_display(seqs, start, stop, context=10, indent=4):
     :type indent: int
 
     '''
+    # TODO: if seqs aren't the same size, should display a little differently
+    # TODO: display is incomplete - doesn't show all mismatches / deletions /
+    # insertions at once, just the ones displayed at the moment.
+    # Should instead calculate a single 'overview' set of sequences:
+    # top, bottom, and middle, where middle is where all the seqs match.
+    # Then just subset this
 
-    if len(seqs) != 2:
-        raise ValueError('Expected two sequences')
+    # Figure out how much context can be included (seq might start/end earlier)
+    l_context = (max(start - context - 1, 0), start - 1)
+    r_context = (stop + 1, min(start + context + 1, len(seq1)))
 
-    seq_lists = [[], []]
+    def gen_levels(seq1, seq2, context_tuple):
+        '''
+        Generate a column to display - left side or right side of disparity.
 
-    for seq, seq_list in zip(seqs, seq_lists):
-        seq_list.append(seq[max(start - context, 0):start])
-        seq_list.append(seq[start:stop + 1])
-        seq_list.append(seq[stop + 1:min(stop + context, len(seq))])
+        :param seq1: same as seq1 of parent
+        :type seq1: str
+        :param seq2: same as seq2 of parent
+        :type seq2: str
+        :context_tuple: l_context or r_context
+        :type context_tuple: tuple
 
-    # No bars for non-matching sequences
-    top = ''.join(seq_list[0])
-    bottom = ''.join(seq_list[1])
-    middle = ['|' if t == b else ' ' for t, b in zip(top, bottom)]
-    middle = ''.join(middle)
+        '''
+
+        top, bottom = [seq[slice(*context_tuple)] for seq in [seq1, seq2]]
+        context_len = (context_tuple[1] - context_tuple[0])
+        middle = '|' * context_len
+        highlight = ' ' * context_len
+        return top, bottom, middle, highlight
+
+    # Generate left and right columns of text to display
+    l_top, l_bottom, l_middle, l_highlight = gen_levels(seq1, seq2, l_context)
+    r_top, r_bottom, r_middle, r_highlight = gen_levels(seq1, seq2, r_context)
+
+    # Generate core column - core is where discrepancies are
+    core_slice = slice(start, stop + 1)
+    core_len = stop - start + 1
+    core_top = seq1[core_slice]
+    core_bottom = seq2[core_slice]
+    core_middle = ' ' * core_len
+    core_highlight = '*' * core_len
+
+    # Combine each level together for printing
+    top = l_top + core_top + r_top
+    middle = l_middle + core_middle + r_middle
+    bottom = l_bottom + core_bottom + r_bottom
+    highlight = l_highlight + core_highlight + r_highlight
+
     indent = ' ' * indent
-
     if start != stop:
         print '{0}Positions {1} to {2}:'.format(indent, start, stop)
     else:
         print '{0}Position {1}:'.format(indent, start)
+
     print indent + top
     print indent + middle
     print indent + bottom
+    print indent + highlight
 
 
 def _disjoint_bins(range_tuple_list):
