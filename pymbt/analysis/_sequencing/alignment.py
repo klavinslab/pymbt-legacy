@@ -102,7 +102,7 @@ class Sanger(object):
                             _sequences_display(ref_i, res_i, start, end)
                             print
 
-    def plot(self):
+    def plot(self, text=True):
         '''
         Plot visualization of the alignment results using matplotlib.
 
@@ -161,6 +161,11 @@ class Sanger(object):
                          (reference_y, reference_height),
                          facecolors='black', edgecolors='none')
 
+        dotted_x = (0, len(self.alignments[0][0]))
+        height = (feature_nbin + 1.5) * size
+        dotted_y = (height, height)
+        sub1.plot(dotted_x, dotted_y, linestyle='dotted')
+
         # Plot the reference features on top of the bar
         # Plot the features by bin:
         for i, feature_bin in enumerate(feature_bins):
@@ -178,7 +183,8 @@ class Sanger(object):
                                  (y_index, height),
                                  facecolors=cm.Set3(pos),
                                  edgecolors='black')
-                sub1.text(mid, y_index + size / 2, name, rotation=90)
+                if text:
+                    sub1.text(mid, y_index + size / 2, name, rotation=90)
 
         # Plot sequencing results by bin
         for i, result_bin in enumerate(alignment_bins):
@@ -188,13 +194,14 @@ class Sanger(object):
 
                 width = stop - start
                 height = size - 1
-                y_index = (i + 1) * size + size * (feature_nbin + 1)
+                y_index = (i + feature_nbin + 2) * size
                 text_x = start + (stop - start) // 6
 
                 sub1.broken_barh([(start, width)], (y_index, height),
                                  facecolors='pink', edgecolors='black')
-                sub1.text(text_x, y_index + size // 3, _wrap_name(name),
-                          rotation=0)
+                if text:
+                    sub1.text(text_x, y_index + size // 3, _wrap_name(name),
+                              rotation=0)
 
         # Plot mismatches, insertions, deletions
         sub1.plot(1000, 25)
