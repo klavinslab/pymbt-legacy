@@ -106,12 +106,21 @@ class Sanger(object):
 
         '''
 
-        # Controls spacing between bars, size of bars, etc
-        size = 10
+        # Plots:
+        # 1. reference bar at the bottom
+        # 2. binned, labeled reference sequence features on top of that
+        # 3. binned, labeled sequencing results above reference features
+        # 4. discrepancies on top of sequencing results
 
-        # Calculations:
-        # Bin the alignments so they don't overlap when plotted
-        alignment_bins = _disjoint_bins(self.coverage)
+        ################
+        # Calculations #
+        ################
+
+        # Reference bar information
+        reference_x = 0
+        reference_y = 14.25
+        reference_width = len(self.alignments[0][0])
+        reference_height = 1
 
         # Bin the features so they don't overlap when plotted
         features = self.reference.features
@@ -120,30 +129,57 @@ class Sanger(object):
         feature_bins = _disjoint_bins(feature_ranges)
         feature_nbin = max(feature_bins)
 
-        # Plotting:
-        # Plot a bar from 0 to len(reference)
+#        def plot_features(features):
+#            for i, feature in enumerate(features):
+#                name = feature.name
+#                feature_start = feature.start
+#                feature_end = feature.stop
+#                mid = (feature_start + feature_end) // 2
+#                centered = (feature_bins[i] + 1) * size
+#                pos = float(i) / len(features)
+#                sub1.broken_barh([(feature_start, feature_end-feature_start)],
+#                                 (centered, 9), facecolors=cm.Set3(pos),
+#                                 edgecolors='black')
+#                sub1.text(mid, centered + 7, name, rotation=90)
+#        plot_features(self.reference.features)
+
+        # Bin the alignments so they don't overlap when plotted
+        alignment_bins = _disjoint_bins(self.coverage)
+
+        ############
+        # Plotting #
+        ############
+
+        # Plot calculations
+        # Controls spacing between bars, size of bars, etc
+        size = 10
+
+        # Matplotlib commands
+        # Plot a black reference bar at the bottom
         fig = pyplot.figure()
         sub1 = fig.add_subplot(111)
-        gr0 = (0, len(self.alignments[0][0]))
-        sub1.broken_barh([gr0], (14.25, 1), facecolors='black',
-                         edgecolors='none')
+        sub1.broken_barh([(reference_x, reference_width)],
+                         (reference_y, reference_height),
+                         facecolors='black', edgecolors='none')
 
         # Plot the reference features on top of the bar
-        for i, feature in enumerate(self.reference.features):
-            qual = feature.name
-            feature_start = feature.start
-            feature_end = feature.stop
-            mid = (feature_start + feature_end) // 2
-            centered = (feature_bins[i] + 1) * size
-            pos = float(i) / len(self.reference.features)
-            sub1.broken_barh([(feature_start, feature_end-feature_start)],
-                             (centered, 9),
-                             facecolors=cm.Set3(pos),
-                             edgecolors='black')
-            sub1.text(mid, centered + 7, qual,
-                      rotation=90)
+        def plot_features(features):
+            for i, feature in enumerate(features):
+                name = feature.name
+                feature_start = feature.start
+                feature_end = feature.stop
+                mid = (feature_start + feature_end) // 2
+                centered = (feature_bins[i] + 1) * size
+                pos = float(i) / len(features)
+                sub1.broken_barh([(feature_start, feature_end-feature_start)],
+                                 (centered, 9), facecolors=cm.Set3(pos),
+                                 edgecolors='black')
+                sub1.text(mid, centered + 7, name, rotation=90)
 
-        def add_discrepancies(index, height):
+        plot_features(self.reference.features)
+
+        # Plot discrepancies
+        def plot_discrepancies(index, height):
             '''
             Add insertions, deletions, and mismatches to plot.
 
@@ -163,15 +199,6 @@ class Sanger(object):
                 sub1.plot(insertion[0], height, marker='o', color='k')
             for deletion in deletions:
                 sub1.plot(deletion[0], height, marker='o', color='k')
-
-#            for key, value in self.deletions.iteritems():
-#                if key == index:
-#                    for deletion in value:
-#                        sub1.plot(deletion[0], height, marker='^', color='k')
-#            for key, value in self.mismatches.iteritems():
-#                if key == index:
-#                    for mismatch in value:
-#                        sub1.plot(mismatch[0], height, marker='*', color='k')
 
         def wrap_name(str_in, wrap_len=10):
             '''
@@ -202,9 +229,9 @@ class Sanger(object):
             sub1.text(ends[0] + size, centered + 8,
                       wrap_name(self.names[i]),
                       verticalalignment='top')
-            add_discrepancies(i, centered + 2)
+            plot_discrepancies(i, centered + 2)
 
-        sub1.set_xlim(0, gr0[1])
+        sub1.set_xlim(0, reference_width)
         sub1.set_xlabel('Base pairs from origin')
         sub1.set_yticks([15, 15 + size * (feature_nbin + 1)])
         sub1.set_yticklabels(['Reference', 'Results'])
@@ -223,7 +250,7 @@ class Sanger(object):
         '''
 
         # custom format or standard (e.g. FASTA)? Implement both?
-        pass
+        return NotImplemented
 
     def write_plot(self):
         '''
@@ -231,7 +258,7 @@ class Sanger(object):
 
         '''
 
-        pass
+        return NotImplemented
 
     def fix_disrepancy(self, result, position, newvalue):
         '''
@@ -239,7 +266,7 @@ class Sanger(object):
 
         '''
 
-        pass
+        return NotImplemented
 
     def _remove_n(self, seq):
         '''
@@ -449,22 +476,23 @@ def _sequences_display(seq1, seq2, start, stop, context=10, indent=4):
     print indent + highlight
 
 
-def _disjoint_bins(range_tuple_list):
+def _disjoint_bins(ranges_list):
     '''
-    Construct disjoint bins given a list of range tuples.
+    Construct disjoint bins given a list of 1-D ranges (tuples)
 
     :param range_tuple_list: A list of tuples containing range values.
     :type range_tuple_list: list
 
     '''
 
-    rtl = range_tuple_list
+    ranges_len = len(ranges_list)
+    ranges_list = sorted(ranges_list, key=lambda starts: starts[0])
+    rtl = ranges_list
     # number the ranges (third value in tuple)
     rtl = [(x[0], x[1], i) for i, x in enumerate(rtl)]
 
     # sort by range start
     rtl = sorted(rtl, key=lambda starts: starts[0])
-    rtl_len = len(rtl)
 
     remaining = rtl[:]
 
@@ -484,7 +512,7 @@ def _disjoint_bins(range_tuple_list):
         else:
             remaining = next_bin
 
-    bin_list = [0] * rtl_len
+    bin_list = [0] * ranges_len
     for i, bin_ranges in enumerate(binned):
         for bin_range in bin_ranges:
             bin_list[bin_range[2]] = i
