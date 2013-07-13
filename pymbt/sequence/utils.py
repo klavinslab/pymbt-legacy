@@ -1,16 +1,11 @@
-'''
-Helper functions for manipulating DNA, RNA, and peptide sequences.
-
-'''
-
+'''Helper functions for manipulating DNA, RNA, and peptide sequences.'''
 import re
 from pymbt.data.common import ALPHABETS
 from pymbt.data.common import COMPLEMENTS
 
 
 def reverse_complement(seq, material):
-    '''
-    Reverse complement a DNA or RNA sequence.
+    '''Reverse complement a DNA or RNA sequence.
 
     :param seq: Input sequence.
     :type seq: str
@@ -18,20 +13,17 @@ def reverse_complement(seq, material):
     :type material: str
 
     '''
-
     complements = COMPLEMENTS[material]
     origin = complements[0]
     destination = complements[1]
     code = dict(zip(origin, destination))
     complemented = ''.join(code.get(base) for base in seq)
     reverse_complemented = complemented[::-1]
-
     return reverse_complemented
 
 
 def check_alphabet(seq, material):
-    '''
-    Verify that a given string is made only of DNA, RNA, or peptide characters.
+    '''Verify that a given string is valid DNA, RNA, or peptide characters.
 
     :param seq: DNA, RNA, or peptide sequence.
     :type seq: str
@@ -39,7 +31,6 @@ def check_alphabet(seq, material):
     :type sequence: str
 
     '''
-
     errs = {'dna': 'DNA', 'rna': 'RNA', 'peptide': 'peptide'}
     if material == 'dna' or material == 'rna' or material == 'peptide':
         alphabet = ALPHABETS[material]
@@ -55,8 +46,13 @@ def check_alphabet(seq, material):
 
 
 def process_seq(seq, material):
-    '''Do input checks / string processing.'''
+    '''Validate and process sequence inputs.
+
+    :param seq: input sequence
+    :type seq: pymbt.sequence.{DNA, RNA, Peptide}
+    :param material: DNA, RNA, or peptide
+    :type: str
+    '''
     check_alphabet(seq, material)
     seq = seq.lower()
-
     return seq

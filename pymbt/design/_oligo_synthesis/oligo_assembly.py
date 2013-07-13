@@ -1,5 +1,4 @@
-'''
-Module supplying methods/classes for generating overlapping oligo sequences
+'''Module supplying methods/classes for generating overlapping oligo sequences
 from a gene sequence.
 
 '''
@@ -14,16 +13,9 @@ from Bio.SeqRecord import SeqRecord
 from Bio import SeqIO
 from Bio.Alphabet.IUPAC import unambiguous_dna
 
-# TODO: write a .primers() method for a cleaner interface.
-
 
 class OligoAssembly(object):
-    '''
-    Split a sequence into overlapping oligonucleotides with equal-Tm
-    overlaps. Contains results and output methods.
-
-    '''
-
+    '''Split a sequence into overlapping oligonucleotides.'''
     def __init__(self, dna, tm=72, length_range=(80, 200), require_even=True,
                  start_5=True, oligo_number=None, overlap_min=20,
                  min_exception=False, primers=False, primer_tm=60):
@@ -56,28 +48,22 @@ class OligoAssembly(object):
         :type min_exception: bool
 
         '''
-
         self.kwargs = {'tm': tm, 'length_range': length_range,
                        'require_even': require_even, 'start_5': start_5,
                        'oligo_number': oligo_number,
                        'overlap_min': overlap_min,
                        'min_exception': min_exception}
-
         self.template = dna
         self.oligos = None
         self.overlaps = None
         self.overlap_tms = None
+        self.primers = None
 
-        self.settings = {'primers': True, 'primer_tm': primer_tm}
         self._has_run = False
         self.warning = None
 
     def run(self):
-        '''
-        Execute design.
-
-        '''
-
+        '''Design the overlapping oligos.'''
         # Input parameters needed to design the oligos
         length_range = self.kwargs['length_range']
         oligo_number = self.kwargs['oligo_number']
@@ -149,13 +135,6 @@ class OligoAssembly(object):
         self.overlap_tms = assembly_dict['overlap_tms']
         self.overlap_indices = assembly_dict['overlap_indices']
 
-        if self.settings['primers']:
-            primer_design = DesignPrimerGene(self.template,
-                                             tm=self.settings['primer_tm'])
-            self.primers_tms = primer_design.run()
-            self.primers = [x[0] for x in self.primers_tms]
-            self.primer_tms = [x[1] for x in self.primers_tms]
-
         for i in range(len(self.overlap_indices) - 1):
             # TODO: either raise an exception or prevent this from happening
             # at all
@@ -167,15 +146,23 @@ class OligoAssembly(object):
 
         self._has_run = True
 
-    def write(self, path):
+    def primers(self, tm=60):
+        '''Design primers for amplifying the assembled sequence.
+
+        :param tm: melting temperature (lower than overlaps is best).
+        :type tm: float
+
         '''
-        Write results out to a csv (comma-separated) file.
+        self.primers = DesignPrimerGene(self.template, tm=tm).run()
+        return self.primers
+
+    def write(self, path):
+        '''Write assembly oligos and (if applicable) primers to csv.
 
         :param path: path to csv file, including .csv extension.
         :type path: str
 
         '''
-
         with open(path, 'wb') as oligo_file:
             oligo_writer = csv.writer(oligo_file, delimiter=',',
                                       quoting=csv.QUOTE_MINIMAL)
@@ -189,22 +176,15 @@ class OligoAssembly(object):
                             'overlap Tm: {:.2f}'.format(oligo_tm)
                 else:
                     notes = 'oligo length: {}'.format(oligo_len)
-                oligo_writer.writerow([name,
-                                       oligo,
-                                       notes])
-            try:
-                oligo_writer.writerow(['primer 1',
-                                      self.primers[0],
-                                      'Tm: {:.2f}'.format(self.primer_tms[0])])
-                oligo_writer.writerow(['primer 2',
-                                      self.primers[1],
-                                      'Tm: {:.2f}'.format(self.primer_tms[1])])
-            except AttributeError:
-                pass
+                oligo_writer.writerow([name, oligo, notes])
+            if self.primers:
+                for i, (primer, melt) in enumerate(self.primers):
+                    oligo_writer.writerow(['primer {}'.format(i + 1),
+                                          primer,
+                                          'Tm: {:.2f}'.format(melt)])
 
     def write_map(self, path):
-        '''
-        Write genbank map highlighting overlaps to file.
+        ''' Write genbank map highlighting overlaps to file.
 
         :param path: full path to .gb file to write.
         :type path: str
@@ -230,12 +210,13 @@ class OligoAssembly(object):
             str2 = str(len(self.oligos)) + ' oligos.'
             return str1 + str2
         else:
-            return 'An OligoAssembly instance that has not been run yet.'
+            return 'An OligoAssembly instance that has not been run.'
 
 
 def _grow_overlaps(dna, melting_temp, require_even, length_max, overlap_min,
                    min_exception):
-    '''
+    '''Grows equidistant overlaps until they meet specified constraints.
+
     :param dna: Input sequence.
     :type dna: pymbt.sequence.DNA
     :param melting_temp: Ideal Tm of the overlaps, in degrees C.
@@ -253,7 +234,6 @@ def _grow_overlaps(dna, melting_temp, require_even, length_max, overlap_min,
     :type min_exception: bool
 
     '''
-
     # TODO: prevent growing overlaps from bumping into each other -
     # should halt when it happens, give warning, let user decide if they still
     # want the current construct
@@ -366,8 +346,7 @@ def _grow_overlaps(dna, melting_temp, require_even, length_max, overlap_min,
 
 
 def _recalculate_overlaps(dna, overlaps, oligo_indices):
-    '''
-    Recalculate overlap sequences based on the current overlap indices.
+    '''Recalculate overlap sequences based on the current overlap indices.
 
     :param dna: Sequence being split into oligos.
     :type dna: pymbt.sequence.DNA
@@ -387,9 +366,7 @@ def _recalculate_overlaps(dna, overlaps, oligo_indices):
 
 
 def _expand_overlap(dna, oligo_indices, index, oligos, length_max):
-    '''
-    An overlap has been chosen to be increase in size. Should it be extended
-    on the left side or the right side?
+    '''Given an overlap to increase, increases smaller oligo.
 
     :param dna: Sequence being split into oligos.
     :type dna: pymbt.sequence.DNA
@@ -405,7 +382,6 @@ def _expand_overlap(dna, oligo_indices, index, oligos, length_max):
     :type length_max: int
 
     '''
-
     left_len = len(oligos[index])
     right_len = len(oligos[index + 1])
 
@@ -428,8 +404,7 @@ def _expand_overlap(dna, oligo_indices, index, oligos, length_max):
 
 
 def _adjust_overlap(positions_list, index, direction):
-    '''
-    Increase overlap to the right or left of an index.
+    '''Increase overlap to the right or left of an index.
 
     :param positions_list: list of overlap positions
     :type positions_list: list
@@ -439,12 +414,10 @@ def _adjust_overlap(positions_list, index, direction):
     :type direction: str
 
     '''
-
     if direction == 'left':
         positions_list[index + 1] -= 1
     elif direction == 'right':
         positions_list[index] += 1
     else:
         raise ValueError('direction must be \'left\' or \'right\'.')
-
     return positions_list

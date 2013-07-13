@@ -1,39 +1,22 @@
-'''
-Reactions for the central dogma of biology - transcription and translation.
-
-'''
-
-
+'''The central dogma of biology - transcription and translation.'''
 from pymbt import sequence
 from pymbt.reaction import utils
 
 
 class Transcription(object):
-    '''
-    Transcription reaction - converts DNA to (m)RNA. Does not support
-    post-transcriptional processing.
-
-    '''
-
+    '''Transcribe DNA to RNA (no post-transcriptional processing).'''
     def __init__(self, dna):
         '''
         :param seq: Sequence to transcribe (DNA).
         :type seq: pymbt.sequence.DNA
 
         '''
-
         self.dna = dna
-        self.rna = None  # yielded by .run()
-        self.coding_rna = None  # yielded by .get_coding_rna()
+        self.rna = None
 
     def run(self):
-        '''
-        Run the reaction.
-
-        '''
-
+        '''Transcribe the DNA sequence.'''
         self.rna = utils.convert_sequence(self.dna, 'rna')
-
         return self.rna
 
     def get_coding_rna(self):
@@ -66,40 +49,27 @@ class Transcription(object):
             raise Exception('Sequence has no start codon.')
         elif not stop:
             raise Exception('Sequence has no stop codon.')
-        else:
-            self.coding_rna = self.rna[start:stop]
+        self.coding_rna = self.rna[start:stop]
 
         return self.coding_rna
 
 
 class Translation(object):
-    '''
-    Translation reaction - converts (m)RNA to peptide. Does not support
-    post-transcriptional/post-translational processing.
-
-    '''
-
+    '''Translate RNA to peptide.'''
     def __init__(self, rna):
         '''
         :param rna: Sequence to translate (RNA).
         :type rna: pymbt.sequence.RNA
 
         '''
-
         self.rna = rna
-        self.coding_rna = None  # yielded by .get_coding_rna()
-        self.peptide = None  # yielded by .run()
-        self.coding_peptide = None  # yielded by .get_coding_peptide()
+        self.coding_rna = None
+        self.peptide = None
+        self.coding_peptide = None
 
     def run(self):
-        '''
-        Run the reaction.
-
-        '''
-
-        self.peptide = utils.convert_sequence(self.rna,
-                                              'peptide')
-
+        '''Translate.'''
+        self.peptide = utils.convert_sequence(self.rna, 'peptide')
         return self.peptide
 
     # REFACTOR: this is totally redundant with the Transcription equivalent
@@ -146,27 +116,17 @@ class Translation(object):
 
 
 class ReverseTranscription(object):
-    '''
-    Reverse transcription reaction - converts (m)RNA to DNA.
-
-    '''
-
+    '''Reverse transcribe RNA to DNA.'''
     def __init__(self, rna):
         '''
         :param rna: Sequence to reverse transcribe (RNA).
         :type rna: pymbt.sequence.RNA
 
         '''
-
         self.rna = rna
         self.dna = None  # yielded by .run()
 
     def run(self):
-        '''
-        Run the reaction.
-
-        '''
-
+        '''Reverse transcribe.'''
         self.dna = utils.convert_sequence(self.rna, 'dna')
-
         return self.dna

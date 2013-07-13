@@ -14,10 +14,7 @@ from pymbt.analysis.utils import sequence_type
 
 
 class Nupack(object):
-    '''
-    Contain sequence inputs and use NUPACK computation methods.
-
-    '''
+    '''Use several NUPACK functions on a set of input sequences.'''
 
     def __init__(self, seq_list, rna1999=False, temp=50, nupack_home=None):
         '''
@@ -75,8 +72,7 @@ class Nupack(object):
         self.complexes_run = False
 
     def complexes(self, max_complexes, mfe=True):
-        '''
-        Run NUPACK's \'complexes\'.
+        '''Find properties of polymer complexes.
 
         :param max_complexes: Maximum complex size (integer).
         :type max_complexes: int
@@ -84,7 +80,6 @@ class Nupack(object):
         :type mfe: bool
 
         '''
-
         self._temp_dir()
 
         # Prepare input file
@@ -132,8 +127,7 @@ class Nupack(object):
         return {'complexes': complexes, 'complex_energy': energies}
 
     def concentrations(self, max_complexes, conc=0.5e-6, mfe=True):
-        '''
-        Run \'concentrations\'.
+        '''Find the predicted concentrations of polymer complexes.
 
         :param max_complexes: Maximum complex size.
         :type max_complexes: int
@@ -186,34 +180,31 @@ class Nupack(object):
                 'energy': energies}
 
     def mfe(self, index=0):
-        '''
-        Run 'mfe'.
+        '''Calculate the minimum free energy of a single polymer.
 
         :param index: Index of strand to analyze.
         :type index: int
 
         '''
-
         self._temp_dir()
 
         # Prepare input file
         with open(self.tmpdir + '/nupack.in', 'w') as input_handle:
             input_handle.write(self.seq_list[index])
-
         # Run 'mfe'
+
         args = ' -T {} -material {}'.format(self.temp, self.material)
         self._run_cmd('mfe', args)
-
         # Parse the output of 'mfe'
+
         with open(self.tmpdir + '/nupack.mfe', 'r+') as output_handle:
             mfe = float(output_handle.readlines()[14].strip())
-
         # Return the mfe
+
         return mfe
 
     def pairs(self, index=0):
-        '''
-        Run 'pairs'.
+        '''Calculate unbound pair probabilities.
 
         :param index: Index of strand to analyze.
         :type index: int
@@ -242,32 +233,24 @@ class Nupack(object):
 
         # Extract pair probability types and pair_probabilities. These are in
         # Nupack's raw text format
-        types = [(int(x.split()[0]), int(x.split()[1])) for x in pairs]
+        #types = [(int(x.split()[0]), int(x.split()[1])) for x in pairs]
         pair_probabilities = [float(x.split()[2]) for x in pairs]
 
         # Return the pair probabilities
-        return {'type': types, 'probabilities': pair_probabilities}
+        return pair_probabilities
+#        return {'type': types, 'probabilities': pair_probabilities}
 
     def close(self):
-        '''
-        Delete the temp dir. This prevents filling up /tmp.
-
-        '''
-
+        '''Delete the temporary dir to prevent filling up /tmp.'''
         rmtree(self.tmpdir)
 
     def _temp_dir(self):
-        '''
-        Check for temp dir. If it doesn't exist, create it.
-
-        '''
-
+        '''If temporary dir doesn't exist, create it.'''
         if not isdir(self.tmpdir):
             self.tmpdir = mkdtemp()
 
     def _run_cmd(self, cmd, cmd_args):
-        '''
-        Wrapper for running NUPACK commands.
+        '''Run NUPACK command line programs.
 
         :param cmd: NUPACK command line tool to run ('mfe', 'complexes',
                     'concentrations', 'pairs').
@@ -276,7 +259,6 @@ class Nupack(object):
         :type cmd_args: str
 
         '''
-
         known_cmds = ['complexes', 'concentrations', 'mfe', 'pairs']
         if cmd not in known_cmds:
             msg = 'Command must be one of: {}'.format(known_cmds)
@@ -292,8 +274,7 @@ class Nupack(object):
 
 
 def nupack_multiprocessing(seqs, material, cmd, arguments, report=True):
-    '''
-    Provides access to NUPACK commands with multiprocessing support.
+    '''Run NUPACK commands with the benefits of multiprocessing.
 
     :param inputs: List of sequences, same format as for pymbt.analysis.Nupack.
     :type inpus: list
@@ -338,16 +319,12 @@ def nupack_multiprocessing(seqs, material, cmd, arguments, report=True):
 
 
 def run_nupack(kwargs):
-    '''
-    Create Nupack instance, run command with arguments. Is a top-level function
-    because it has to be picklable.
+    '''Run Nupack command in a picklable way.
 
-    :param kwargs: keyword arguments to pass to Nupack
+    :param kwargs: keyword arguments to pass to Nupack as well as 'cmd'.
 
     '''
-
     run = Nupack(kwargs['seq'])
     output = getattr(run, kwargs['cmd'])(**kwargs['arguments'])
     run.close()
-
     return output

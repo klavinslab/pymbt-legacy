@@ -1,22 +1,15 @@
-'''
-Primer design tools.
-
-'''
+'''Primer design tools.'''
 
 from pymbt import analysis
 
 
-# TODO: combine DesignPrimer and DesignPrimer gene in a sane way.
+# TODO: combine DesignPrimer and DesignPrimerGene
 # ideas:
 #   Give DesignPrimer a 'reverse' option that computes a reverse primer
 #   Give DesignPrimer a 'both' option that computes both
 #   Provide DesignPrimer with 'forward' and 'reverse' methods
 class DesignPrimer(object):
-    '''
-    Design primer to a nearest-neighbor Tm setpoint.
-
-    '''
-
+    '''Design primer to a nearest-neighbor Tm setpoint.'''
     def __init__(self, dna, tm=72, min_len=10, tm_undershoot=1,
                  tm_overshoot=3, end_gc=False, tm_parameters='cloning',
                  overhang=None):
@@ -39,7 +32,6 @@ class DesignPrimer(object):
         :type overhang: DNA
 
         '''
-
         # TODO: deal with sticky ended inputs or require a new DNA type
         # that can't have them (dsDNA)
 
@@ -55,10 +47,7 @@ class DesignPrimer(object):
         self.overhang = overhang
 
     def run(self):
-        '''
-        Execute the design algorithm.
-
-        '''
+        '''Design the primer.'''
         primer, tm = _design_primer(self.template, self.tm, self.min_len,
                                     self.tm_undershoot, self.tm_overshoot,
                                     self.end_gc, self.tm_parameters,
@@ -67,11 +56,7 @@ class DesignPrimer(object):
 
 
 class DesignPrimerGene(object):
-    '''
-    Design primer to a nearest-neighbor Tm setpoint.
-
-    '''
-
+    '''Design two primers for cloning a gene (or any arbitrary sequence).'''
     def __init__(self, dna, tm=72, min_len=10, tm_undershoot=1,
                  tm_overshoot=3, end_gc=False, tm_parameters='cloning',
                  overhangs=None):
@@ -94,7 +79,6 @@ class DesignPrimerGene(object):
         :type overhangs: tuple of DNA object
 
         '''
-
         # TODO: deal with sticky ended inputs or require a new DNA type
         # that can't have them (dsDNA)
 
@@ -111,10 +95,7 @@ class DesignPrimerGene(object):
         self.overhangs = overhangs
 
     def run(self):
-        '''
-        Execute the design algorithm.
-
-        '''
+        '''Design the primers.'''
         template = self.template
         primers_list = _design_primer_gene(template, self.tm, self.min_len,
                                            self.tm_undershoot,
@@ -126,8 +107,7 @@ class DesignPrimerGene(object):
 def _design_primer(dna, tm=72, min_len=10, tm_undershoot=1,
                    tm_overshoot=3, end_gc=False, tm_parameters='cloning',
                    overhang=None):
-    '''
-    Design primer to a nearest-neighbor Tm setpoint.
+    '''Design primer to a nearest-neighbor Tm setpoint.
 
     :param dna: Sequence for which to design a primer.
     :type dna: pymbt.sequence.DNA
@@ -147,56 +127,42 @@ def _design_primer(dna, tm=72, min_len=10, tm_undershoot=1,
     :type overhang: str
 
     '''
-
     # Check Tm of input sequence to see if it's already too low
     seq_tm = analysis.tm(dna, parameters=tm_parameters)
     if seq_tm < (tm - tm_undershoot):
         msg = 'Input sequence Tm is lower than primer Tm setting'
-        raise Exception(msg)
-
+        raise ValueError(msg)
     # Focus on first 90 bases - shouldn't need more than 90bp to anneal
     dna = dna[0:90]
 
     # Generate primers from min_len to 'tm' + tm_overshoot
+    # TODO: this is a good place for optimization. Only calculate as many
+    # primers as are needed. Use binary search.
     primers_tms = []
-
     last_tm = 0
-    max_tm = tm + tm_overshoot
     bases = min_len
-
-    while last_tm <= max_tm and (bases != len(dna)):
-        new_primer = dna[0:bases]
-        last_tm = analysis.tm(new_primer, parameters=tm_parameters)
-        primer_tm = (new_primer, last_tm)
-        primers_tms.append(primer_tm)
+    while last_tm <= tm + tm_overshoot and bases != len(dna):
+        next_primer = dna[0:bases]
+        last_tm = analysis.tm(next_primer, parameters=tm_parameters)
+        primers_tms.append((next_primer, last_tm))
         bases += 1
 
     # Trim primer list based on tm_undershoot and end_gc
-    tmin = tm - tm_undershoot
-
-    primers = []
-    tms = []
     primers_tms = [(primer, melt) for primer, melt in primers_tms if
-                   melt >= tmin]
-
+                   melt >= tm - tm_undershoot]
     if end_gc:
         primers_tms = [(primer, melt) for primer, melt in primers_tms if
                        primer.endswith(('c', 'g'))]
-
-    primers, tms = zip(*primers_tms)
-
-    if not primers:
+    if not primers_tms[0]:
         raise Exception('No primers could be generated using these settings')
 
-    # Find the primer closest to the set Tm
-    tm_diffs = [abs(x - tm) for x in tms]
+    # Find the primer closest to the set Tm, make it single stranded
+    tm_diffs = [abs(melt - tm) for primer, melt in primers_tms]
     best_index = tm_diffs.index(min(tm_diffs))
-    best_primer = primers[best_index]
-    best_tm = tms[best_index]
-
-    # Make it single-stranded
+    best_primer, best_tm = primers_tms[best_index]
     best_primer = best_primer.set_stranded('ss')
 
+    # Apply overhang
     if overhang:
         overhang = overhang.set_stranded('ss')
         best_primer = overhang + best_primer
@@ -208,8 +174,7 @@ def _design_primer_gene(dna, tm=72, min_len=10, tm_undershoot=1,
                         tm_overshoot=3, end_gc=False,
                         tm_parameters='cloning',
                         overhangs=None):
-    '''
-    Design primer to a nearest-neighbor Tm setpoint.
+    '''Design primers for cloning any arbitrary sequence..
 
     :param dna: Input sequence.
     :type dna: pymbt.sequence.DNA
@@ -231,10 +196,8 @@ def _design_primer_gene(dna, tm=72, min_len=10, tm_undershoot=1,
     '''
     if not overhangs:
         overhangs = [None, None]
-
     templates = [dna, dna.reverse_complement()]
     primer_list = []
-
     for template, overhang in zip(templates, overhangs):
         primer, tm = _design_primer(template, tm=tm, min_len=min_len,
                                     tm_undershoot=tm_undershoot,

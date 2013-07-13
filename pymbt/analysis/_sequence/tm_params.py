@@ -1,5 +1,4 @@
-'''
-Nearest-neighbor method Tm calculation parameters.
+'''Nearest-neighbor method Tm calculation parameters.
 
 Nearest-neighbor parameters don't publish full NN parameters. Assumptions:
     AA = TT

@@ -1,7 +1,4 @@
-'''
-Generate a random DNA sequence.
-
-'''
+'''Generate a random DNA sequence.'''
 
 import random
 from pymbt import data
@@ -9,10 +6,7 @@ from pymbt import sequence
 
 
 class RandomDNA(object):
-    '''
-    Generate a random DNA sequence.
-
-    '''
+    '''Generate a random DNA sequence.'''
 
     def __init__(self, length):
         '''
@@ -20,40 +14,23 @@ class RandomDNA(object):
         :type length: int
 
         '''
-
         self.length = length
 
     def __repr__(self):
-        '''
-        Printed representation.
-
-        '''
-
+        '''Print a representation.'''
         return '{} of length {}.'.format(self.__class__.__name__, self.length)
 
     def random_base(self):
-        '''
-        Generate a random base.
-
-        '''
-
+        '''Generate a random base.'''
         return sequence.DNA(random.choice('ATGC'))
 
     def run(self):
-        '''
-        Generate the sequence.
-
-        '''
-
-        result = sum([self.random_base() for i in range(self.length)])
-        return result
+        '''Generate the random sequence.'''
+        return sum([self.random_base() for i in range(self.length)])
 
 
 class RandomCodons(object):
-    '''
-    Generator class for random DNA or RNA sequence.
-
-    '''
+    '''Generate randomized codons given a peptide sequence.'''
 
     def __init__(self, peptide, frequency_cutoff=0.0, weighted=False,
                  table=data.common.CODON_FREQ_BY_AA['sc']):
@@ -77,11 +54,10 @@ class RandomCodons(object):
         :type table: dict
 
         '''
-
         self.template = peptide
         self.frequency_cutoff = frequency_cutoff
         self.weighted = weighted
-        # Process table given frequency_cutoff
+        # Process codon table using frequency_cutoff
         self.table = {}
         # IDEA: cutoff should be relative to most-frequent codon, not average?
         for aa, codons in table.iteritems():
@@ -92,14 +68,11 @@ class RandomCodons(object):
                     self.table[aa][codon] = frequency
 
     def __repr__(self):
-        '''
-        Printed representation.
-
-        '''
-
-        return '{0} for {1}'.format(self.__class__.__name__, self.template)
+        '''Print a representation.'''
+        return '{} for {}'.format(self.__class__.__name__, self.template)
 
     def choose_codon(self, amino_acid):
+        '''Choose a (sometimes semi-) random codon.'''
         codons = self.table[amino_acid.upper()]
         if not codons:
             msg = 'Frequency cutoff prevents use of {}'.format(amino_acid)
@@ -122,10 +95,5 @@ class RandomCodons(object):
         return sequence.RNA(selection)
 
     def run(self):
-        '''
-        Generate the sequence.
-
-        '''
-
-        result = sum([self.choose_codon(str(a)) for a in self.template])
-        return result
+        '''Generate the randomized sequence.'''
+        return sum([self.choose_codon(str(a)) for a in self.template])

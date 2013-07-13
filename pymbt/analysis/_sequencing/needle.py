@@ -6,13 +6,11 @@ from Bio.Emboss.Applications import NeedleallCommandline
 from Bio import AlignIO
 
 # Important note: does not produce a 'consensus' reference sequence
-# TODO: return a triple instead of a dict - ref, res, score
 # TODO: return pymbt.sequence.DNA objects
 
 
 def needle(reference, target, gapopen=10, gapextend=0.5):
-    '''
-    Do Needleman-Wunsch alignment.
+    '''Do Needleman-Wunsch alignment.
 
     :param reference: Reference sequence.
     :type reference: str

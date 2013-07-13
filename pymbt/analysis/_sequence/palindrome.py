@@ -5,16 +5,13 @@ Module for analyzing palindromic sequences.
 
 
 def palindrome(seq):
-    '''
-    Test whether a sequence is palindrome.
+    '''Test whether a sequence is palindrome.
 
     :param seq: Sequence to analyze (DNA or RNA).
     :type seq: pymbt.sequence.DNA or pymbt.sequence.RNA
 
     '''
-
     seq_len = len(seq)
-
     if seq_len % 2 == 0:
         # Sequence has even number of bases, can test non-overlapping seqs
         wing = seq_len / 2

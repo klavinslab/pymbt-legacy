@@ -1,7 +1,4 @@
-'''
-Read and write DNA sequences.
-
-'''
+'''Read and write DNA sequences.'''
 
 import os
 from Bio import SeqIO
@@ -9,14 +6,12 @@ from pymbt import sequence
 
 
 def read_dna(path):
-    '''
-    Read DNA from file. Uses BioPython's tools and coerces to pymbt format.
+    '''Read DNA from file. Uses BioPython and coerces to pymbt format.
 
     :param path: Full path to input file.
     :type path: str
 
     '''
-
     base, ext = os.path.splitext(path)
 
     genbank_exts = ['.gb', '.ape']
@@ -52,14 +47,12 @@ def read_dna(path):
 
 
 def read_sequencing(dirpath):
-    '''
-    Read .seq and .abi/.ab1 results files from a dir.
+    '''Read .seq and .abi/.ab1 results files from a dir.
 
     :param dirpath: Path to directory containing sequencing files.
     :type dirpath: str
 
     '''
-
     seq_exts = ['.seq', '.abi', '.ab1']
     dirfiles = os.listdir(dirpath)
     seq_paths = [x for x in dirfiles if os.path.splitext(x)[1] in seq_exts]
@@ -69,12 +62,9 @@ def read_sequencing(dirpath):
 
 
 def _process_feature_type(feature_type):
-    '''
-    Translate BioPython / genbank feature types into those used by
-    pymbt.sequence.Feature
+    '''Translate BioPython / genbank feature types into usable ones.
 
     '''
-
     conversion = {'misc_feature': 'misc',
                   'CDS': 'coding',
                   'gene': 'coding',

@@ -1,14 +1,8 @@
-'''
-Restriction endonuclease reactions.
-
-'''
+'''Restriction endonuclease reactions.'''
 
 
 class Restriction(object):
-    '''
-    Restriction endonuclease reaction.
-
-    '''
+    '''Restriction endonuclease reaction.'''
 
     def __init__(self, dna, restriction_site):
         '''
@@ -18,17 +12,12 @@ class Restriction(object):
         :type restriction_site: RestrictionSite
 
         '''
-
         self.template = dna
         self.restriction_site = restriction_site
         self.output = []
 
     def run(self):
-        '''
-        Execute Restriction and return results.
-
-        '''
-
+        '''Simulate the restriction digest and return results.'''
         # TODO: search for top *and* bottom strand match - currently succeeds
         # if only one matches, but enzymes don't work that way
         # TODO: Figure out what to do with ambiguities.
@@ -60,10 +49,7 @@ class Restriction(object):
         # Resect correct amount to generate sticky ends
 
     def _cut(self, index):
-        '''
-        Cuts template once at the specified index.
-
-        '''
+        '''Cuts template once at the specified index.'''
 
         dna_list = []
 
@@ -105,12 +91,3 @@ class Restriction(object):
                 dna_list[1] = bottom_overhang + dna_list[1]
 
         return dna_list
-
-
-# Inverted repeat checking - should be done here, not core DNA class
-#        inverted_repeat = analysis.palindrome(pattern)
-#        if inverted_repeat:
-#            # subtract all occurrences in top from bottom
-#            subtract = [len(self.top) - index - len(pattern) for index in
-#                        top_starts]
-#            bottom_starts = [x for x in subtract if x not in bottom_starts]

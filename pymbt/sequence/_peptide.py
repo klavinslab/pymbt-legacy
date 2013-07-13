@@ -1,17 +1,11 @@
-'''
-Peptide object classes.
-
-'''
+'''Peptide object classes.'''
 
 import re
 from pymbt.sequence import utils
 
 
 class Peptide(object):
-    '''
-    Core Peptide sequence object.
-
-    '''
+    '''Peptide sequence.'''
 
     def __init__(self, seq, run_checks=True):
         '''
@@ -23,21 +17,18 @@ class Peptide(object):
         :type run_checks: bool
 
         '''
-
         if run_checks:
             self.peptide = utils.process_seq(seq, 'peptide')
         else:
             self.peptide = seq
 
     def locate(self, pattern):
-        '''
-        Find sequences matching a pattern.
+        '''Find sequences matching a pattern.
 
         :param pattern: Sequence for which to find matches.
         :type pattern: str
 
         '''
-
         pattern = pattern.lower()
         re_pattern = '(?=' + pattern + ')'
         indices_top = [index.start() for index in
@@ -46,49 +37,39 @@ class Peptide(object):
         return indices_top
 
     def copy(self):
-        '''
-        Create a copy of the current instance.
-
-        '''
-
+        '''Create a copy of the current instance.'''
         # Alphabet checking disabled on copy to improve performance
         new_instance = Peptide(self.peptide, run_checks=False)
 
         return new_instance
 
     def __getitem__(self, key):
-        '''
-        Indexing and slicing of sequences.
+        '''Index and slice sequences.
 
         :param key: int or slice object for subsetting.
         :type key: int or slice object
 
         '''
-
         new_instance = self.copy()
         new_instance.peptide = self.peptide[key]
 
         return new_instance
 
     def __delitem__(self, index):
-        '''
-        Deletes sequence at index.
+        '''Delete sequence at index.
 
         param index: index to delete
         type index: int
 
         '''
-
         peptide_list = list(self.peptide)
         peptide_list.pop(index)
         self.peptide = ''.join(peptide_list)
 
     def __setitem__(self, index, new_value):
-        '''
-        Sets index value to new value.
+        '''Set value at index to new value.
 
         '''
-
         insert = Peptide(new_value)
         peptide_list = list(self.peptide)
         peptide_list[index] = str(insert)
@@ -99,7 +80,6 @@ class Peptide(object):
         String to print when object is called directly.
 
         '''
-
         show = 40
 
         if len(self.peptide) < 90:
@@ -114,40 +94,26 @@ class Peptide(object):
         return to_print
 
     def __str__(self):
-        '''
-        Coerce Peptide object to string. Only works for ungapped dsPeptide
-        and top-strand ssPeptide.
-
-        '''
-
+        '''Coerce Peptide object to string.'''
         return self.peptide
 
     def __len__(self):
-        '''
-        Return length of all Peptide (including gaps) in object when built-in
-        len function is used.
-
-        '''
-
+        '''Return length of the peptide'''
         return len(self.peptide)
 
     def __add__(self, other):
-        '''
-        Defines adding with + for Peptide objects.
+        '''Defines addition for Peptide objects.
 
         :param other: instance to be added to.
         :type other: Peptide
 
         '''
-
         tops = self.peptide + other.peptide
         new_instance = Peptide(tops, run_checks=False)
-
         return new_instance
 
     def __radd__(self, other):
-        '''
-        Add unlike types (enables sum function).
+        '''Add unlike types (enables sum function).
 
         :param self: object of self type.
         :type self: Peptide
@@ -155,7 +121,6 @@ class Peptide(object):
         :param other: anything
 
         '''
-
         if other == 0:
             # sum(list) adds to zero first, so ignore it
             return self
@@ -166,14 +131,12 @@ class Peptide(object):
             raise TypeError(msg)
 
     def __mul__(self, multiplier):
-        '''
-        Multiply Peptide by an integer to create concatenation.
+        '''Multiply Peptide by an integer to create concatenation.
 
         :param multiplier: Factor by which to multiply the sequence.
         :type multiplier: int
 
         '''
-
         # Input checking
         if multiplier != int(multiplier):
             msg = 'can\'t multiply sequence by non-integer.'
@@ -186,30 +149,33 @@ class Peptide(object):
         return new_instance
 
     def __eq__(self, other):
-        '''
-        Test Peptide object equality.
+        '''Test Peptide object equality.
+
+        :param other: other peptide
+        :type other: pymbt.sequence.Peptide
 
         '''
-
         if vars(self) == vars(other):
             return True
         else:
             return False
 
     def __ne__(self, other):
-        '''
-        Test Peptide object equality.
+        '''Test Peptide object inequality.
+
+        :param other: other peptide
+        :type other: pymbt.sequence.Peptide
 
         '''
-
         return not (self == other)
 
     def __contains__(self, pattern):
-        '''
-        Specially-defined `x in y` behavior
+        '''Specially-defined `x in y` behavior
+
+        :param pattern: pattern to find.
+        :type pattern: str
 
         '''
-
         if str(pattern) in str(self):
             return True
         else:

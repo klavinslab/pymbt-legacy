@@ -1,7 +1,4 @@
-'''
-DNA object classes.
-
-'''
+'''DNA object classes.'''
 
 import re
 from pymbt.sequence import utils
@@ -21,10 +18,7 @@ from pymbt.sequence import utils
 
 
 class DNA(object):
-    '''
-    Core DNA sequence object.
-
-    '''
+    '''DNA sequence.'''
 
     def __init__(self, seq, bottom=None, topology='linear', stranded='ds',
                  features=None, run_checks=True, id=None, name=None):
@@ -51,7 +45,6 @@ class DNA(object):
         :type name: str
 
         '''
-
         if run_checks:
             self.top = utils.process_seq(seq, 'dna')
         else:
@@ -97,41 +90,28 @@ class DNA(object):
         self.name = name
 
     def reverse_complement(self):
-        '''
-        Reverse complement top and bottom strands.
-
-        '''
-
+        '''Reverse complement top and bottom strands.'''
         new_instance = self.copy()
-
         if self.stranded == 'ds':
             new_instance.top = self.bottom
             new_instance.bottom = self.top
         elif self.stranded == 'ss':
             new_instance.top = utils.reverse_complement(self.top, 'dna')
-
         return new_instance
 
     def circularize(self):
-        '''
-        Circularize linear DNA.
-
-        '''
-
+        '''Circularize linear DNA.'''
         new_instance = self.copy()
         new_instance.topology = 'circular'
-
         return new_instance
 
     def linearize(self, index=0):
-        '''
-        Linearize circular DNA at a specific index.
+        '''Linearize circular DNA at an index.
 
         :param index: index at which to linearize.
         :type index: int
 
         '''
-
         if self.topology == 'linear':
             raise Exception('Cannot relinearize linear DNA.')
 
@@ -142,15 +122,12 @@ class DNA(object):
         return new_instance
 
     def five_resect(self, n_bases):
-        '''
-        Remove bases from 5' end of top strand.
-
+        '''Remove bases from 5' end of top strand.
 
         :param n_bases: Number of bases cut back.
         :type n_bases: int
 
         '''
-
         new_instance = self.copy()
 
         new_top = '-' * min(len(self.top), n_bases) + self.top[n_bases:]
@@ -162,14 +139,12 @@ class DNA(object):
         return new_instance
 
     def three_resect(self, n_bases):
-        '''
-        Remove bases from 3' end of top strand.
+        '''Remove bases from 3' end of top strand.
 
         :param n_bases: Number of bases cut back.
         :type n_bases: int
 
         '''
-
         # TODO: if you find double end gaps, should make topology linear
         new_instance = self.copy()
 
@@ -182,14 +157,12 @@ class DNA(object):
         return new_instance
 
     def set_stranded(self, stranded):
-        '''
-        Change DNA strandedness
+        '''Change DNA strandedness
 
         :param stranded: 'ss' or 'ds' (DNA).
         :type stranded: str
 
         '''
-
         new_instance = self.copy()
         # Do nothing if already set
         if stranded == self.stranded:
@@ -212,14 +185,12 @@ class DNA(object):
         return new_instance
 
     def locate(self, pattern):
-        '''
-        Find sequences matching a pattern.
+        '''Find sequences matching a pattern.
 
         :param pattern: Sequence for which to find matches.
         :type pattern: str
 
         '''
-
         if len(pattern) > 2 * len(self):
             raise Exception('Pattern must be less than 2 x sequence length.')
         if not pattern:
@@ -248,14 +219,12 @@ class DNA(object):
         return (top_starts, bottom_starts)
 
     def extract(self, feature_name):
-        '''
-        Extract a feature from the DNA sequence.
+        '''Extract a feature from the DNA sequence.
 
         :param feature_name: Name of the future. Must be unique.
         :type feature_name: str
 
         '''
-
         found_feature = False
         for feature in self.features:
             if feature.name == feature_name:
@@ -270,11 +239,9 @@ class DNA(object):
             raise ValueError('Feature name does not appear in features list')
 
     def copy(self):
-        '''
-        Create a copy of the current instance.
+        '''Create a copy of the current instance.
 
         '''
-
         # Alphabet checking disabled on copy to improve performance
         new_instance = DNA(self.top, bottom=self.bottom,
                            topology=self.topology, stranded=self.stranded,
@@ -284,11 +251,7 @@ class DNA(object):
         return new_instance
 
     def remove_end_gaps(self):
-        '''
-        Removes double-stranded gaps from ends of the sequence.
-
-        '''
-
+        '''Removes double-stranded gaps from ends of the sequence.'''
         top = self.top
         bottom_rev = self.bottom[::-1]
 
@@ -309,46 +272,34 @@ class DNA(object):
         self.bottom = bottom
 
     def __getitem__(self, key):
-        '''
-        Indexing and slicing of sequences.
+        '''Index and slice sequences.
 
         :param key: int or slice object for subsetting.
         :type key: int or slice object
 
         '''
-
         new_instance = self.copy()
         new_instance.top = new_instance.top[key]
         new_instance.bottom = new_instance.bottom[::-1][key][::-1]
-
         new_instance.topology = 'linear'
-
         return new_instance
 
     def __delitem__(self, index):
-        '''
-        Deletes sequence at index.
+        '''Delete sequence at an index.
 
         param index: index to delete
         type index: int
 
         '''
-
         top_list = list(self.top)
         bottom_list = list(self.bottom[::-1])
-
         del top_list[index]
         del bottom_list[index]
-
         self.top = ''.join(top_list)
         self.bottom = ''.join(bottom_list)[::-1]
 
     def __setitem__(self, index, new_value):
-        '''
-        Sets index value to new value.
-
-        '''
-
+        '''Sets value at index to new value.'''
         if new_value == '-':
             raise ValueError("Can't insert gap - split sequence instead.")
 
@@ -369,11 +320,7 @@ class DNA(object):
         self.bottom = ''.join(bottom_list)[::-1]
 
     def __repr__(self):
-        '''
-        String to print when object is called directly.
-
-        '''
-
+        '''String to print when object is called directly.'''
         show = 40
         bottom = self.bottom[::-1]
 
@@ -390,12 +337,7 @@ class DNA(object):
         return to_print
 
     def __str__(self):
-        '''
-        Coerce DNA object to string. Only works for ungapped dsDNA
-        and top-strand ssDNA.
-
-        '''
-
+        '''Coerce DNA object to string.'''
         if '-' in self.top:
             msg = 'No string coercion method sequences with top-strand gaps.'
             raise Exception(msg)
@@ -403,24 +345,16 @@ class DNA(object):
             return self.top
 
     def __len__(self):
-        '''
-        Return length of all DNA (including gaps) in object when built-in
-        len function is used.
-
-        '''
-
+        '''Find length of all DNA (including gaps)'''
         return len(self.top)
 
     def __add__(self, other):
-        '''
-        Defines adding with + for DNA objects. Only works for ungapped dsDNA
-        and top-only ssDNA.
+        '''Add DNA together.
 
         :param other: instance to be added to.
         :type other: compatible sequence object (currently only DNA).
 
         '''
-
         if self.topology == 'circular' or other.topology == 'circular':
             raise Exception('Can only add linear DNA.')
 
@@ -451,8 +385,7 @@ class DNA(object):
         return new_instance
 
     def __radd__(self, other):
-        '''
-        Add unlike types (enables sum function).
+        '''Add unlike types (enables sum function).
 
         :param self: object of self type.
         :type self: DNA
@@ -460,7 +393,6 @@ class DNA(object):
         :param other: anything
 
         '''
-
         if other == 0:
             # sum(list) adds to zero first, so ignore it
             return self
@@ -474,14 +406,12 @@ class DNA(object):
             return self + other
 
     def __mul__(self, multiplier):
-        '''
-        Multiply DNA by an integer to create concatenation.
+        '''Multiply DNA by an integer to create concatenation.
 
         :param multiplier: Factor by which to multiply the sequence.
         :type multiplier: int
 
         '''
-
         # Input checking
         if multiplier != int(multiplier):
             raise TypeError("can't multiply sequence by non-integer.")
@@ -504,10 +434,13 @@ class DNA(object):
         return new_instance
 
     def __eq__(self, other):
-        '''
-        Test DNA object equality.
+        '''Test DNA object equality.
+
+        :param other: other sequence
+        :type other: pymbt.sequence.DNA
 
         '''
+        # TODO: allow comparison to strings?
 
         if vars(self) == vars(other):
             return True
@@ -515,16 +448,18 @@ class DNA(object):
             return False
 
     def __ne__(self, other):
-        '''
-        Test DNA object equality.
+        '''Test DNA object inequality.
 
+        :param other: other sequence
+        :type other: pymbt.sequence.DNA
         '''
-
         return not (self == other)
 
     def __contains__(self, pattern):
-        '''
-        Specially-defined `x in y` behavior
+        '''`x in y` behavior.
+
+        :param pattern: pattern to search for
+        :type pattern: str
 
         '''
 
@@ -535,11 +470,7 @@ class DNA(object):
 
 
 class RestrictionSite(object):
-    '''
-    Defines the recognition site and properties of a restriction endonuclease.
-
-    '''
-
+    '''Recognition site and properties of a restriction endonuclease.'''
     def __init__(self, recognition_site, cut_site, name=None):
         '''
         :param recognition_site: Input sequence.
@@ -560,11 +491,7 @@ class RestrictionSite(object):
         self.name = name
 
     def __repr__(self):
-        '''
-        Restriction site representation / string coercion.
-
-        '''
-
+        '''Represent a restriction site.'''
         site = self.recognition_site
         cut = self.cut_site
         cut_symbols = ('|', '|')
@@ -586,10 +513,7 @@ class RestrictionSite(object):
 
 
 class Feature(object):
-    '''
-    A DNA feature - annotate and extract sequence by metadata.
-
-    '''
+    '''Represent A DNA feature - annotate and extract sequence by metadata.'''
 
     def __init__(self, name, start, stop, feature_type, strand=0):
         '''
@@ -607,7 +531,6 @@ class Feature(object):
         :type strand: int
 
         '''
-
         self.name = name
         self.start = int(start)
         self.stop = int(stop)
@@ -625,22 +548,17 @@ class Feature(object):
             raise ValueError(msg1 + msg2)
 
     def move(self, bases):
-        '''
-        Move the start and stop positions.
+        '''Move the start and stop positions.
 
         :param bases: bases to move - can be negative
         :type bases: int
 
         '''
-
         self.start += bases
         self.stop += bases
 
     def __repr__(self):
-        '''
-        Representation of the feature.
-
-        '''
+        '''Represent a feature.'''
 
         if self.modified:
             part1 = "(Modified) {} '{}' feature ".format(self.name,
