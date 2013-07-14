@@ -311,9 +311,9 @@ def nupack_multiprocessing(seqs, material, cmd, arguments, report=True):
         nupack_pool.close()
         nupack_pool.join()
     except KeyboardInterrupt:
-        print "Caught KeyboardInterrupt, terminating workers"
         nupack_pool.terminate()
         nupack_pool.close()
+        raise KeyboardInterrupt
 
     return multi_output
 
