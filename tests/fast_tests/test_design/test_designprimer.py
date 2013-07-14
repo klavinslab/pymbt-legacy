@@ -21,10 +21,10 @@ def test_design_primer():
           'gaccccaacgagaagcgcgatcacatggtcctgctggagttcgtgaccgccgccgggatcact' + \
           'ctcggcatggacgagctgtacaagtaa'
     dna_seq = sequence.DNA(seq)
-    primer, tm = design.DesignPrimer(dna_seq, tm=72, min_len=10,
-                                     tm_undershoot=1, tm_overshoot=3,
-                                     end_gc=False, tm_parameters='cloning',
-                                     overhang='').run()
+    primer = design.DesignPrimer(dna_seq, tm=72, min_len=10,
+                                 tm_undershoot=1, tm_overshoot=3,
+                                 end_gc=False, tm_parameters='cloning',
+                                 overhang='').run()
     assert_equals(str(primer), 'atggtgagcaagggcgaggag')
 
 
@@ -49,6 +49,6 @@ def test_design_primer_gene():
                                            end_gc=False,
                                            tm_parameters='cloning',
                                            overhangs='').run()
-    primers = [str(x[0]) for x in primers_list]
+    primers = [str(x.primer) for x in primers_list]
     assert_equals(primers, ['atggtgagcaagggcgaggag',
                             'ttacttgtacagctcgtccatgccg'])

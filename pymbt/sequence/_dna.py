@@ -393,7 +393,7 @@ class DNA(object):
         :param other: anything
 
         '''
-        if other == 0:
+        if not other or other == 0:
             # sum(list) adds to zero first, so ignore it
             return self
         elif type(self) != type(other):
@@ -512,9 +512,24 @@ class RestrictionSite(object):
         return '\n'.join([top_w_cut, bottom_w_cut])
 
 
+class Primer(object):
+    '''A DNA primer - ssDNA with tm, anneal, and optional overhang.'''
+    def __init__(self, anneal, overhang, tm):
+        self.tm = tm
+        self.anneal = anneal
+        self.overhang = overhang
+        self.primer = overhang + anneal
+
+    def __repr__(self):
+        return 'Primer: {} Tm: {:.2f}'.format(self.overhang.top.upper() +
+                                              self.anneal.top, self.tm)
+
+    def __str__(self):
+        return str(self.primer)
+
+
 class Feature(object):
     '''Represent A DNA feature - annotate and extract sequence by metadata.'''
-
     def __init__(self, name, start, stop, feature_type, strand=0):
         '''
         :param name: Name of the feature. Used during feature extraction.

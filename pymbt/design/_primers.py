@@ -1,6 +1,7 @@
 '''Primer design tools.'''
 
 from pymbt import analysis
+from pymbt import sequence
 import warnings
 
 
@@ -54,28 +55,25 @@ class DesignPrimer(object):
 
     def run(self, check_structure=True):
         '''Design the primer.'''
-        self.anneal, self.primer_tm = _design_primer(self.template, self.tm,
-                                                     self.min_len,
-                                                     self.tm_undershoot,
-                                                     self.tm_overshoot,
-                                                     self.end_gc,
-                                                     self.tm_parameters)
-        if self.overhang:
-            self.primer = self.overhang + self.anneal
-        else:
-            self.primer = self.anneal
+        self.primer = _design_primer(self.template, self.tm,
+                                     self.min_len,
+                                     self.tm_undershoot,
+                                     self.tm_overshoot,
+                                     self.end_gc,
+                                     self.tm_parameters,
+                                     self.overhang)
         if check_structure:
             self.structure()
-        return self.primer, self.tm
+        return self.primer
 
     def structure(self):
         '''Check annealing sequence for structure.'''
         # Check whole primer for high-probability structure, focus in on
         # annealing sequence, report average
-        nupack = analysis.Nupack(self.primer)
+        nupack = analysis.Nupack(self.primer.primer)
         pairs = nupack.pairs()
         nupack.close()
-        anneal_len = len(self.anneal)
+        anneal_len = len(self.primer.anneal)
         pairs_mean = sum(pairs[-anneal_len:]) / anneal_len
         if pairs_mean < 0.5:
             self.high_structure = True
@@ -195,7 +193,7 @@ def _design_primer(dna, tm=72, min_len=10, tm_undershoot=1,
         overhang = overhang.set_stranded('ss')
         best_primer = overhang + best_primer
 
-    return best_primer, best_tm
+    return sequence.Primer(best_primer, overhang, best_tm)
 
 
 def _design_primer_gene(dna, tm=72, min_len=10, tm_undershoot=1,
@@ -227,10 +225,10 @@ def _design_primer_gene(dna, tm=72, min_len=10, tm_undershoot=1,
     templates = [dna, dna.reverse_complement()]
     primer_list = []
     for template, overhang in zip(templates, overhangs):
-        primer, tm = _design_primer(template, tm=tm, min_len=min_len,
-                                    tm_undershoot=tm_undershoot,
-                                    tm_overshoot=tm_overshoot, end_gc=end_gc,
-                                    tm_parameters=tm_parameters,
-                                    overhang=overhang)
-        primer_list.append((primer, tm))
+        primer = _design_primer(template, tm=tm, min_len=min_len,
+                                tm_undershoot=tm_undershoot,
+                                tm_overshoot=tm_overshoot, end_gc=end_gc,
+                                tm_parameters=tm_parameters,
+                                overhang=overhang)
+        primer_list.append(primer)
     return primer_list

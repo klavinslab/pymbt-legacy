@@ -11,6 +11,7 @@
 * High Priority
     * Analysis:
         * Read/write sequencing alignments (Sanger methods)
+            * writing: need to write my own format to keep score info?
         * Add ViennaRNA as partial NUPACK replacement
     * Data:
         * Scientific database access object(s)
