@@ -12,7 +12,6 @@
     * Analysis:
         * Read/write sequencing alignments (Sanger methods)
         * Add ViennaRNA as partial NUPACK replacement
-        * Check cloning primers for self-self, pair structure using Nupack
     * Data:
         * Scientific database access object(s)
     * Design:

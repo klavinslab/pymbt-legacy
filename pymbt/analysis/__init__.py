@@ -11,5 +11,6 @@ from pymbt.analysis._sequencing.needle import needle
 from pymbt.analysis._sequencing.alignment import Sanger
 from pymbt.analysis._structure.nupack import Nupack
 from pymbt.analysis._structure.nupack import nupack_multiprocessing
+from pymbt.analysis._structure.dimers import dimers
 from pymbt.analysis._structure.structure_windows import StructureWindows
 from pymbt.analysis import utils

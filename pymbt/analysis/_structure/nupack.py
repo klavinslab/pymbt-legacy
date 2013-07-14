@@ -126,13 +126,13 @@ class Nupack(object):
 
         return {'complexes': complexes, 'complex_energy': energies}
 
-    def concentrations(self, max_complexes, conc=0.5e-6, mfe=True):
+    def concentrations(self, max_complexes, conc=[0.5e-6], mfe=True):
         '''Find the predicted concentrations of polymer complexes.
 
         :param max_complexes: Maximum complex size.
         :type max_complexes: int
         :param conc: Oligo concentrations.
-        :type conc: float
+        :type conc: list
         :param mfe: Include mfe calculations.
         :type mfe: bool
 
@@ -148,7 +148,10 @@ class Nupack(object):
             self.complexes(max_complexes=max_complexes, mfe=mfe)
 
         # Prepare input file
-        input_concs = '\n'.join([str(conc) for x in self.seq_list])
+        if len(conc) > 1:
+            input_concs = '\n'.join([str(x) for x in conc])
+        else:
+            input_concs = '\n'.join([str(conc[0]) for x in self.seq_list])
         with open(self.tmpdir + '/nupack.con', 'w') as input_handle:
             input_handle.write(input_concs)
 
