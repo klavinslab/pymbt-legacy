@@ -1,6 +1,7 @@
 '''Primer design tools.'''
 
 from pymbt import analysis
+import warnings
 
 
 # TODO: combine DesignPrimer and DesignPrimerGene
@@ -46,7 +47,12 @@ class DesignPrimer(object):
         self.tm_parameters = tm_parameters
         self.overhang = overhang
 
-    def run(self):
+        self.anneal = None
+        self.primer = None
+        self.primer_tm = None
+        self.high_structure = False
+
+    def run(self, check_structure=True):
         '''Design the primer.'''
         self.anneal, self.primer_tm = _design_primer(self.template, self.tm,
                                                      self.min_len,
@@ -58,6 +64,8 @@ class DesignPrimer(object):
             self.primer = self.overhang + self.anneal
         else:
             self.primer = self.anneal
+        if check_structure:
+            self.structure()
         return self.primer, self.tm
 
     def structure(self):
@@ -66,10 +74,13 @@ class DesignPrimer(object):
         # annealing sequence, report average
         nupack = analysis.Nupack(self.primer)
         pairs = nupack.pairs()
-        anneal_len = len(self.anneal)
-        anneal_pairs = pairs[-anneal_len:]
         nupack.close()
-        return sum(anneal_pairs) / anneal_len
+        anneal_len = len(self.anneal)
+        pairs_mean = sum(pairs[-anneal_len:]) / anneal_len
+        if pairs_mean < 0.5:
+            self.high_structure = True
+            warnings.warn('High probability structure', Warning)
+        return pairs_mean
 
 
 class DesignPrimerGene(object):
