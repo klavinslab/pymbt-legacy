@@ -48,11 +48,28 @@ class DesignPrimer(object):
 
     def run(self):
         '''Design the primer.'''
-        primer, tm = _design_primer(self.template, self.tm, self.min_len,
-                                    self.tm_undershoot, self.tm_overshoot,
-                                    self.end_gc, self.tm_parameters,
-                                    self.overhang)
-        return primer, tm
+        self.anneal, self.primer_tm = _design_primer(self.template, self.tm,
+                                                     self.min_len,
+                                                     self.tm_undershoot,
+                                                     self.tm_overshoot,
+                                                     self.end_gc,
+                                                     self.tm_parameters)
+        if self.overhang:
+            self.primer = self.overhang + self.anneal
+        else:
+            self.primer = self.anneal
+        return self.primer, self.tm
+
+    def structure(self):
+        '''Check annealing sequence for structure.'''
+        # Check whole primer for high-probability structure, focus in on
+        # annealing sequence, report average
+        nupack = analysis.Nupack(self.primer)
+        pairs = nupack.pairs()
+        anneal_len = len(self.anneal)
+        anneal_pairs = pairs[-anneal_len:]
+        nupack.close()
+        return sum(anneal_pairs) / anneal_len
 
 
 class DesignPrimerGene(object):
