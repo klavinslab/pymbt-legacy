@@ -48,7 +48,7 @@ class Restriction(object):
         self.current.reverse()
         # Combine first and last back together if digest was circular
         if self.template.topology == 'circular':
-            self.current[0] += self.current.pop()
+            self.current[0] = self.current.pop() + self.current[0]
         return self.current
 
     def _cut(self, index):
@@ -70,6 +70,7 @@ class Restriction(object):
 
         # If applicable, leave overhangs
         diff = top_cut - bottom_cut
+        print diff
         if not diff:
             # Blunt-end cutter, no adjustment necessaryy
             pass
@@ -80,8 +81,8 @@ class Restriction(object):
             right = right.five_resect(diff)
         else:
             # 5' overhangs
-            left = left.three_resect(diff)
+            left = left.three_resect(abs(diff))
             right_r = right.reverse_complement()
-            right = right_r.three_resect(diff).reverse_complement()
+            right = right_r.three_resect(abs(diff)).reverse_complement()
 
         return [left, right]
