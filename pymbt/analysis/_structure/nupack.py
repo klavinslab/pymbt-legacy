@@ -5,7 +5,7 @@ Wrapper for NUPACK 3.0.
 
 import multiprocessing
 import time
-from subprocess import call
+from subprocess import Popen, PIPE
 from tempfile import mkdtemp
 from shutil import rmtree
 from os.path import isdir
@@ -69,7 +69,7 @@ class Nupack(object):
         self.tmpdir = mkdtemp()
 
         # Track whether complexes has been run to avoid redundant computation
-        self.complexes_run = False
+        self._complexes_run = False
 
     def complexes(self, max_complexes, mfe=True):
         '''Find properties of polymer complexes.
@@ -90,15 +90,10 @@ class Nupack(object):
         with open(self.tmpdir + '/nupack.in', 'w') as input_handle:
             input_handle.write(complexes_input)
 
-        # Prepare arguments
-        if mfe:
-            mfe_arg = ' -mfe '
-        else:
-            mfe_arg = ''
-
         # Run 'complexes'
-        args = ' -T {0} -material {1} {2}'.format(self.temp, self.material,
-                                                  mfe_arg)
+        args = ['-T', str(self.temp), '-material', self.material]
+        if mfe:
+            args += ['-mfe']
         self._run_cmd('complexes', args)
 
         # Parse the output
@@ -122,7 +117,7 @@ class Nupack(object):
         # Extract energies
         energies = [float(x.pop(0)) for x in complexes_results]
 
-        self.complexes_run = max_complexes, mfe
+        self._complexes_run = int(max_complexes), mfe
 
         return {'complexes': complexes, 'complex_energy': energies}
 
@@ -142,7 +137,7 @@ class Nupack(object):
 
         # If complexes has already been run with the same settings, keep the
         # result (more efficient). Otherwise, run complexes.
-        if self.complexes_run == (max_complexes, mfe):
+        if self._complexes_run == (max_complexes, mfe):
             pass
         else:
             self.complexes(max_complexes=max_complexes, mfe=mfe)
@@ -155,8 +150,10 @@ class Nupack(object):
         with open(self.tmpdir + '/nupack.con', 'w') as input_handle:
             input_handle.write(input_concs)
 
+        args = ['-sort', str(3)]
+
         # Run 'concentrations'
-        self._run_cmd('concentrations', '-sort 3 ')
+        self._run_cmd('concentrations', args)
 
         # Parse the output of 'complexes'
         with open(self.tmpdir + '/nupack.eq', 'r+') as output_handle:
@@ -194,13 +191,12 @@ class Nupack(object):
         # Prepare input file
         with open(self.tmpdir + '/nupack.in', 'w') as input_handle:
             input_handle.write(self.seq_list[index])
-        # Run 'mfe'
 
-        args = ' -T {} -material {}'.format(self.temp, self.material)
+        args = ['-T', str(self.temp), '-material', self.material]
         self._run_cmd('mfe', args)
         # Parse the output of 'mfe'
 
-        with open(self.tmpdir + '/nupack.mfe', 'r+') as output_handle:
+        with open('{}/nupack.mfe'.format(self.tmpdir), 'r+') as output_handle:
             mfe = float(output_handle.readlines()[14].strip())
         # Return the mfe
 
@@ -224,7 +220,7 @@ class Nupack(object):
             input_handle.write(sequence)
 
         # Calculate pair probabilities with 'pairs'
-        args = '-T {0} -material {1}'.format(self.temp, self.material)
+        args = ['-T', str(self.temp), '-material', self.material]
         self._run_cmd('pairs', args)
 
         # Parse the output of 'pairs'
@@ -267,13 +263,13 @@ class Nupack(object):
             msg = 'Command must be one of: {}'.format(known_cmds)
             raise ValueError(msg)
 
-        env = "export NUPACKHOME=" + self.nupack_home + ' && '
-        change_dir = 'cd {} && '.format(self.tmpdir)
-        cmd_path = '{0}/bin/{1} '.format(self.nupack_home, cmd)
-        arguments = '{0} {1}/nupack'.format(cmd_args, self.tmpdir)
-
-        run_command = env + change_dir + cmd_path + arguments
-        call(run_command + ' > /dev/null', shell=True)
+        cmd_path = '{0}/bin/{1}'.format(self.nupack_home, cmd)
+        cmd_args += ['nupack']
+        cmd_list = [cmd_path] + cmd_args
+        process = Popen(cmd_list,
+                        env={'NUPACKHOME': self.nupack_home},
+                        cwd=str(self.tmpdir), stdout=PIPE)
+        process.wait()
 
 
 def nupack_multiprocessing(seqs, material, cmd, arguments, report=True):
