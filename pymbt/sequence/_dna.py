@@ -196,7 +196,7 @@ class DNA(object):
         if not pattern:
             return [[], []]
 
-        pattern = pattern.lower()
+        pattern = str(pattern).lower()
         regex = '(?=' + pattern + ')'
 
         if self.topology == 'circular':
@@ -521,8 +521,11 @@ class Primer(object):
         self.primer = overhang + anneal
 
     def __repr__(self):
-        return 'Primer: {} Tm: {:.2f}'.format(self.overhang.top.upper() +
-                                              self.anneal.top, self.tm)
+        if self.overhang:
+            return 'Primer: {} Tm: {:.2f}'.format(self.overhang.top.upper() +
+                                                  self.anneal.top, self.tm)
+        else:
+            return 'Primer: {} Tm: {:.2f}'.format(self.anneal.top, self.tm)
 
     def __str__(self):
         return str(self.primer)
@@ -583,3 +586,17 @@ class Feature(object):
         part2 = '({0} to {1}) on strand {2}'.format(self.start, self.stop,
                                                     self.strand)
         return part1 + part2
+
+    def __eq__(self, other):
+        '''Define equality.'''
+        if vars(self) == vars(other):
+            return True
+        else:
+            return False
+
+    def __neq__(self, other):
+        '''Define inequality.'''
+        if not self == other:
+            return False
+        else:
+            return True
