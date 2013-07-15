@@ -70,7 +70,6 @@ class Restriction(object):
 
         # If applicable, leave overhangs
         diff = top_cut - bottom_cut
-        print diff
         if not diff:
             # Blunt-end cutter, no adjustment necessaryy
             pass

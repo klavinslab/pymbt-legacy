@@ -22,7 +22,6 @@
     * Reaction:
         * Gibson
             * Check for structures / alternative binding
-        * BASIC Restriction digest
     * SeqIO:
     * Sequence:
     * Visualization:

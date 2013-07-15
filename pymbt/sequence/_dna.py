@@ -346,6 +346,7 @@ class DNA(object):
 
     def __len__(self):
         '''Find length of all DNA (including gaps)'''
+        # FIXME: this is not accurate for DNA with overhangs
         return len(self.top)
 
     def __add__(self, other):
