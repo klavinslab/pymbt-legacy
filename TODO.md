@@ -19,12 +19,10 @@
         * Given a sequence with a subsequence to a (Sanger) sequence,
           design primers to give full coverage of the subsequence.
     * Reaction:
-        * PCR
         * Gibson
             * Check for structures / alternative binding
         * BASIC Restriction digest
     * SeqIO:
-        * write function
     * Sequence:
         * write methods per-object, rather than in seqio?
         * 'read' function defined for sequence module rather than seqio (to
