@@ -5,13 +5,9 @@ from a gene sequence.
 
 import csv
 from pymbt import analysis
+from pymbt import seqio
+from pymbt import sequence
 from pymbt.design import DesignPrimerGene
-
-from Bio.SeqFeature import SeqFeature, FeatureLocation, ExactPosition
-from Bio.Seq import Seq
-from Bio.SeqRecord import SeqRecord
-from Bio import SeqIO
-from Bio.Alphabet.IUPAC import unambiguous_dna
 
 
 class OligoAssembly(object):
@@ -191,18 +187,16 @@ class OligoAssembly(object):
 
         '''
         starts = [index[0] for index in self.overlap_indices]
-        overlap_lens = [len(overlap) for overlap in self.overlaps]
         features = []
         for i, start in enumerate(starts):
-            location = FeatureLocation(ExactPosition(start),
-                                       ExactPosition(start + overlap_lens[i]),
-                                       strand=1)
-            overlap_name = 'overlap {}'.format(i + 1)
-            features.append(SeqFeature(location, type='misc_feature',
-                            qualifiers={'label': [overlap_name]}))
-        seq_map = SeqRecord(Seq(self.template, unambiguous_dna),
-                            features=features)
-        SeqIO.write(seq_map, path, 'genbank')
+            stop = start + len(self.overlaps[i])
+            name = 'overlap {}'.format(i + 1)
+            feature_type = 'misc'
+            strand = 0
+            features.append(sequence.Feature(name, start, stop, feature_type,
+                                             strand=strand))
+        seq_map = sequence.DNA(self.template, features=features)
+        seqio.write(seq_map, path)
 
     def __repr__(self):
         if self._has_run:

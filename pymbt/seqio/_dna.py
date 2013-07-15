@@ -90,9 +90,10 @@ def write_dna(dna, path):
     #     topology
     features = []
     for feature in dna.features:
+        bio_strand = 1 if feature.strand == 1 else -1
         location = FeatureLocation(ExactPosition(feature.start),
                                    ExactPosition(feature.stop),
-                                   strand=feature.strand)
+                                   strand=bio_strand)
         ftype = _process_feature_type(feature.feature_type, bio_to_pymbt=False)
         features.append(SeqFeature(location, type=ftype,
                         qualifiers={'label': [feature.name]}))
