@@ -46,6 +46,13 @@ def read_dna(path):
                                              feature_stop, feature_type,
                                              strand=feature_strand))
     dna.features = sorted(dna.features, key=lambda feature: feature.start)
+    try:
+        if seq.annotations['data_file_division'] == 'circular':
+            dna.topology = 'circular'
+        elif seq.annotations['data_file_division'] == 'linear':
+            dna.topology = 'linear'
+    except:
+        pass
 
     return dna
 

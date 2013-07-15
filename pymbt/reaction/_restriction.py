@@ -48,7 +48,6 @@ class Restriction(object):
         self.current.reverse()
         # Combine first and last back together if digest was circular
         if self.template.topology == 'circular':
-            print 'yep'
             self.current[0] += self.current.pop()
         return self.current
 
