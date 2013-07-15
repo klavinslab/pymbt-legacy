@@ -1,5 +1,7 @@
 '''Restriction endonuclease reactions.'''
 
+from pymbt.analysis import palindrome
+
 
 class Restriction(object):
     '''Restriction endonuclease reaction.'''
@@ -13,81 +15,74 @@ class Restriction(object):
 
         '''
         self.template = dna
+        self.current = []
         self.restriction_site = restriction_site
         self.output = []
+        self.ran = False
 
     def run(self):
         '''Simulate the restriction digest and return results.'''
-        # TODO: search for top *and* bottom strand match - currently succeeds
-        # if only one matches, but enzymes don't work that way
-        # TODO: Figure out what to do with ambiguities.
-        #       example: site with both AsuI (TTCGAA) and EcoRI (GAATTC) sites
-        #       if EcoRI cuts first the AsuI site is gone, and vice versa
-        #       basically need to enumerate all different orders in which
-        #       enzymes could cut... which is potentially a lot...
-        #           product ( site_n! ) where n is the number of times
-        #           that the site appears in the sequence
-        #           So if EcoRI cuts 3 times and AsuI cuts twice, there are
-        #           3! * 2! = 12 permutations
-        #           if EcoRI cuts 5 times and AsuI cuts 4 times, there are
-        #           5! * 4! = 120 * 24 = 2880 permutations.
-        #           Hopefully these operations are very fast!
-        dna_pattern = str(self.restriction_site.recognition_site)
-        both_indices = self.template.locate(dna_pattern)
-        if both_indices:
-            if both_indices[0]:
-                cut1 = both_indices[0][0]
-                return self._cut(cut1)
-        else:
+        pattern = self.restriction_site.recognition_site
+        located = self.template.locate(pattern)
+        if not located[0] and not located[1]:
             print 'Restriction site not present in template DNA.'
             return [self.template]
-
-        # Check for circular - if so cut once then proceed
-
-        # Split into new pieces including full restriction site on cut end
-
-        # Resect correct amount to generate sticky ends
+        # Bottom strand indices are relative to the bottom strand 5' end.
+        # Convert to same type as top strand
+        pattern_len = len(pattern)
+        r_indices = [len(self.template) - index - pattern_len for index in
+                     located[1]]
+        # If sequence is palindrome, remove redundant results
+        if palindrome(pattern):
+            r_indices = [index for index in r_indices if index not in
+                         located[0]]
+        # Flatten cut site indices
+        cut_sites = sorted(located[0] + r_indices)
+        # Go through each cut site starting at highest one
+        # Cut remaining template once, generating remaining + new
+        self.current = [self.template]
+        for cut_site in cut_sites[::-1]:
+            new = self._cut(cut_site)
+            self.current.append(new[1])
+            self.current.append(new[0])
+        self.current.reverse()
+        # Combine first and last back together if digest was circular
+        if self.template.topology == 'circular':
+            print 'yep'
+            self.current[0] += self.current.pop()
+        return self.current
 
     def _cut(self, index):
-        '''Cuts template once at the specified index.'''
+        '''Cuts template once at the specified index.
 
-        dna_list = []
+        :param index: index at which to cut
+        :type index: int
 
+        '''
+        # Find absolute indices at which to cut
         cut_site = self.restriction_site.cut_site
-        leftmost = index + min(cut_site)
+        top_cut = index + cut_site[0]
+        bottom_cut = index + cut_site[1]
 
-        top_cut = leftmost + cut_site[0]
-        bottom_cut = leftmost + cut_site[1]
+        # Isolate left and ride sequences
+        to_cut = self.current.pop()
+        left = to_cut[0:top_cut]
+        right = to_cut[bottom_cut:]
 
-        if self.template.type == 'circular':
-            # List contains only linearized DNA
-            dna_list.append(self.template.linearize(leftmost))
+        # If applicable, leave overhangs
+        diff = top_cut - bottom_cut
+        if not diff:
+            # Blunt-end cutter, no adjustment necessaryy
+            pass
+        elif diff > 0:
+            # 3' overhangs
+            left_r = left.reverse_complement()
+            left = left_r.five_resect(diff).reverse_complement()
+            right = right.five_resect(diff)
         else:
-            # List has left piece, then right piece in digest
-            dna_list.append(self.template[0:leftmost])
-            dna_list.append(self.template[leftmost:])
+            # 5' overhangs
+            left = left.three_resect(diff)
+            right_r = right.reverse_complement()
+            right = right_r.three_resect(diff).reverse_complement()
 
-        if top_cut != bottom_cut:
-            # Find sequence between cut sites
-            between = self.template[leftmost:index + max(cut_site)]
-            between_rev = between.reverse_complement()
-
-            # Prepare ssDNA versions of overhangs
-            top_overhang = between.five_resect()
-            bottom_overhang_rev = between_rev.five_resect()
-            bottom_overhang = bottom_overhang_rev.reverse_complement()
-
-            # If cut has 3' overhang, reverse complement overhangs
-            if top_cut > bottom_cut:
-                top_overhang = top_overhang.reverse_complement()
-                bottom_overhang = bottom_overhang.reverse_complement()
-            if self.template.type == 'circular':
-                dna_list[0] = dna_list[0][len(between):]
-                dna_list[0] += top_overhang
-                dna_list[0] = bottom_overhang + dna_list[0]
-            else:
-                dna_list[0] += top_overhang
-                dna_list[1] = dna_list[1][len(between):]
-                dna_list[1] = bottom_overhang + dna_list[1]
-
-        return dna_list
+        return [left, right]

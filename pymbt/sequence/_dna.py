@@ -483,7 +483,6 @@ class RestrictionSite(object):
         :type name: str
 
         '''
-        # TODO: input checking / equivalent
         self.recognition_site = recognition_site  # require DNA object
         # cutsite is indexed to leftmost base of restriction site
         self.cut_site = cut_site  # tuple of where top/bottom strands are cut
@@ -507,6 +506,7 @@ class RestrictionSite(object):
             bottom_w_cut = bottom_left + cut_symbols[1] + bottom_right
         else:
             # TODO: handle enzymes that cut outside of recognition site
+            return NotImplemented
             pass
 
         return '\n'.join([top_w_cut, bottom_w_cut])

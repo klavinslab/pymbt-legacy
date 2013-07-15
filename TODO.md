@@ -1,6 +1,7 @@
 # TODO List
 
 ## Fixes:
+* Features should be updated on \_\_getattr\_\_
 
 ## OO API:
 * Make sequences (DNA, RNA, Peptide) inherit from MutableSequence ABC
@@ -11,7 +12,7 @@
 * High Priority
     * Analysis:
         * Read/write sequencing alignments (Sanger methods)
-            * writing: need to write my own format to keep score info?
+            * Need a format!
         * Add ViennaRNA as partial NUPACK replacement
     * Data:
         * Scientific database access object(s)
@@ -24,9 +25,6 @@
         * BASIC Restriction digest
     * SeqIO:
     * Sequence:
-        * write methods per-object, rather than in seqio?
-        * 'read' function defined for sequence module rather than seqio (to
-          avoid circular deps)?
     * Visualization:
         * New module? How do you visualize a sequence, reaction, design, etc?
 * Low Priority
