@@ -2,11 +2,11 @@
 
 from tempfile import mkdtemp
 from shutil import rmtree
+from pymbt import sequence
 from Bio.Emboss.Applications import NeedleallCommandline
 from Bio import AlignIO
 
 # Important note: does not produce a 'consensus' reference sequence
-# TODO: return pymbt.sequence.DNA objects
 
 
 def needle(reference, target, gapopen=10, gapextend=0.5):
@@ -51,8 +51,8 @@ def needle(reference, target, gapopen=10, gapextend=0.5):
 
     # Process them into a list of tuples of form: [(ref, res1), (ref, res2)],
     # etc
-    aligned_reference = alignio[1].seq.tostring()
-    aligned_result = alignio[0].seq.tostring()
+    aligned_reference = sequence.DNA(alignio[1].seq.tostring())
+    aligned_result = sequence.DNA(alignio[0].seq.tostring())
 
     # Manually grab the score (AlignIO doesn't get it for some reason)
     with open(workdir + '/alignment.txt', 'r') as align_file:

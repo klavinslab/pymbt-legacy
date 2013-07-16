@@ -91,8 +91,7 @@ class OligoAssembly(object):
             current_oligo_n = oligo_number + 1
             oligo_n_met = False
             above_min_len = length_max > length_range[0]
-            # TODO: fix this control flow. It's stupid.
-            if not(not oligo_n_met and above_min_len):
+            if oligo_n_met or not above_min_len:
                 raise Exception('Failed!')
             while not oligo_n_met and above_min_len:
                 # Starting with low range and going up doesnt work for longer

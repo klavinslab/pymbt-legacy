@@ -3,10 +3,6 @@
 import re
 from pymbt.sequence import utils
 
-# TODO: figure out what to do with bottom-strand-only ssDNA. Should it be
-# flipped automatically or represented as-is? __setitem__ depends on this and
-# is currently incomplete. Also has implications for __add__.
-#   It should not be flipped automatically (unexpected, limits expressibility)
 # TODO: Feature mode is weak, may need to be redesigned
 #       Examples:
 #           How to track modifications to features? If I have gfp and linearize
@@ -63,8 +59,6 @@ class DNA(object):
                     raise Exception('Invalid feature input')
             else:
                 raise Exception('Invalid feature input')
-        # TODO: eliminate this attribute - just let it be implicit / checkable
-        # with a method e.g. DNA.stranded()
         self.stranded = stranded
 
         if bottom:
@@ -367,11 +361,7 @@ class DNA(object):
 
     def __str__(self):
         '''Coerce DNA object to string.'''
-        if '-' in self.top:
-            msg = 'No string coercion method sequences with top-strand gaps.'
-            raise Exception(msg)
-        else:
-            return self.top
+        return self.top
 
     def __len__(self):
         '''Find length of all DNA (including gaps)'''
@@ -470,8 +460,6 @@ class DNA(object):
         :type other: pymbt.sequence.DNA
 
         '''
-        # TODO: allow comparison to strings?
-
         if vars(self) == vars(other):
             return True
         else:

@@ -1,11 +1,5 @@
-'''
-Check sequences for repeats that may impact cloning efficiency.
-
-'''
-
+'''Check sequences for repeats that may impact cloning efficiency.'''
 from collections import Counter
-
-# TODO: implement version that works for circular DNA
 
 
 def repeats(seq, size):

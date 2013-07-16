@@ -204,7 +204,8 @@ class Sanger(object):
         needle_result = [needle(str(self._reference), str(seq)) for seq in
                          self._processed]
         # Split into alignments and scores
-        alignments = [(result[0], result[1]) for result in needle_result]
+        alignments = [(str(ref), str(res)) for ref, res, score in
+                      needle_result]
         scores = [result[2] for result in needle_result]
         # If a result scores too low, try reverse complement
         for i, score in enumerate(scores):
@@ -212,7 +213,7 @@ class Sanger(object):
                 reversed_result = self._processed[i].reverse_complement()
                 new_needle = needle(str(self._reference),
                                     str(reversed_result))
-                alignments[i] = (new_needle[0], new_needle[1])
+                alignments[i] = (str(new_needle[0]), str(new_needle[1]))
                 score = new_needle[2]
         return alignments, scores
 
