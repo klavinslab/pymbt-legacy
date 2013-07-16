@@ -14,7 +14,7 @@ class OligoAssembly(object):
     '''Split a sequence into overlapping oligonucleotides.'''
     def __init__(self, dna, tm=72, length_range=(80, 200), require_even=True,
                  start_5=True, oligo_number=None, overlap_min=20,
-                 min_exception=False, primers=False, primer_tm=60):
+                 min_exception=False):
         '''
         :param dna: Sequence to split into overlapping oligos.
         :type dna: pymbt.sequence.DNA
@@ -54,6 +54,7 @@ class OligoAssembly(object):
         self.overlaps = None
         self.overlap_tms = None
         self.primers = None
+        self.overlap_indices = None
 
         self._has_run = False
         self.warning = None
@@ -196,7 +197,7 @@ class OligoAssembly(object):
             features.append(sequence.Feature(name, start, stop, feature_type,
                                              strand=strand))
         seq_map = sequence.DNA(self.template, features=features)
-        seqio.write(seq_map, path)
+        seqio.write_dna(seq_map, path)
 
     def __repr__(self):
         if self._has_run:

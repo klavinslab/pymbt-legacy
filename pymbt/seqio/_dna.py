@@ -16,7 +16,7 @@ def read_dna(path):
     :type path: str
 
     '''
-    base, ext = os.path.splitext(path)
+    ext = os.path.splitext(path)[1]
 
     genbank_exts = ['.gb', '.ape']
     fasta_exts = ['.fasta', '.fa', '.seq']
@@ -51,7 +51,7 @@ def read_dna(path):
             dna.topology = 'circular'
         elif seq.annotations['data_file_division'] == 'linear':
             dna.topology = 'linear'
-    except:
+    except KeyError:
         pass
 
     return dna
@@ -82,7 +82,7 @@ def write_dna(dna, path):
 
     '''
     # Check if path filetype is valid, remember for later
-    base, ext = os.path.splitext(path)
+    ext = os.path.splitext(path)[1]
     if ext == '.gb' or ext == '.ape':
         filetype = 'genbank'
     elif ext == '.fa' or ext == '.fasta':

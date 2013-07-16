@@ -30,7 +30,7 @@ def dimers(primer1, primer2, concentrations=[5e-7, 5e-7, 3e-11]):
     concentrations.append(concentrations[2])
     nupack_concs = nupack.concentrations(2, conc=concentrations)
     nupack.close()
-    dimers = nupack_concs['concentrations'][5]
+    dimer_conc = nupack_concs['concentrations'][5]
     primer1_template = nupack_concs['concentrations'][6]
     primer2_template = nupack_concs['concentrations'][10]
-    return primer1_template, primer2_template, dimers
+    return primer1_template, primer2_template, dimer_conc

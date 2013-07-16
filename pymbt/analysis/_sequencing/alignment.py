@@ -48,8 +48,8 @@ class Sanger(object):
         print 'Summary: '
         print '--------'
         print
-        for name, n in zip(difference_names, self._difference_n):
-            print '  {}: {}'.format(name, n)
+        for name, num in zip(difference_names, self._difference_n):
+            print '  {}: {}'.format(name, num)
         print
 
         for name, difference in zip(difference_names, self._differences):
@@ -98,9 +98,10 @@ class Sanger(object):
             for index in result_bin:
                 for j, discrepancy_type in enumerate(differences):
                     for discrepancy in discrepancy_type[index]:
-                        y = i
-                        x = (discrepancy[0] + discrepancy[1]) // 2
-                        discrepancy_coords[j].append((x, y))
+                        coord_y = i
+                        coord_x = (discrepancy[0] + discrepancy[1]) // 2
+                        coords = (coord_x, coord_y)
+                        discrepancy_coords[j].append(coords)
 
         # Plotting
         # Plot calculations

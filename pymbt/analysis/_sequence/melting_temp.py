@@ -68,16 +68,7 @@ def tm(seq, dna_conc=50, salt_conc=50, parameters='cloning'):
     # Sum up the nearest-neighbor enthalpy and entropy
     seq = str(seq).upper()
 
-    def pair_deltas(seq):
-        delta0 = 0
-        delta1 = 0
-        for i in range(len(seq) - 1):
-            curchar = seq[i:i + 2]
-            delta0 += pars['delta_h'][curchar]
-            delta1 += pars['delta_s'][curchar]
-        return delta0, delta1
-
-    new_delt = pair_deltas(seq)
+    new_delt = _pair_deltas(seq, pars)
     deltas[0] += new_delt[0]
     deltas[1] += new_delt[1]
 
@@ -87,6 +78,7 @@ def tm(seq, dna_conc=50, salt_conc=50, parameters='cloning'):
     deltas[0] *= 1e3
 
     # Universal gas constant (R)
+    # FIXME: Should use 1.987? Published methods use that instead?
     R = 1.9872
 
     # Supposedly this is what dnamate does, but the output doesn't match theirs
@@ -137,6 +129,16 @@ def tm(seq, dna_conc=50, salt_conc=50, parameters='cloning'):
     return melt
 
 
+def _pair_deltas(seq, pars):
+    delta0 = 0
+    delta1 = 0
+    for i in range(len(seq) - 1):
+        curchar = seq[i:i + 2]
+        delta0 += pars['delta_h'][curchar]
+        delta1 += pars['delta_s'][curchar]
+    return delta0, delta1
+
+
 def breslauer_corrections(seq, pars_error):
     '''Sum corrections for Breslauer '84 method.'''
     deltas_corr = [0, 0]
@@ -163,18 +165,18 @@ def santalucia98_corrections(seq, pars_error):
     first = seq.top[0]
     last = seq.top[-1]
 
-    startGC = first == 'g' or first == 'c'
-    startAT = first == 'a' or first == 't'
-    endGC = last == 'g' or last == 'c'
-    endAT = last == 'a' or last == 't'
-    initGC = startGC + endGC
-    initAT = startAT + endAT
+    start_gc = first == 'g' or first == 'c'
+    start_at = first == 'a' or first == 't'
+    end_gc = last == 'g' or last == 'c'
+    end_at = last == 'a' or last == 't'
+    init_gc = start_gc + end_gc
+    init_at = start_at + end_at
 
     symmetric = seq == seq.reverse_complement()
 
     for i, delta in enumerate(['delta_h', 'delta_s']):
-        deltas_corr[i] += initGC * pars_error[delta]['initGC']
-        deltas_corr[i] += initAT * pars_error[delta]['initAT']
+        deltas_corr[i] += init_gc * pars_error[delta]['initGC']
+        deltas_corr[i] += init_at * pars_error[delta]['initAT']
         if symmetric:
             deltas_corr[i] += pars_error[delta]['symmetry']
     return deltas_corr

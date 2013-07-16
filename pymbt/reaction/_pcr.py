@@ -9,6 +9,7 @@ class PCR(object):
         self.template = template
 
     def run(self):
+        '''Simulate the PCR.'''
         # Find match in top or bottom strands for each primere
         p1_matches = self.template.locate(self.primer1.anneal)
         p2_matches = self.template.locate(self.primer2.anneal)

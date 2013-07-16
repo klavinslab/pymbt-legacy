@@ -7,12 +7,19 @@ from shutil import rmtree
 
 class Vienna(object):
     '''Vienna functions.'''
-    def __init__(self, seq, temp=50):
+    def __init__(self, seq, temp=50.0):
+        '''
+        :param seq: DNA or RNA sequence to evaluate.
+        :type seq: pymbt.sequence.DNA or pymbt.sequence.RNA
+        :param temp: Temperature at which to run calculations.
+        :type temp: float
+        '''
         self.seq = seq
         self.temp = temp
         self.tmpdir = mkdtemp()
 
     def mfe(self):
+        '''Calculate minimum free energy of sequence.'''
         process = Popen(['RNAfold', '-T', str(self.temp)], stdin=PIPE,
                         stdout=PIPE, stderr=STDOUT, cwd=self.tmpdir)
         output = process.communicate(input=self.seq)[0]
@@ -22,6 +29,7 @@ class Vienna(object):
         return mfe
 
     def pairs(self):
+        '''Calculate pair probabilities.'''
         process = Popen(['RNAfold', '-p', '-T', str(self.temp)], stdin=PIPE,
                         stdout=PIPE, stderr=STDOUT, cwd=self.tmpdir)
         process.communicate(input=self.seq)[0]
@@ -37,8 +45,10 @@ class Vienna(object):
         return data
 
     def close(self):
+        '''Close the temporary dir (keeps /tmp clean).'''
         rmtree(self.tmpdir)
 
     def _check_tmpdir(self):
+        '''If temp dir has been removed, create a new one.'''
         if not isdir(self.tmpdir):
             self.tmpdir = mkdtemp()

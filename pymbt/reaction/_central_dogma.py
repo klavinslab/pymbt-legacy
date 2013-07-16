@@ -20,6 +20,7 @@ class Transcription(object):
         return self.rna
 
     def get_coding_rna(self):
+        '''Extract coding RNA from sequence.'''
         if not self.rna:
             self.run()
         codons_left = len(self.rna) // 3
@@ -74,6 +75,7 @@ class Translation(object):
 
     # REFACTOR: this is totally redundant with the Transcription equivalent
     def get_coding_rna(self):
+        '''Extract coding RNA from sequence.'''
         codons_left = len(self.rna) // 3
         start_codon = sequence.RNA('aug')
         stop_codons = [sequence.RNA('uag'), sequence.RNA('uga'),
@@ -107,6 +109,7 @@ class Translation(object):
         return self.coding_rna
 
     def get_coding_peptide(self):
+        '''Extract coding peptide from sequence.'''
         if not self.coding_rna:
             self.get_coding_rna()
         self.coding_peptide = utils.convert_sequence(self.coding_rna,

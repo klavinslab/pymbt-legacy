@@ -279,6 +279,35 @@ class DNA(object):
 
         '''
         new_instance = self.copy()
+        # If referencing an incomplete feature, should automatically rename it
+        # e.g. gfp sliced from indices 10 to 100 should be something like:
+        # 'gfp(10:100)' for a name
+        if isinstance(key, slice):
+            # If a slice, remove stuff that isn't in the slide and adjust
+            # feature starts/stops
+            print key.start
+            print key.stop
+            print key.step
+            # For all features, keep those that are in the slice.
+            # i.e. for all features, if feature.stop <= key.start or
+            # feature.start >= key.stop, discard, else keep
+
+            # For remaining features start = oldstart - key.start and
+            # stop = oldstop - key.start.
+
+            # should do these two in a single loop so that name is modified
+            # once. Should
+            # For features with feature.start < 0, set feature.start to 0 and
+            # rename feature based on that (i.e. gfp.10.).
+
+            # For features with feature.stop > len(seq), set feature.stop to
+            # len(seq) and rename feature based on that (i.e. gfp.10.100)
+            # Could also implement more attributes for the future that
+            # describe whether it's truncated
+        else:
+            # Should just be an index. Remove features not in that index.
+            # Could type check / cast to int / raise useful exception
+            print key
         new_instance.top = new_instance.top[key]
         new_instance.bottom = new_instance.bottom[::-1][key][::-1]
         new_instance.topology = 'linear'
@@ -508,7 +537,6 @@ class RestrictionSite(object):
         else:
             # TODO: handle enzymes that cut outside of recognition site
             return NotImplemented
-            pass
 
         return '\n'.join([top_w_cut, bottom_w_cut])
 

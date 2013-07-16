@@ -15,6 +15,8 @@
         * Read/write sequencing alignments (Sanger methods)
             * Need a format!
         * Add ViennaRNA as partial NUPACK replacement
+        * In NUPACK and ViennaRNA, close tmpdir for every method. Instead of
+          keeping the dir intact, save the text in it for rewriting.
     * Design:
     * Reaction:
         * Gibson
