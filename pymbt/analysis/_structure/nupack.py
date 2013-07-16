@@ -1,7 +1,4 @@
-'''
-Wrapper for NUPACK 3.0.
-
-'''
+'''Wrapper for NUPACK 3.0.'''
 
 import multiprocessing
 import time

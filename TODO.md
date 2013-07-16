@@ -1,7 +1,8 @@
 # TODO List
 
 ## Fixes:
-* Features should be updated on \_\_getattr\_\_
+* Features should be updated on \_\_getitem\_\_
+* Features should be renamed when truncated
 
 ## OO API:
 * Make sequences (DNA, RNA, Peptide) inherit from MutableSequence ABC
@@ -14,9 +15,6 @@
         * Read/write sequencing alignments (Sanger methods)
             * Need a format!
         * ViennaRNA
-            * Equivalent (to Nupack) functions for:
-                * complexes
-                * concentrations
             * Return same format for pairs as Nupack does
             * Add tests
     * Design:

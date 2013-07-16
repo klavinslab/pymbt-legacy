@@ -44,9 +44,15 @@ class Vienna(object):
         data = [x.rstrip(' ubox') for x in data]
         data = [x.split() for x in data]
         data = [(int(a), int(b), float(c)) for a, b, c in data]
-        data = sorted(data, key=lambda triple: triple[2], reverse=True)
+        unbound = [1.0] * len(self._seq)
+        # TODO: this is not the right way to calculate the unbound
+        # probability
+        for base1, base2, prob_sqr in data:
+            probability = prob_sqr**2
+            unbound[base1 - 1] -= probability
+            unbound[base2 - 1] -= probability
         self._close()
-        return data
+        return unbound
 
     def _close(self):
         '''Close the temporary dir (keeps /tmp clean).'''
