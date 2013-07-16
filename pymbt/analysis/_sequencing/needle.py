@@ -13,9 +13,9 @@ def needle(reference, target, gapopen=10, gapextend=0.5):
     '''Do Needleman-Wunsch alignment.
 
     :param reference: Reference sequence.
-    :type reference: str
+    :type reference: pymbt.sequence.DNA
     :param target: Sequence to align against the reference.
-    :type target: str
+    :type target: pymbt.sequence.DNA
     :param gapopen: Penalty for opening a gap.
     :type gapopen: float
     :param gapextend: Penalty for extending a gap.
@@ -29,10 +29,10 @@ def needle(reference, target, gapopen=10, gapextend=0.5):
     # Write input files to temp dir (fasta format)
     with open(workdir + '/reference.fasta', 'w') as reference_handle:
         reference_handle.write('>reference\n')
-        reference_handle.write('{}\n'.format(reference))
+        reference_handle.write('{}\n'.format(str(reference)))
     with open(workdir + '/target.fasta', 'w') as target_handle:
         target_handle.write('>target\n')
-        target_handle.write('{}\n'.format(target))
+        target_handle.write('{}\n'.format(str(target)))
 
     # Set up Emboss 'needle' command
     cline = NeedleallCommandline(cmd='needleall')

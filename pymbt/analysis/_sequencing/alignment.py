@@ -201,7 +201,7 @@ class Sanger(object):
     def _align(self):
         '''Align sequences using needle.'''
         # Align
-        needle_result = [needle(str(self._reference), str(seq)) for seq in
+        needle_result = [needle(self._reference, seq) for seq in
                          self._processed]
         # Split into alignments and scores
         alignments = [(str(ref), str(res)) for ref, res, score in
@@ -211,8 +211,7 @@ class Sanger(object):
         for i, score in enumerate(scores):
             if score < 1300:
                 reversed_result = self._processed[i].reverse_complement()
-                new_needle = needle(str(self._reference),
-                                    str(reversed_result))
+                new_needle = needle(self._reference, reversed_result)
                 alignments[i] = (str(new_needle[0]), str(new_needle[1]))
                 score = new_needle[2]
         return alignments, scores
