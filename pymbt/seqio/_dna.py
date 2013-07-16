@@ -127,30 +127,33 @@ def _process_feature_type(feature_type, bio_to_pymbt=True):
     :param bio_to_pymbt: bool
 
     '''
-    to_bio = {'misc_feature': 'misc',
-              'CDS': 'coding',
-              'gene': 'coding',
-              'site': 'misc',
-              'primer_bind': 'primer',
-              'rep_origin': 'origin',
-              'promoter': 'promoter',
-              'terminator': 'terminator'}
-    to_pymbt = {'misc': 'misc_feature',
-                'coding': 'CDS',
-                'primer': 'primer_bind',
-                'origin': 'rep_origin',
+    to_pymbt = {'misc_feature': 'misc',
+                'misc_difference': 'misc',
+                '3\'UTR': '3\'utr',
+                'CDS': 'coding',
+                'gene': 'coding',
+                'site': 'misc',
+                'primer_bind': 'primer',
+                'rep_origin': 'origin',
                 'promoter': 'promoter',
                 'terminator': 'terminator'}
+    to_bio = {'misc': 'misc_feature',
+              '3\'utr': '3\'UTR',
+              'coding': 'CDS',
+              'primer': 'primer_bind',
+              'origin': 'rep_origin',
+              'promoter': 'promoter',
+              'terminator': 'terminator'}
 
     err_msg = 'Unrecognized feature type: {}'.format(feature_type)
     if bio_to_pymbt:
         try:
-            name = to_bio[feature_type]
+            name = to_pymbt[feature_type]
         except KeyError:
             raise ValueError(err_msg)
     else:
         try:
-            name = to_pymbt[feature_type]
+            name = to_bio[feature_type]
         except KeyError:
             raise ValueError(err_msg)
     return name

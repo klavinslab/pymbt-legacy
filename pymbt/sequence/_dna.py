@@ -578,7 +578,7 @@ class Feature(object):
         self.strand = strand
 
         allowed_types = ['coding', 'primer', 'promoter', 'terminator', 'rbs',
-                         'misc', 'origin']
+                         'misc', 'origin', '3\'utr']
 
         if feature_type in allowed_types:
             self.feature_type = feature_type
