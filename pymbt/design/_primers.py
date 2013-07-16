@@ -72,7 +72,6 @@ class DesignPrimer(object):
         # annealing sequence, report average
         nupack = analysis.Nupack(self.primer.primer)
         pairs = nupack.pairs()
-        nupack.close()
         anneal_len = len(self.primer.anneal)
         pairs_mean = sum(pairs[-anneal_len:]) / anneal_len
         if pairs_mean < 0.5:

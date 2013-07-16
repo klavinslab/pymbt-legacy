@@ -15,7 +15,6 @@ from pymbt.analysis.utils import sequence_type
 
 class Nupack(object):
     '''Use several NUPACK functions on a set of input sequences.'''
-
     def __init__(self, seq_list, rna1999=False, temp=50, nupack_home=None):
         '''
         :param seq_list: Input sequence(s).
@@ -30,7 +29,6 @@ class Nupack(object):
         :type nupack_home: str
 
         '''
-
         # Set up nupack environment variable
         if not nupack_home:
             if 'NUPACKHOME' in environ:
@@ -70,6 +68,7 @@ class Nupack(object):
 
         # Track whether complexes has been run to avoid redundant computation
         self._complexes_run = False
+        self._complexes_file = None
 
     def complexes(self, max_complexes, mfe=True):
         '''Find properties of polymer complexes.
@@ -98,9 +97,9 @@ class Nupack(object):
 
         # Parse the output
         with open(self.tmpdir + '/nupack.cx', 'r+') as output_handle:
-            complexes_results = output_handle.readlines()
-            complexes_results = [x.split() for x in complexes_results if '%'
-                                 not in x]
+            self._complexes_file = output_handle.readlines()
+        complexes_results = [x.split() for x in self._complexes_file if '%'
+                             not in x]
 
         # Remove rank entry
         for complexes_result in complexes_results:
@@ -119,6 +118,8 @@ class Nupack(object):
 
         self._complexes_run = int(max_complexes), mfe
 
+        self._close()
+
         return {'complexes': complexes, 'complex_energy': energies}
 
     def concentrations(self, max_complexes, conc=[0.5e-6], mfe=True):
@@ -132,15 +133,13 @@ class Nupack(object):
         :type mfe: bool
 
         '''
+        # If complexes hasn't been run, run it
+        if self._complexes_run != (max_complexes, mfe):
+            self.complexes(max_complexes=max_complexes, mfe=mfe)
 
         self._temp_dir()
-
-        # If complexes has already been run with the same settings, keep the
-        # result (more efficient). Otherwise, run complexes.
-        if self._complexes_run == (max_complexes, mfe):
-            pass
-        else:
-            self.complexes(max_complexes=max_complexes, mfe=mfe)
+        with open(self.tmpdir + '/nupack.cx', 'w') as cx_file:
+            cx_file.writelines(self._complexes_file)
 
         # Prepare input file
         if len(conc) > 1:
@@ -175,6 +174,8 @@ class Nupack(object):
         energies = [x.pop(0) for x in con_results]
         concentrations = [float(x[0]) for x in con_results]
 
+        self._close()
+
         return {'types': con_types,
                 'concentrations': concentrations,
                 'energy': energies}
@@ -198,7 +199,8 @@ class Nupack(object):
 
         with open('{}/nupack.mfe'.format(self.tmpdir), 'r+') as output_handle:
             mfe = float(output_handle.readlines()[14].strip())
-        # Return the mfe
+
+        self._close()
 
         return mfe
 
@@ -209,7 +211,6 @@ class Nupack(object):
         :type index: int
 
         '''
-
         self._temp_dir()
 
         # Sequence at the specified index
@@ -225,7 +226,6 @@ class Nupack(object):
 
         # Parse the output of 'pairs'
         # Only look at the last n rows - unbound probabilities
-        # TODO: return both unbound and bound under separate keys
         with open(self.tmpdir + '/nupack.ppairs', 'r+') as handle:
             pairs = handle.readlines()[-len(sequence):]
             pairs = [pair for pair in pairs if '%' not in pair]
@@ -235,11 +235,11 @@ class Nupack(object):
         #types = [(int(x.split()[0]), int(x.split()[1])) for x in pairs]
         pair_probabilities = [float(x.split()[2]) for x in pairs]
 
-        # Return the pair probabilities
-        return pair_probabilities
-#        return {'type': types, 'probabilities': pair_probabilities}
+        self._close()
 
-    def close(self):
+        return pair_probabilities
+
+    def _close(self):
         '''Delete the temporary dir to prevent filling up /tmp.'''
         rmtree(self.tmpdir)
 
@@ -285,7 +285,6 @@ def nupack_multiprocessing(seqs, material, cmd, arguments, report=True):
     :type arguments: str
 
     '''
-
     nupack_pool = multiprocessing.Pool()
     try:
         args = [{'seq': seq,
@@ -325,5 +324,4 @@ def run_nupack(kwargs):
     '''
     run = Nupack(kwargs['seq'])
     output = getattr(run, kwargs['cmd'])(**kwargs['arguments'])
-    run.close()
     return output

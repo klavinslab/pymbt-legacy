@@ -127,12 +127,6 @@ class TestDNA(object):
     def test_str(self):
         assert_equal(str(self.test_dna), 'atgc')
 
-        def str_gap(seq):
-            seq = seq.five_resect(1)
-            str(seq)
-
-        assert_raises(Exception, str_gap, self.test_dna)
-
     def test_len(self):
         assert_equal(len(self.test_dna), 4)
 

@@ -22,7 +22,6 @@ def test_nupack():
     mfe_1 = np_instance.mfe(1)
     pairs_0 = np_instance.pairs(0)
     pairs_1 = np_instance.pairs(1)
-    np_instance.close()
 
     # complexes command
     # energy

@@ -279,9 +279,11 @@ class DNA(object):
         if isinstance(key, slice):
             # If a slice, remove stuff that isn't in the slide and adjust
             # feature starts/stops
-            print key.start
-            print key.stop
-            print key.step
+
+            #print key.start
+            #print key.stop
+            #print key.step
+
             # For all features, keep those that are in the slice.
             # i.e. for all features, if feature.stop <= key.start or
             # feature.start >= key.stop, discard, else keep
@@ -298,10 +300,13 @@ class DNA(object):
             # len(seq) and rename feature based on that (i.e. gfp.10.100)
             # Could also implement more attributes for the future that
             # describe whether it's truncated
+            pass
         else:
             # Should just be an index. Remove features not in that index.
             # Could type check / cast to int / raise useful exception
-            print key
+
+            #print key
+            pass
         new_instance.top = new_instance.top[key]
         new_instance.bottom = new_instance.bottom[::-1][key][::-1]
         new_instance.topology = 'linear'

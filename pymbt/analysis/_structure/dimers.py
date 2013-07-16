@@ -29,7 +29,6 @@ def dimers(primer1, primer2, concentrations=[5e-7, 5e-7, 3e-11]):
     # Include reverse complement concentration
     concentrations.append(concentrations[2])
     nupack_concs = nupack.concentrations(2, conc=concentrations)
-    nupack.close()
     dimer_conc = nupack_concs['concentrations'][5]
     primer1_template = nupack_concs['concentrations'][6]
     primer2_template = nupack_concs['concentrations'][10]

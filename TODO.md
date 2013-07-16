@@ -2,7 +2,6 @@
 
 ## Fixes:
 * Features should be updated on \_\_getattr\_\_
-* Use Popen instead of call in Nupack
 
 ## OO API:
 * Make sequences (DNA, RNA, Peptide) inherit from MutableSequence ABC
