@@ -37,34 +37,34 @@ class Nupack(object):
                 msg1 = 'Must have NUPACKHOME environment variable set or '
                 msg2 = 'set nupack_home argument.'
                 raise ValueError(msg1 + msg2)
-        self.nupack_home = nupack_home
+        self._nupack_home = nupack_home
 
         # If input isn't list, make it one
         if type(seq_list) != list:
-            self.seq_list = [seq_list]
+            self._seq_list = [seq_list]
         else:
-            self.seq_list = seq_list
+            self._seq_list = seq_list
 
         # Figure out material based on input and ensure it's consistent
-        self.material = sequence_type(self.seq_list[0])
-        if not all([sequence_type(seq) == self.material for seq in
-                   self.seq_list]):
+        self._material = sequence_type(self._seq_list[0])
+        if not all([sequence_type(seq) == self._material for seq in
+                   self._seq_list]):
             raise ValueError('Sequence inputs were of mixed types.')
 
         # Convert seq object(s) to string(s)
-        self.seq_list = [str(seq) for seq in self.seq_list]
+        self._seq_list = [str(seq) for seq in self._seq_list]
 
         # Shared temperature input
-        self.temp = temp
+        self._temp = temp
 
         # Handle rna1999 setting
-        if self.material == 'rna' and rna1999:
-            self.material = 'rna1999'
-            if self.temp != 37:
+        if self._material == 'rna' and rna1999:
+            self._material = 'rna1999'
+            if self._temp != 37:
                 raise Exception('To use rna1999 settings, temp must be 37.')
 
         # Create temp dir
-        self.tmpdir = mkdtemp()
+        self._tempdir = mkdtemp()
 
         # Track whether complexes has been run to avoid redundant computation
         self._complexes_run = False
@@ -82,22 +82,22 @@ class Nupack(object):
         self._temp_dir()
 
         # Prepare input file
-        n_seqs = str(len(self.seq_list))
-        seqs = '\n'.join(self.seq_list)
+        n_seqs = str(len(self._seq_list))
+        seqs = '\n'.join(self._seq_list)
         max_complexes = str(max_complexes)
         complexes_input = '\n'.join([n_seqs, seqs, max_complexes])
-        with open(self.tmpdir + '/nupack.in', 'w') as input_handle:
+        with open(self._tempdir + '/nupack.in', 'w') as input_handle:
             input_handle.write(complexes_input)
 
         # Run 'complexes'
-        args = ['-T', str(self.temp), '-material', self.material]
+        args = ['-T', str(self._temp), '-material', self._material]
         if mfe:
             args += ['-mfe']
         self._run_cmd('complexes', args)
 
         # Parse the output
-        with open(self.tmpdir + '/nupack.cx', 'r+') as output_handle:
-            self._complexes_file = output_handle.readlines()
+        with open(self._tempdir + '/nupack.cx', 'r+') as output:
+            self._complexes_file = output.readlines()
         complexes_results = [x.split() for x in self._complexes_file if '%'
                              not in x]
 
@@ -109,7 +109,7 @@ class Nupack(object):
         complexes = []
         for result in complexes_results:
             complex_i = []
-            for seq in self.seq_list:
+            for seq in self._seq_list:
                 complex_i.append(int(float(result.pop(0))))
             complexes.append(complex_i)
 
@@ -138,15 +138,15 @@ class Nupack(object):
             self.complexes(max_complexes=max_complexes, mfe=mfe)
 
         self._temp_dir()
-        with open(self.tmpdir + '/nupack.cx', 'w') as cx_file:
+        with open(self._tempdir + '/nupack.cx', 'w') as cx_file:
             cx_file.writelines(self._complexes_file)
 
         # Prepare input file
         if len(conc) > 1:
             input_concs = '\n'.join([str(x) for x in conc])
         else:
-            input_concs = '\n'.join([str(conc[0]) for x in self.seq_list])
-        with open(self.tmpdir + '/nupack.con', 'w') as input_handle:
+            input_concs = '\n'.join([str(conc[0]) for x in self._seq_list])
+        with open(self._tempdir + '/nupack.con', 'w') as input_handle:
             input_handle.write(input_concs)
 
         args = ['-sort', str(3)]
@@ -155,8 +155,8 @@ class Nupack(object):
         self._run_cmd('concentrations', args)
 
         # Parse the output of 'complexes'
-        with open(self.tmpdir + '/nupack.eq', 'r+') as output_handle:
-            con_results = output_handle.readlines()
+        with open(self._tempdir + '/nupack.eq', 'r+') as output:
+            con_results = output.readlines()
             con_results = [x.split() for x in con_results if '%' not in x]
 
         # Format results: complex type, concentration, and energy
@@ -166,7 +166,7 @@ class Nupack(object):
         con_types = []
         for result in con_results:
             eq_cx_i = []
-            for i in range(len(self.seq_list)):
+            for i in range(len(self._seq_list)):
                 eq_cx_i.append(int(float(result.pop(0))))
             con_types.append(eq_cx_i)
 
@@ -190,15 +190,15 @@ class Nupack(object):
         self._temp_dir()
 
         # Prepare input file
-        with open(self.tmpdir + '/nupack.in', 'w') as input_handle:
-            input_handle.write(self.seq_list[index])
+        with open(self._tempdir + '/nupack.in', 'w') as input_handle:
+            input_handle.write(self._seq_list[index])
 
-        args = ['-T', str(self.temp), '-material', self.material]
+        args = ['-T', str(self._temp), '-material', self._material]
         self._run_cmd('mfe', args)
         # Parse the output of 'mfe'
 
-        with open('{}/nupack.mfe'.format(self.tmpdir), 'r+') as output_handle:
-            mfe = float(output_handle.readlines()[14].strip())
+        with open('{}/nupack.mfe'.format(self._tempdir), 'r+') as output:
+            mfe = float(output.readlines()[14].strip())
 
         self._close()
 
@@ -214,19 +214,19 @@ class Nupack(object):
         self._temp_dir()
 
         # Sequence at the specified index
-        sequence = self.seq_list[index]
+        sequence = self._seq_list[index]
 
         # Prepare input file
-        with open(self.tmpdir + '/nupack.in', 'w') as input_handle:
+        with open(self._tempdir + '/nupack.in', 'w') as input_handle:
             input_handle.write(sequence)
 
         # Calculate pair probabilities with 'pairs'
-        args = ['-T', str(self.temp), '-material', self.material]
+        args = ['-T', str(self._temp), '-material', self._material]
         self._run_cmd('pairs', args)
 
         # Parse the output of 'pairs'
         # Only look at the last n rows - unbound probabilities
-        with open(self.tmpdir + '/nupack.ppairs', 'r+') as handle:
+        with open(self._tempdir + '/nupack.ppairs', 'r+') as handle:
             pairs = handle.readlines()[-len(sequence):]
             pairs = [pair for pair in pairs if '%' not in pair]
 
@@ -241,12 +241,12 @@ class Nupack(object):
 
     def _close(self):
         '''Delete the temporary dir to prevent filling up /tmp.'''
-        rmtree(self.tmpdir)
+        rmtree(self._tempdir)
 
     def _temp_dir(self):
         '''If temporary dir doesn't exist, create it.'''
-        if not isdir(self.tmpdir):
-            self.tmpdir = mkdtemp()
+        if not isdir(self._tempdir):
+            self._tempdir = mkdtemp()
 
     def _run_cmd(self, cmd, cmd_args):
         '''Run NUPACK command line programs.
@@ -263,12 +263,12 @@ class Nupack(object):
             msg = 'Command must be one of: {}'.format(known_cmds)
             raise ValueError(msg)
 
-        cmd_path = '{0}/bin/{1}'.format(self.nupack_home, cmd)
+        cmd_path = '{0}/bin/{1}'.format(self._nupack_home, cmd)
         cmd_args += ['nupack']
         cmd_list = [cmd_path] + cmd_args
         process = Popen(cmd_list,
-                        env={'NUPACKHOME': self.nupack_home},
-                        cwd=str(self.tmpdir), stdout=PIPE)
+                        env={'NUPACKHOME': self._nupack_home},
+                        cwd=str(self._tempdir), stdout=PIPE)
         process.wait()
 
 
