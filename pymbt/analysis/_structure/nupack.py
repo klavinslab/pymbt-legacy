@@ -30,7 +30,7 @@ class Nupack(object):
 
         '''
         # Set up nupack environment variable
-        if not nupack_home:
+        if nupack_home is None:
             if 'NUPACKHOME' in environ:
                 nupack_home = environ['NUPACKHOME']
             else:

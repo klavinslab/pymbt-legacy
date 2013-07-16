@@ -47,7 +47,7 @@ class DNA(object):
             self.top = seq
 
         self.topology = topology
-        if not features:
+        if features is None:
             self.features = []
         else:
             if isinstance(features, Feature):
@@ -187,8 +187,6 @@ class DNA(object):
         '''
         if len(pattern) > 2 * len(self):
             raise Exception('Pattern must be less than 2 x sequence length.')
-        if not pattern:
-            return [[], []]
 
         pattern = str(pattern).lower()
         regex = '(?=' + pattern + ')'
@@ -418,7 +416,7 @@ class DNA(object):
         :param other: anything
 
         '''
-        if not other or other == 0:
+        if not other or other is None or other == 0:
             # sum(list) adds to zero first, so ignore it
             return self
         elif type(self) != type(other):

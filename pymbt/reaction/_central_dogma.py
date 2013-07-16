@@ -21,7 +21,7 @@ class Transcription(object):
 
     def get_coding_rna(self):
         '''Extract coding RNA from sequence.'''
-        if not self.rna:
+        if self.rna is None:
             self.run()
         codons_left = len(self.rna) // 3
         start_codon = sequence.RNA('aug')
@@ -34,7 +34,7 @@ class Transcription(object):
         # REFACTOR: this code is super redundant but functions exactly right
         while codons_left:
             codon = self.rna[index:index+3]
-            if not valid[0]:
+            if valid[0] is None:
                 if codon in start_codon:
                     start = index
                     valid[0] = True
@@ -46,9 +46,9 @@ class Transcription(object):
             index += 3
             codons_left -= 1
 
-        if not valid[0]:
+        if valid[0] is None:
             raise Exception('Sequence has no start codon.')
-        elif not stop:
+        elif stop is None:
             raise Exception('Sequence has no stop codon.')
         self.coding_rna = self.rna[start:stop]
 
@@ -87,7 +87,7 @@ class Translation(object):
         # REFACTOR: this code is super redundant but functions exactly right
         while codons_left:
             codon = self.rna[index:index+3]
-            if not valid[0]:
+            if valid[0] is None:
                 if codon in start_codon:
                     start = index
                     valid[0] = True
@@ -99,9 +99,9 @@ class Translation(object):
             index += 3
             codons_left -= 1
 
-        if not valid[0]:
+        if valid[0] is None:
             raise Exception('Sequence has no start codon.')
-        elif not stop:
+        elif stop is None:
             raise Exception('Sequence has no stop codon.')
         else:
             self.coding_rna = self.rna[start:stop]
@@ -110,7 +110,7 @@ class Translation(object):
 
     def get_coding_peptide(self):
         '''Extract coding peptide from sequence.'''
-        if not self.coding_rna:
+        if self.coding_rna is None:
             self.get_coding_rna()
         self.coding_peptide = utils.convert_sequence(self.coding_rna,
                                                      'peptide')

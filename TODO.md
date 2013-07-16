@@ -13,9 +13,12 @@
     * Analysis:
         * Read/write sequencing alignments (Sanger methods)
             * Need a format!
-        * Add ViennaRNA as partial NUPACK replacement
-        * In NUPACK and ViennaRNA, close tmpdir for every method. Instead of
-          keeping the dir intact, save the text in it for rewriting.
+        * ViennaRNA
+            * Equivalent (to Nupack) functions for:
+                * complexes
+                * concentrations
+            * Return same format for pairs as Nupack does
+            * Add tests
     * Design:
     * Reaction:
         * Gibson
@@ -30,6 +33,8 @@
           some return a small fraction of the useful output of nupack
     * Data:
         * Scientific database access object(s)
+            * NEB API for restriction enzymes?
+            * SGD, EcoCYC
     * Design:
         * Repeat detection for OligoAssembly
         * Automatic sequencing primer design
