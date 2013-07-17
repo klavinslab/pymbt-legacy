@@ -11,14 +11,10 @@
 
 ## Wishlist:
 * High Priority
+* Medium Priority
     * Analysis:
         * Read/write sequencing alignments (Sanger methods)
             * Need a format!
-    * Design:
-    * Reaction:
-        * Gibson
-    * SeqIO:
-    * Sequence:
 * Low Priority
     * Analysis:
         * Drop emboss dependency by using pycogent / pycogent approach for needleman-wunsch
@@ -36,7 +32,6 @@
     * Reaction:
         * More complex restriction digest (checks for all possible cut orders,
         if ambiguities are possible)
-    * SeqIO:
     * Sequence:
         * special genome object
         * comparisons - current behaviors to question:
