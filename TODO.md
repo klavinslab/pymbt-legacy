@@ -14,9 +14,6 @@
     * Analysis:
         * Read/write sequencing alignments (Sanger methods)
             * Need a format!
-        * ViennaRNA
-            * Return same format for pairs as Nupack does
-            * Add tests
     * Design:
     * Reaction:
         * Gibson
