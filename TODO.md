@@ -11,6 +11,8 @@
 
 ## Wishlist:
 * High Priority
+    * Design:
+        * Gibson
 * Medium Priority
     * Analysis:
         * Read/write sequencing alignments (Sanger methods)
