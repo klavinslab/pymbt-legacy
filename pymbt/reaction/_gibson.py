@@ -26,7 +26,6 @@ class Gibson(object):
         return self._seq_list[0]
 
     def _find_fuse_next(self, homology):
-        print 'adding'
         while True:
             current = self._seq_list[0]
             to_locate = current.top[-homology:]
@@ -35,7 +34,6 @@ class Gibson(object):
             for i, x in enumerate(self._seq_list):
                 if x != current:
                     found.append(x.locate(to_locate))
-            print found
             # If there are no results, throw an exception
             flat_results = [z for x in found for y in x for z in y]
             if not flat_results:
@@ -71,13 +69,12 @@ class Gibson(object):
 
     def _fuse_last(self, homology):
         # Should use basically the same approach as above...
-        print 'completing'
         while True:
             current = self._seq_list[0]
             to_locate = current.top[-homology:]
             # Generate matches for current to_locate sequence
             found = current.locate(to_locate)[0]
-            print found
+            found.pop(-1)
             if not found:
                 raise Exception('Failed to find compatible Gibson ends.')
             # There are matches so see if any match homology length

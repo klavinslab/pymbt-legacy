@@ -1,10 +1,10 @@
 from pymbt import seqio, reaction
 
 
-a = seqio.read_dna('/home/nick/gibson_test/a.ape')
-a1 = seqio.read_dna('/home/nick/gibson_test/a1.fasta')
-a2 = seqio.read_dna('/home/nick/gibson_test/a2.fasta')
-a3 = seqio.read_dna('/home/nick/gibson_test/a3.fasta')
+a = seqio.read_dna('/home/nick/gibson_test/b.fasta')
+a1 = seqio.read_dna('/home/nick/gibson_test/b1.fasta')
+a2 = seqio.read_dna('/home/nick/gibson_test/b2.fasta')
+a3 = seqio.read_dna('/home/nick/gibson_test/b3.fasta')
 
 final = reaction.Gibson([a1, a2, a3]).run()
 print 'expected plasmid size: {}'.format(len(a))
