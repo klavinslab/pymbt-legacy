@@ -12,6 +12,8 @@
 ## Wishlist:
 * High Priority
     * In general, replace .run stuff with methods
+        * classes to replace with functions:
+            *Gibson? 
     * Design:
         * Gibson
     * Reaction:

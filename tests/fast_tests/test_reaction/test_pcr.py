@@ -10,6 +10,5 @@ def test_basic():
     template = sequence.DNA(to_amplify)
     forward, reverse = design.design_primer_pcr(template)
 
-    pcr = reaction.PCR(forward, reverse, template)
-    amplicon = pcr.run()
+    amplicon = reaction.pcr(template, forward, reverse)
     assert_equal(amplicon, template)
