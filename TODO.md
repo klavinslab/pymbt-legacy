@@ -27,6 +27,9 @@
     * Reaction:
         * Ambiguous Gibson Detection
 * Medium Priority
+    * Tests!
+        * design primer with overhangs
+        * gibsons
     * Analysis:
         * Read/write sequencing alignments (Sanger methods)
             * Need a format!

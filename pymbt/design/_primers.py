@@ -68,7 +68,6 @@ def design_primer(dna, tm=72, min_len=10, tm_undershoot=1,
     # Apply overhang
     if overhang:
         overhang = overhang.set_stranded('ss')
-        best_primer = overhang + best_primer
 
     output_primer = sequence.Primer(best_primer, overhang, best_tm)
     if structure:

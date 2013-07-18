@@ -424,6 +424,7 @@ class DNA(object):
 
         '''
 
+        pattern = str(pattern)
         if pattern in self.top or pattern in self.bottom:
             return True
         else:
