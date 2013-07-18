@@ -203,6 +203,10 @@ class DNA(object):
         self.top = top
         self.bottom = bottom
 
+    def is_palindrome(self):
+        '''Report whether sequence is palindromic.'''
+        return utils.palindrome(self)
+
     def __getitem__(self, key):
         '''Index and slice sequences.
 
@@ -431,7 +435,6 @@ class DNA(object):
             return False
 
 
-# TODO: could represent as dictionary instead?
 class RestrictionSite(object):
     '''Recognition site and properties of a restriction endonuclease.'''
     def __init__(self, recognition_site, cut_site, name=None):
@@ -451,6 +454,26 @@ class RestrictionSite(object):
         self.cut_site = cut_site  # tuple of where top/bottom strands are cut
         # optional name
         self.name = name
+
+    def is_palindrome(self):
+        '''Report whether sequence is palindromic.'''
+        return self.recognition_site.is_palindrome()
+
+    def cuts_outside(self):
+        '''Report whether the enzyme cuts outside its recognition site.
+
+        Cutting at the very end of the site returns True
+
+        '''
+        for index in self.cut_site:
+            if index < 0 or index > len(self.recognition_site) + 1:
+                return True
+        return False
+
+    def copy(self):
+        '''Return copy of the restriction site.'''
+        return RestrictionSite(self.recognition_site, self.cut_site,
+                               self.name)
 
     def __repr__(self):
         '''Represent a restriction site.'''
@@ -472,8 +495,11 @@ class RestrictionSite(object):
 
         return '\n'.join([top_w_cut, bottom_w_cut])
 
+    def __len__(self):
+        '''Defines len operator.'''
+        return len(self.recognition_site)
 
-# TODO: Should inherit from DNA object
+
 class Primer(object):
     '''A DNA primer - ssDNA with tm, anneal, and optional overhang.'''
     def __init__(self, anneal, overhang, tm):

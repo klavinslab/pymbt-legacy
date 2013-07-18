@@ -1,6 +1,5 @@
 '''Analysis modules for sequences.'''
 from pymbt.analysis._sequence.melting_temp import tm
-from pymbt.analysis._sequence.palindrome import palindrome
 from pymbt.analysis._sequence.repeats import repeats
 from pymbt.analysis._sequencing.needle import needle
 from pymbt.analysis._sequencing.sanger import Sanger

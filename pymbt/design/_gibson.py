@@ -37,7 +37,6 @@ def gibson_primers(dna1, dna2, split, overlap_tm=65.0, **kwargs):
                                     overhang=overhang,
                                     **kwargs)
     elif split == 'mixed':
-        # TODO: the overlaps are wrong!
         overlap_l = dna1[0:0]
         overlap_r = dna2[0]
         overlap_melt = analysis.tm(overlap_r)

@@ -1,5 +1,4 @@
 '''Restriction endonuclease reactions.'''
-from pymbt.analysis import palindrome
 
 
 # FIXME: pmod4G-yevenus-stuff is incorrect when digested with NcoI
@@ -24,7 +23,7 @@ def digest(dna, restriction_enzyme):
     r_indices = [len(dna) - index - pattern_len for index in
                  located[1]]
     # If sequence is palindrome, remove redundant results
-    if palindrome(pattern):
+    if pattern.is_palindrome():
         r_indices = [index for index in r_indices if index not in
                      located[0]]
     # Flatten cut site indices

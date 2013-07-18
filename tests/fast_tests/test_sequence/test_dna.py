@@ -63,6 +63,12 @@ class TestDNA(object):
     def test_copy(self):
         assert_equal(self.test_dna, self.test_dna.copy())
 
+    def test_palindrome(self):
+        palindromic_seq_even = sequence.DNA('ATGCGCAT')
+        nonpalindromic_seq_even = sequence.DNA('ATGCGCAA')
+        assert_true(palindromic_seq_even.is_palindrome())
+        assert_false(nonpalindromic_seq_even.is_palindrome())
+
     def test_getitem(self):
         assert_equal(self.test_dna[0].top, 'a')
         assert_equal(self.test_dna[1].top, 't')
