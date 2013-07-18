@@ -8,8 +8,7 @@ def test_basic():
     to_amplify = 'atgtctaaaggtgaagaattattcactggtgttgtcccaatgctgctggtattacc' + \
                  'catggtattgatgaattgtacaaatag'
     template = sequence.DNA(to_amplify)
-    forward = design.DesignPrimer(template).run()
-    reverse = design.DesignPrimer(template.reverse_complement()).run()
+    forward, reverse = design.design_primer_pcr(template)
 
     pcr = reaction.PCR(forward, reverse, template)
     amplicon = pcr.run()

@@ -18,6 +18,8 @@
         * Remove .run methods. New idea: split into reaction objects/types and
           reaction functions. Reaction functions do reaction on 'init' and
           return reaction objects/types.
+    * Sequence:
+        * Features should update whenever sequence changes
 * Medium Priority
     * Analysis:
         * Read/write sequencing alignments (Sanger methods)

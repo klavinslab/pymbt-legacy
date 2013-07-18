@@ -7,7 +7,7 @@ import csv
 from pymbt import analysis
 from pymbt import seqio
 from pymbt import sequence
-from pymbt.design import DesignPrimerGene
+from pymbt.design import design_primer_pcr
 
 
 class OligoAssembly(object):
@@ -142,14 +142,14 @@ class OligoAssembly(object):
 
         self._has_run = True
 
-    def primers(self, tm=60):
+    def design_primers(self, tm=60):
         '''Design primers for amplifying the assembled sequence.
 
         :param tm: melting temperature (lower than overlaps is best).
         :type tm: float
 
         '''
-        self.primers = DesignPrimerGene(self.template, tm=tm).run()
+        self.primers = design_primer_pcr(self.template, tm=tm)
         return self.primers
 
     def write(self, path):
