@@ -9,4 +9,3 @@ from pymbt.reaction._central_dogma import Translation
 from pymbt.reaction._restriction import Restriction
 from pymbt.reaction._pcr import PCR
 from pymbt.reaction._gibson import Gibson
-from pymbt.reaction import restriction_sites
