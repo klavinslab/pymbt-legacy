@@ -18,9 +18,9 @@ def test_randomcodons():
     '''
 
     reference_seq = sequence.RNA('AUGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAUAG')
-    reference_peptide = reaction.Translation(reference_seq).run()
-    output = design.RandomCodons(reference_peptide).run()
-    output_peptide = reaction.Translation(reference_seq).run()
+    reference_peptide = reaction.translate(reference_seq)
+    output = design.random_codons(reference_peptide)
+    output_peptide = reaction.translate(reference_seq)
 
     assert_equal(len(output), len(reference_seq) - 3)
     assert_equal(reference_peptide, output_peptide)

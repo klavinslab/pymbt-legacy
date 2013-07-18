@@ -14,5 +14,5 @@ def test_randomdna():
 
     '''
 
-    output = design.RandomDNA(200).run()
+    output = design.random_dna(200)
     assert_equal(len(output), 200)
