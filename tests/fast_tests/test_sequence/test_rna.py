@@ -19,12 +19,6 @@ class TestRNA(object):
     def test_reverse_complement(self):
         assert_equal(self.test_rna.reverse_complement().top, 'gcau')
 
-    def test_five_resect(self):
-        assert_equal(self.test_rna.five_resect(2).top, 'gc')
-
-    def test_three_resect(self):
-        assert_equal(self.test_rna.three_resect(2).top, 'au')
-
     def test_locate(self):
         assert_equal(self.test_rna.locate('au'), [0])
         assert_equal(self.test_rna.locate('gc'), [2])

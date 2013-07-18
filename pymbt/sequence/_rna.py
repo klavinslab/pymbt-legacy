@@ -27,28 +27,6 @@ class RNA(object):
         new_instance.top = utils.reverse_complement(self.top, 'rna')
         return new_instance
 
-    # TODO: Remove once they're in reaction module.
-    def five_resect(self, n_bases):
-        '''Remove bases from 5' end of top strand.
-
-
-        :param n_bases: Number of bases cut back.
-        :type n_bases: int
-
-        '''
-        new_instance = self[n_bases::]
-        return new_instance
-
-    def three_resect(self, n_bases):
-        '''Remove bases from 3' end of top strand.
-
-        :param n_bases: Number of bases cut back.
-        :type n_bases: int
-
-        '''
-        new_instance = self[:-n_bases]
-        return new_instance
-
     def locate(self, pattern):
         '''Find sequences matching a pattern.
 

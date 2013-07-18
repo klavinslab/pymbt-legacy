@@ -37,12 +37,6 @@ class TestDNA(object):
         assert_equal(circ_dna.linearize(3).top, 'catg')
         assert_equal(circ_dna.linearize(-1).top, 'catg')
 
-    def test_five_resect(self):
-        assert_equal(self.test_dna.five_resect(2).top, '--gc')
-
-    def test_three_resect(self):
-        assert_equal(self.test_dna.three_resect(2).top, 'at--')
-
     def test_set_stranded(self):
         assert_equal(self.test_dna.set_stranded('ds'), self.test_dna)
         ss_dna = self.test_dna.set_stranded('ss')
@@ -52,7 +46,7 @@ class TestDNA(object):
         assert_equal(sequence.utils.reverse_complement(ds_dna.bottom, 'dna'),
                      ss_dna.top)
 
-        r_ss_dna = ds_dna.five_resect(4)
+        r_ss_dna = ds_dna  # TODO: make sure this is worth testing
         r_ds_dna = self.test_dna.set_stranded('ds')
         assert_equal(r_ds_dna.reverse_complement().top, r_ss_dna.bottom)
 
@@ -151,15 +145,16 @@ class TestDNA(object):
 
         assert_raises(TypeError, mul_float, self.test_dna)
 
-        def mul_incompatible(seq):
-            return seq * 3
+        # TODO: reimplement this test using manual sequence input
+        # def mul_incompatible(seq):
+        #     return seq * 3
 
-        incompatible_seq = self.test_dna.copy()
-        incompatible_seq = incompatible_seq.five_resect(1)
-        incompatible_seq = incompatible_seq.reverse_complement()
-        incompatible_seq = incompatible_seq.five_resect(1)
-        incompatible_seq = incompatible_seq.reverse_complement()
-        assert_raises(Exception, mul_incompatible, incompatible_seq)
+        # incompatible_seq = self.test_dna.copy()
+        # incompatible_seq = incompatible_seq.five_resect(1)
+        # incompatible_seq = incompatible_seq.reverse_complement()
+        # incompatible_seq = incompatible_seq.five_resect(1)
+        # incompatible_seq = incompatible_seq.reverse_complement()
+        # assert_raises(Exception, mul_incompatible, incompatible_seq)
 
     def test_eq(self):
         assert_true(self.test_dna == sequence.DNA('atgc'))

@@ -2,15 +2,6 @@
 import re
 from pymbt.sequence import utils
 
-# TODO: Feature mode is weak, may need to be redesigned
-#       Examples:
-#           How to track modifications to features? If I have gfp and linearize
-#           in it, then recircularize, how can it be restored to 'unmodified'
-#           version? Would need sequence information / a history of
-#           modifications.
-#       Feature updater - if a feature has all negative indices, should update
-# TODO: set method for topology
-
 
 class DNA(object):
     '''DNA sequence.'''
@@ -69,7 +60,6 @@ class DNA(object):
         elif stranded == 'ds':
             self.bottom = utils.reverse_complement(self.top, 'dna')
 
-        # TODO: What should happen when a DNA sequence with an id is modified?
         self.id = id
         self.name = name
 
@@ -102,42 +92,6 @@ class DNA(object):
         new_instance = self.copy()
         new_instance = new_instance[index:] + new_instance[:index]
         new_instance.topology = 'linear'
-
-        return new_instance
-
-    # TODO: move five_resect and three_resect to reaction
-    def five_resect(self, n_bases):
-        '''Remove bases from 5' end of top strand.
-
-        :param n_bases: Number of bases cut back.
-        :type n_bases: int
-
-        '''
-        new_instance = self.copy()
-
-        new_top = '-' * min(len(self.top), n_bases) + self.top[n_bases:]
-        new_instance.top = new_top
-        new_instance._remove_end_gaps()
-        if n_bases >= len(self):
-            self = self.set_stranded('ss')
-
-        return new_instance
-
-    def three_resect(self, n_bases):
-        '''Remove bases from 3' end of top strand.
-
-        :param n_bases: Number of bases cut back.
-        :type n_bases: int
-
-        '''
-        # TODO: if you find double end gaps, should make topology linear
-        new_instance = self.copy()
-
-        new_top = self.top[:-n_bases] + '-' * min(len(self.top), n_bases)
-        new_instance.top = new_top
-        new_instance._remove_end_gaps()
-        if n_bases >= len(self):
-            self = self.set_stranded('ss')
 
         return new_instance
 
@@ -220,10 +174,11 @@ class DNA(object):
     def copy(self):
         '''Create a copy of the current instance.'''
         # Alphabet checking disabled on copy to improve performance
+        # note: id is not copied because a change is implied
         new_instance = DNA(self.top, bottom=self.bottom,
                            topology=self.topology, stranded=self.stranded,
                            features=self.features, run_checks=False,
-                           id=self.id, name=self.name)
+                           name=self.name)
 
         return new_instance
 
