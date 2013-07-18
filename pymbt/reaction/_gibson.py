@@ -39,6 +39,12 @@ class Gibson(object):
         return self._seq_list[0]
 
     def _find_fuse_next(self, homology):
+        '''Find the next sequence to fuse, and fuse it (or raise exception).
+
+        :param homology: length of terminal homology in bp
+        :type homology: int
+
+        '''
         while True:
             pattern = self._seq_list[0].top[-homology:]
             # Generate matches for working sequence terminal homology
@@ -73,6 +79,12 @@ class Gibson(object):
             homology += 1
 
     def _fuse_last(self, homology):
+        '''With one sequence left, attempt to fuse it to itself.
+
+        :param homology: length of terminal homology in bp.
+        :type homology: int
+
+        '''
         # Should use basically the same approach as above...
         while True:
             pattern = self._seq_list[0].top[-homology:]

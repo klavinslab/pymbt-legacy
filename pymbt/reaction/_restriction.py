@@ -1,5 +1,4 @@
 '''Restriction endonuclease reactions.'''
-
 from pymbt.analysis import palindrome
 
 
