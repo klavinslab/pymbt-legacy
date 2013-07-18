@@ -1,16 +1,12 @@
-'''
-Utilities for reactions.
-
-'''
-
+'''Utilities for reactions.'''
 from pymbt import data
 from pymbt import sequence
 
 
 def convert_sequence(seq, to_material):
-    '''
-    Translate a DNA sequence into peptide sequence. The following conversions
-    are supported:
+    '''Translate a DNA sequence into peptide sequence.
+
+    The following conversions are supported:
         Transcription (seq is DNA, to_material is 'rna')
         Reverse transcription (seq is RNA, to_material is 'dna')
         Translation (seq is RNA, to_material is 'peptide')
@@ -22,7 +18,6 @@ def convert_sequence(seq, to_material):
     :type to_material: str
 
     '''
-
     if isinstance(seq, sequence.DNA) and to_material == 'rna':
         # Transcribe
 

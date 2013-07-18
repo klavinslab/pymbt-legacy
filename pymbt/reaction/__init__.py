@@ -7,6 +7,6 @@ from pymbt.reaction._central_dogma import transcribe
 from pymbt.reaction._central_dogma import translate
 from pymbt.reaction._central_dogma import reverse_transcribe
 from pymbt.reaction._central_dogma import coding_sequence
-from pymbt.reaction._restriction import Restriction
+from pymbt.reaction._restriction import digest
 from pymbt.reaction._pcr import pcr
 from pymbt.reaction._gibson import Gibson
