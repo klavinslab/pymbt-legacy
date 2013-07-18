@@ -22,6 +22,7 @@
         * OligoAssembly
         * Gibson (reaction)
     * Design:
+        * Rename 'design_primer' to 'primer' and 'design_primer_pcr' to 'primers'
         * Gibson
     * Reaction:
         * Ambiguous Gibson Detection

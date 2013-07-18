@@ -472,7 +472,7 @@ class RestrictionSite(object):
         return '\n'.join([top_w_cut, bottom_w_cut])
 
 
-# TODO: could be dictionary instead?
+# TODO: Should inherit from DNA object
 class Primer(object):
     '''A DNA primer - ssDNA with tm, anneal, and optional overhang.'''
     def __init__(self, anneal, overhang, tm):
