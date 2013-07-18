@@ -3,6 +3,7 @@
 from pymbt.analysis import palindrome
 
 
+# FIXME: pmod4G-yevenus-stuff is incorrect when digested with NcoI
 class Restriction(object):
     '''Restriction endonuclease reaction.'''
 

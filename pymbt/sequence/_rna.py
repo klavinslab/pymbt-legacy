@@ -28,6 +28,7 @@ class RNA(object):
         new_instance.top = utils.reverse_complement(self.top, 'rna')
         return new_instance
 
+    # TODO: Remove once they're in reaction module.
     def five_resect(self, n_bases):
         '''Remove bases from 5' end of top strand.
 

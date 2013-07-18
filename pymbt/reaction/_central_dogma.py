@@ -3,6 +3,8 @@ from pymbt import sequence
 from pymbt.reaction import utils
 
 
+# TODO: these don't make much sense as classes. Make into functions instead.
+# Also move 'get_coding_sequence' methods to sequence objects (DNA, RNA)
 class Transcription(object):
     '''Transcribe DNA to RNA (no post-transcriptional processing).'''
     def __init__(self, dna):

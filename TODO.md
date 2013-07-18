@@ -11,8 +11,14 @@
 
 ## Wishlist:
 * High Priority
+    * In general, replace .run stuff with methods
     * Design:
         * Gibson
+    * Reaction:
+        * Move restriction sites to sequence module
+        * Remove .run methods. New idea: split into reaction objects/types and
+          reaction functions. Reaction functions do reaction on 'init' and
+          return reaction objects/types.
 * Medium Priority
     * Analysis:
         * Read/write sequencing alignments (Sanger methods)

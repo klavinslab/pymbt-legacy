@@ -15,7 +15,6 @@ from pymbt.sequence import utils
 
 class DNA(object):
     '''DNA sequence.'''
-
     def __init__(self, seq, bottom=None, topology='linear', stranded='ds',
                  features=None, run_checks=True, id=None, name=None):
         '''
@@ -115,6 +114,7 @@ class DNA(object):
 
         return new_instance
 
+    # TODO: move five_resect and three_resect to reaction
     def five_resect(self, n_bases):
         '''Remove bases from 5' end of top strand.
 
@@ -126,7 +126,7 @@ class DNA(object):
 
         new_top = '-' * min(len(self.top), n_bases) + self.top[n_bases:]
         new_instance.top = new_top
-        new_instance.remove_end_gaps()
+        new_instance._remove_end_gaps()
         if n_bases >= len(self):
             self = self.set_stranded('ss')
 
@@ -144,7 +144,7 @@ class DNA(object):
 
         new_top = self.top[:-n_bases] + '-' * min(len(self.top), n_bases)
         new_instance.top = new_top
-        new_instance.remove_end_gaps()
+        new_instance._remove_end_gaps()
         if n_bases >= len(self):
             self = self.set_stranded('ss')
 
@@ -231,9 +231,7 @@ class DNA(object):
             raise ValueError('Feature name does not appear in features list')
 
     def copy(self):
-        '''Create a copy of the current instance.
-
-        '''
+        '''Create a copy of the current instance.'''
         # Alphabet checking disabled on copy to improve performance
         new_instance = DNA(self.top, bottom=self.bottom,
                            topology=self.topology, stranded=self.stranded,
@@ -242,7 +240,7 @@ class DNA(object):
 
         return new_instance
 
-    def remove_end_gaps(self):
+    def _remove_end_gaps(self):
         '''Removes double-stranded gaps from ends of the sequence.'''
         top = self.top
         bottom_rev = self.bottom[::-1]
@@ -532,6 +530,7 @@ class RestrictionSite(object):
         return '\n'.join([top_w_cut, bottom_w_cut])
 
 
+# TODO: candidate for inheritance?
 class Primer(object):
     '''A DNA primer - ssDNA with tm, anneal, and optional overhang.'''
     def __init__(self, anneal, overhang, tm):
