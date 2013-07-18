@@ -1,5 +1,4 @@
 '''RNA object classes.'''
-
 import re
 from pymbt.sequence import utils
 

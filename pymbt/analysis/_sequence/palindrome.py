@@ -1,7 +1,4 @@
-'''
-Module for analyzing palindromic sequences.
-
-'''
+'''Analyze palindromic sequences.'''
 
 
 def palindrome(seq):

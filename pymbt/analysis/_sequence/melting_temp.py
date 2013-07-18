@@ -1,4 +1,6 @@
 '''Calculate the thermodynamic melting temperatures of nucleotide sequences.'''
+from math import log, log10
+from pymbt.analysis._sequence import tm_params
 
 # TODO: Owczarzy et al 2004 has better salt correction
 # TODO: Remove sugimoto? It's missing important details (like salt correction)
@@ -11,8 +13,9 @@
 # TODO: Make new hybrid method - combine santalucia unified with owczarzy
 # corrections, compare to finnzymes.
 
-from math import log, log10
-from pymbt.analysis._sequence import tm_params
+# Methods that are currently verified to work using reference sequences:
+#   'cloning'
+#   'santalucia98'
 
 
 def tm(seq, dna_conc=50, salt_conc=50, parameters='cloning'):
@@ -130,6 +133,14 @@ def tm(seq, dna_conc=50, salt_conc=50, parameters='cloning'):
 
 
 def _pair_deltas(seq, pars):
+    '''Add up nearest-neighbor parameters for a given sequence.
+
+    :param seq: DNA sequence for which to sum nearest neighbors
+    :type seq: str
+    :param pars: parameter set to use
+    :type pars: dict
+
+    '''
     delta0 = 0
     delta1 = 0
     for i in range(len(seq) - 1):
@@ -140,7 +151,14 @@ def _pair_deltas(seq, pars):
 
 
 def breslauer_corrections(seq, pars_error):
-    '''Sum corrections for Breslauer '84 method.'''
+    '''Sum corrections for Breslauer '84 method.
+
+    :param seq: sequence for which to calculate corrections.
+    :type seq: str
+    :param pars_error: dictionary of error corrections
+    :type pars_error: dict
+
+    '''
     deltas_corr = [0, 0]
     contains_gc = 'G' in seq.top or 'C' in seq.top
     only_at = seq.top.count('a') + seq.top.count('t') == len(seq)
@@ -160,7 +178,14 @@ def breslauer_corrections(seq, pars_error):
 
 
 def santalucia98_corrections(seq, pars_error):
-    '''Sum corrections for SantaLucia '98 method (unified parameters).'''
+    '''Sum corrections for SantaLucia '98 method (unified parameters).
+
+    :param seq: sequence for which to calculate corrections.
+    :type seq: str
+    :param pars_error: dictionary of error corrections
+    :type pars_error: dict
+
+    '''
     deltas_corr = [0, 0]
     first = seq.top[0]
     last = seq.top[-1]

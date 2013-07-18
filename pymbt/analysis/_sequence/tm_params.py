@@ -10,9 +10,6 @@ Nearest-neighbor parameters don't publish full NN parameters. Assumptions:
 
 '''
 
-# TODO: Need reference sequences for breslauer and santalucia sets - don't know
-# whether they are actually working correctly until then.
-
 
 BRESLAUER = {
     'delta_h': {

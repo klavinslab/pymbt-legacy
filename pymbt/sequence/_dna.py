@@ -1,5 +1,4 @@
 '''DNA object classes.'''
-
 import re
 from pymbt.sequence import utils
 
@@ -530,16 +529,25 @@ class RestrictionSite(object):
         return '\n'.join([top_w_cut, bottom_w_cut])
 
 
-# TODO: candidate for inheritance?
 class Primer(object):
     '''A DNA primer - ssDNA with tm, anneal, and optional overhang.'''
     def __init__(self, anneal, overhang, tm):
+        '''
+        :param anneal: Annealing sequence
+        :type anneal: pymbt.sequence.DNA
+        :param overhang: Overhang sequence
+        :type overhang: pymbt.sequence.DNA
+        :param tm: melting temperature
+        :type tm: float
+
+        '''
         self.tm = tm
         self.anneal = anneal
         self.overhang = overhang
         self.primer = overhang + anneal
 
     def __repr__(self):
+        '''Representation of a primer.'''
         if self.overhang:
             return 'Primer: {} Tm: {:.2f}'.format(self.overhang.top.upper() +
                                                   self.anneal.top, self.tm)
@@ -547,6 +555,7 @@ class Primer(object):
             return 'Primer: {} Tm: {:.2f}'.format(self.anneal.top, self.tm)
 
     def __str__(self):
+        '''Coerce DNA object to string.'''
         return str(self.primer)
 
 
@@ -596,7 +605,6 @@ class Feature(object):
 
     def __repr__(self):
         '''Represent a feature.'''
-
         if self.modified:
             part1 = "(Modified) {} '{}' feature ".format(self.name,
                                                          self.feature_type)

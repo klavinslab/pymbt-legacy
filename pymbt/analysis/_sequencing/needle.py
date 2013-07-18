@@ -1,12 +1,9 @@
 '''Needleman-Wunsch alignment using emboss needle.'''
-
 from tempfile import mkdtemp
 from shutil import rmtree
 from pymbt import sequence
 from Bio.Emboss.Applications import NeedleallCommandline
 from Bio import AlignIO
-
-# Important note: does not produce a 'consensus' reference sequence
 
 
 def needle(reference, target, gapopen=10, gapextend=0.5):
@@ -22,7 +19,6 @@ def needle(reference, target, gapopen=10, gapextend=0.5):
     :type gapextend: float
 
     '''
-
     # Make temporary dir
     workdir = mkdtemp()
 

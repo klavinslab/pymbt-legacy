@@ -1,4 +1,1 @@
-'''
-Structure analysis utilities.
-
-'''
+'''Structure analysis utilities.'''

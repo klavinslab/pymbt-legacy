@@ -1,12 +1,10 @@
 '''Peptide object classes.'''
-
 import re
 from pymbt.sequence import utils
 
 
 class Peptide(object):
     '''Peptide sequence.'''
-
     def __init__(self, seq, run_checks=True):
         '''
         :param seq: Input sequence (peptide).
@@ -67,19 +65,14 @@ class Peptide(object):
         self.peptide = ''.join(peptide_list)
 
     def __setitem__(self, index, new_value):
-        '''Set value at index to new value.
-
-        '''
+        '''Set value at index to new value.'''
         insert = Peptide(new_value)
         peptide_list = list(self.peptide)
         peptide_list[index] = str(insert)
         self.peptide = ''.join(peptide_list)
 
     def __repr__(self):
-        '''
-        String to print when object is called directly.
-
-        '''
+        '''String to print when object is called directly.'''
         show = 40
 
         if len(self.peptide) < 90:

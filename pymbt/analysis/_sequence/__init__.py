@@ -1,4 +1,1 @@
-'''
-Sequence analysis utilities.
-
-'''
+'''Sequence analysis utilities.'''

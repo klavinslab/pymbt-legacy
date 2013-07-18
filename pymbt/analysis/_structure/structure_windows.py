@@ -1,9 +1,4 @@
-'''
-Walk over a sequence in defined windows, evaluating for context-depenent
-structure.
-
-'''
-
+'''Evaluate windows of a sequence for in-context structure.'''
 from matplotlib import pylab
 from pymbt.analysis import nupack_multiprocessing
 
@@ -23,7 +18,7 @@ class StructureWindows(object):
         self.scores = []
 
     def windows(self, window_size=60, context_len=90, step=10):
-        ''' Walk through the sequence of interest in windows of window_size,
+        '''Walk through the sequence of interest in windows of window_size,
         evaluate free (unbound) pair probabilities.
 
         :param window_size: Window size in base pairs.

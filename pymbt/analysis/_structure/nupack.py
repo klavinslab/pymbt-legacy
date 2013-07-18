@@ -1,5 +1,4 @@
 '''Wrapper for NUPACK 3.0.'''
-
 import multiprocessing
 import time
 from subprocess import Popen, PIPE

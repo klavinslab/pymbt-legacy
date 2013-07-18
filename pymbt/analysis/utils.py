@@ -1,5 +1,4 @@
 '''Utils for analysis module.'''
-
 from pymbt import sequence
 
 

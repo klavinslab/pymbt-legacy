@@ -1,10 +1,10 @@
 '''Check for primer dimers using Nupack.'''
-
 from pymbt.analysis import Nupack
 
 
 def dimers(primer1, primer2, concentrations=[5e-7, 5e-7, 3e-11]):
     '''Check for probability of primer dimers given primer and template concs.
+
     :param primer1: Forward primer
     :type primer1: pymbt.sequence.DNA
     :param primer2: Reverse primer

@@ -1,5 +1,4 @@
 '''Read and write DNA sequences.'''
-
 import os
 from Bio import SeqIO
 from Bio.Alphabet.IUPAC import ambiguous_dna

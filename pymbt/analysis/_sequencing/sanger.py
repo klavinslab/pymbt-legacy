@@ -1,8 +1,6 @@
 '''Sanger sequencing alignment tools.'''
-
 from matplotlib import pyplot
 from matplotlib import cm
-
 from pymbt.analysis import needle
 
 # TODO:
@@ -182,7 +180,11 @@ class Sanger(object):
         pyplot.show()
 
     def write(self, path):
-        '''Write alignment results to file.'''
+        '''Write alignment results to file.
+
+        :param path: path to write (filetype TBD)
+        :type path: str
+        '''
         # custom format or standard (e.g. FASTA)? Implement both?
         return NotImplemented
 
@@ -191,6 +193,7 @@ class Sanger(object):
 
         :param seq: Sequence that contains Ns to remove
         :type seq: str
+
         '''
         largest = max([x for x in seq.top.split('n')], key=len)
         seq_start = seq.top.index(largest)
@@ -256,6 +259,7 @@ class Sanger(object):
         return all_mismatches, all_insertions, all_deletions
 
     def __repr__(self):
+        '''Representation of a Sanger sequencing object.'''
         msg = 'Sanger sequencing alignment object with differences: \n'
         differences = ','.join(self._difference_n)
         return msg + differences
