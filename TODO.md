@@ -27,6 +27,8 @@
     * Analysis:
         * Read/write sequencing alignments (Sanger methods)
             * Need a format!
+    * Sequence:
+        * handle enzymes that cut outside of recognition site
 * Low Priority
     * Analysis:
         * Drop emboss dependency by using pycogent / pycogent approach for needleman-wunsch

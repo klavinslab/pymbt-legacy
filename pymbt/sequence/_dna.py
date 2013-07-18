@@ -182,7 +182,7 @@ class DNA(object):
 
         return new_instance
 
-    def _remove_end_gaps(self):
+    def remove_end_gaps(self):
         '''Removes double-stranded gaps from ends of the sequence.'''
         top = self.top
         bottom_rev = self.bottom[::-1]
@@ -467,7 +467,6 @@ class RestrictionSite(object):
             bottom_right = str(bottom_right)[::-1]
             bottom_w_cut = bottom_left + cut_symbols[1] + bottom_right
         else:
-            # TODO: handle enzymes that cut outside of recognition site
             return NotImplemented
 
         return '\n'.join([top_w_cut, bottom_w_cut])

@@ -13,7 +13,7 @@ def five_resect(dna, n_bases):
     new_instance = dna.copy()
     new_top = '-' * min(len(dna.top), n_bases) + dna.top[n_bases:]
     new_instance.top = new_top
-    new_instance._remove_end_gaps()
+    new_instance.remove_end_gaps()
     if n_bases >= len(dna):
         new_instance = dna.set_stranded('ss')
     return new_instance
@@ -32,7 +32,7 @@ def three_resect(dna, n_bases):
 
     new_top = dna.top[:-n_bases] + '-' * min(len(dna.top), n_bases)
     new_instance.top = new_top
-    new_instance._remove_end_gaps()
+    new_instance.remove_end_gaps()
     if n_bases >= len(dna):
         new_instance = dna.set_stranded('ss')
     return new_instance
