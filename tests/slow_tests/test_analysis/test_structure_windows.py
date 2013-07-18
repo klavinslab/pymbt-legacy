@@ -1,5 +1,5 @@
 '''
-Tests ContextWalker analysis class.
+Tests StructureWindows analysis class.
 
 '''
 
@@ -8,8 +8,8 @@ from pymbt import analysis
 from pymbt import sequence
 
 
-def test_contextwalker():
-    '''Tests ContextWalker class in structure_windows.'''
+def test_structure_windows():
+    '''Tests StructureWindows class in structure_windows.'''
 
     seq = 'atggtgagcaagggcgaggagctgttcaccggggtggtgcccatcctggtcgagctggacggc' + \
           'gacgtaaacggccacaagttcagcgtgtccggcgagggcgagggcgatgccacctacggcaag' + \
@@ -25,7 +25,7 @@ def test_contextwalker():
           'ctcggcatggacgagctgtacaagtaa'
     dna_seq = sequence.DNA(seq)
     walker = analysis.StructureWindows(dna_seq)
-    walker.run(window_size=60, context_len=90, step=10)
+    walker.walk(window_size=60, context_len=90, step=10)
     assert_equal(walker.scores,
                  (0.578570075,
                   0.5928413833333335,

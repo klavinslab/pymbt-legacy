@@ -22,7 +22,7 @@ class StructureWindows(object):
         self.core_ends = []
         self.scores = []
 
-    def run(self, window_size=60, context_len=90, step=10):
+    def windows(self, window_size=60, context_len=90, step=10):
         ''' Walk through the sequence of interest in windows of window_size,
         evaluate free (unbound) pair probabilities.
 
