@@ -1,4 +1,1 @@
-'''
-Oligo synthesis and assembly design tools.
-
-'''
+'''Oligo synthesis and assembly design tools.'''

@@ -1,4 +1,1 @@
-'''
-Sequence generation classes.
-
-'''
+'''Generate sequences de novo or from templates.'''

@@ -1,5 +1,4 @@
 '''Generate a random DNA sequence.'''
-
 import random
 from pymbt import data
 from pymbt import sequence

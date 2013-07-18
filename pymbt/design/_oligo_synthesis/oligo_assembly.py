@@ -1,8 +1,4 @@
-'''Module supplying methods/classes for generating overlapping oligo sequences
-from a gene sequence.
-
-'''
-
+'''Generate overlapping oligo sequences to assemble a larger DNA sequence.'''
 import csv
 from pymbt import analysis
 from pymbt import seqio
@@ -180,7 +176,7 @@ class OligoAssembly(object):
                                           'Tm: {:.2f}'.format(melt)])
 
     def write_map(self, path):
-        ''' Write genbank map highlighting overlaps to file.
+        '''Write genbank map that highlights overlaps.
 
         :param path: full path to .gb file to write.
         :type path: str
@@ -199,6 +195,7 @@ class OligoAssembly(object):
         seqio.write_dna(seq_map, path)
 
     def __repr__(self):
+        '''Representation of an OligoAssembly object.'''
         if self._has_run:
             str1 = "An OligoAssembly consisting of "
             str2 = str(len(self.oligos)) + ' oligos.'

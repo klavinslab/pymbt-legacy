@@ -1,5 +1,4 @@
 '''Primer design tools.'''
-
 from pymbt import analysis
 from pymbt import sequence
 import warnings
@@ -7,7 +6,7 @@ import warnings
 
 def design_primer(dna, tm=72, min_len=10, tm_undershoot=1,
                   tm_overshoot=3, end_gc=False, tm_parameters='cloning',
-                  overhang=None):
+                  overhang=None, structure=False):
     '''Design primer to a nearest-neighbor Tm setpoint.
 
     :param dna: Sequence for which to design a primer.
@@ -26,6 +25,9 @@ def design_primer(dna, tm=72, min_len=10, tm_undershoot=1,
     :type tm_parameters: string
     :param overhang: Append the primer to this overhang sequence.
     :type overhang: str
+    :param structure: Evaluate primer for structure, with warning for high
+                      structure.
+    :type structure: bool
 
     '''
     # Check Tm of input sequence to see if it's already too low
@@ -68,7 +70,10 @@ def design_primer(dna, tm=72, min_len=10, tm_undershoot=1,
         overhang = overhang.set_stranded('ss')
         best_primer = overhang + best_primer
 
-    return sequence.Primer(best_primer, overhang, best_tm)
+    output_primer = sequence.Primer(best_primer, overhang, best_tm)
+    if structure:
+        _structure(output_primer)
+    return output_primer
 
 
 def design_primer_pcr(dna, tm=72, min_len=10, tm_undershoot=1,
@@ -110,7 +115,12 @@ def design_primer_pcr(dna, tm=72, min_len=10, tm_undershoot=1,
 
 
 def _structure(primer):
-    '''Check annealing sequence for structure.'''
+    '''Check annealing sequence for structure.
+
+    :param primer: Primer for which to evaluate structure
+    :type primer: sequence.Primer
+
+    '''
     # Check whole primer for high-probability structure, focus in on
     # annealing sequence, report average
     nupack = analysis.Nupack(primer.primer)
