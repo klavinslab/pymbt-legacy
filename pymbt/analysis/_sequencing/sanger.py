@@ -179,15 +179,6 @@ class Sanger(object):
         pyplot.title('Alignment gap summary', fontstyle='normal')
         pyplot.show()
 
-    def write(self, path):
-        '''Write alignment results to file.
-
-        :param path: path to write (filetype TBD)
-        :type path: str
-        '''
-        # custom format or standard (e.g. FASTA)? Implement both?
-        return NotImplemented
-
     def _remove_n(self, seq):
         '''Find largest non-N segment.
 
@@ -285,7 +276,7 @@ def _group_differences(difference_list):
     return grouped_differences
 
 
-def _sequences_display(seq1, seq2, start, stop, context=10, indent=4):
+def _sequences_display(seq1, seq2, start, stop, context=10):
     '''Display two sequences, highlighting the regions where they differ.
 
     :param seq1: First sequence to compare.
@@ -299,8 +290,6 @@ def _sequences_display(seq1, seq2, start, stop, context=10, indent=4):
     :param context: Extra context to add on either side of the displayed
                     sequences.
     :type context: int
-    :param indent: Indentation of the displayed text.
-    :type indent: int
 
     '''
     # TODO: if seqs aren't the same size, should display a little differently
@@ -309,7 +298,7 @@ def _sequences_display(seq1, seq2, start, stop, context=10, indent=4):
     # Should instead calculate a single 'overview' set of sequences:
     # top, bottom, and middle, where middle is where all the seqs match.
     # Then just subset this
-
+    indent = 4
     # Figure out how much context can be included (seq might start/end earlier)
     l_context = (max(start - context - 1, 0), start - 1)
     r_context = (stop + 1, min(start + context + 1, len(seq1)))

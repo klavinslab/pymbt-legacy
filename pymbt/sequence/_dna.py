@@ -45,33 +45,25 @@ class DNA(object):
             self.top = seq
 
         self.topology = topology
-        if features is None:
-            self.features = []
-        else:
-            if isinstance(features, Feature):
-                self.features = [features]
-            elif type(features) == list:
-                if all(isinstance(feature, Feature) for feature in features):
-                    self.features = features
-                else:
-                    raise Exception('Invalid feature input')
+        if features:
+            if all(isinstance(feature, Feature) for feature in features):
+                self.features = features
             else:
                 raise Exception('Invalid feature input')
+        else:
+            self.features = []
         self.stranded = stranded
-
         if bottom:
             self.bottom = bottom
             if run_checks:
                 self.bottom = utils.process_seq(bottom, 'dna')
                 if len(self.bottom) != len(self.top):
-                    msg = 'Manually-specified bottom strand is too short.'
-                    raise ValueError(msg)
+                    raise ValueError('Bottom strand is too short.')
                 r_bottom = utils.reverse_complement(self.bottom, 'dna')
                 mismatches = [1 for t, b in zip(self.top, r_bottom) if
                               (t != b and (t != '-' or b != '-'))]
                 if mismatches:
-                    msg = 'Manually-specified bottom strand has mismatches.'
-                    raise ValueError(msg)
+                    raise ValueError("Bottom strand doesn't match top strand.")
         elif stranded == 'ss':
             self.bottom = ''.join('-' for x in self.top)
         elif stranded == 'ds':
@@ -216,18 +208,14 @@ class DNA(object):
         :type feature_name: str
 
         '''
-        found_feature = False
-        for feature in self.features:
-            if feature.name == feature_name:
-                if found_feature:
-                    msg = 'Feature name was not unique, found more than one.'
-                    raise ValueError(msg)
-                else:
-                    found_feature = feature
-        if found_feature:
-            return self[found_feature.start:found_feature.stop]
-        else:
+        found = [feature.name == feature_name for feature in self.features]
+        if not found:
             raise ValueError('Feature name does not appear in features list')
+        elif len(found) > 1:
+            msg = 'Feature name was not unique, found more than one.'
+            raise ValueError(msg)
+        else:
+            return self[found[0].start:found[0].stop]
 
     def copy(self):
         '''Create a copy of the current instance.'''
@@ -487,6 +475,7 @@ class DNA(object):
             return False
 
 
+# TODO: could represent as dictionary instead?
 class RestrictionSite(object):
     '''Recognition site and properties of a restriction endonuclease.'''
     def __init__(self, recognition_site, cut_site, name=None):
@@ -529,6 +518,7 @@ class RestrictionSite(object):
         return '\n'.join([top_w_cut, bottom_w_cut])
 
 
+# TODO: could be dictionary instead?
 class Primer(object):
     '''A DNA primer - ssDNA with tm, anneal, and optional overhang.'''
     def __init__(self, anneal, overhang, tm):

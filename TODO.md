@@ -1,7 +1,8 @@
 # TODO List
 
 ## Fixes:
-* Features should be updated on \_\_getitem\_\_
+* Features should be updated whenever sequence changes:
+    * on \_\_getitem\_\_
 * Features should be renamed when truncated
 
 ## OO API:
@@ -14,14 +15,14 @@
     * In general, replace .run stuff with methods
         * classes to replace with functions:
             *Gibson? 
+    * Classes / etc that have inconsistent APIs:
+        * Nupack
+        * Vienna
+        * StructureWindows
+        * OligoAssembly
+        * Gibson (reaction)
     * Design:
         * Gibson
-    * Reaction:
-        * Remove .run methods. New idea: split into reaction objects/types and
-          reaction functions. Reaction functions do reaction on 'init' and
-          return reaction objects/types.
-    * Sequence:
-        * Features should update whenever sequence changes
 * Medium Priority
     * Analysis:
         * Read/write sequencing alignments (Sanger methods)

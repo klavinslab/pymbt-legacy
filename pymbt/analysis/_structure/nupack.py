@@ -106,7 +106,7 @@ class Nupack(object):
         for result in complexes_results:
             complex_i = []
             for seq in self._seq_list:
-                complex_i.append(int(float(result.pop(0))))
+                complex_i.append(int(result.pop(0)))
             complexes.append(complex_i)
 
         # Extract energies

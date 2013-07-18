@@ -38,28 +38,19 @@ def random_codons(peptide, frequency_cutoff=0.0, weighted=False,
 
     '''
     # Process codon table using frequency_cutoff
-    new_table = {}
-    # IDEA: cutoff should be relative to most-frequent codon, not average?
-    for aa, codons in table.iteritems():
-        average = sum(codons.values()) / len(codons)
-        new_table[aa] = {}
-        for codon, frequency in codons.iteritems():
-            if frequency > frequency_cutoff * average:
-                new_table[aa][codon] = frequency
-
+    new_table = _cutoff(table, frequency_cutoff)
+    # Select codons randomly or using weighted distribution
     rna = ''
     for amino_acid in str(peptide):
         codons = new_table[amino_acid.upper()]
         if not codons:
-            msg = 'Frequency cutoff prevents use of {}'.format(amino_acid)
-            raise ValueError(msg)
+            raise ValueError('No {} codons at freq cutoff'.format(amino_acid))
         if weighted:
             cumsum = []
             running_sum = 0
             for codon, frequency in codons.iteritems():
                 running_sum += frequency
                 cumsum.append(running_sum)
-            # Using max val instead of 1 - might sum to slightly less than 1
             random_num = random.uniform(0, max(cumsum))
             for codon, value in zip(codons, cumsum):
                 if value > random_num:
@@ -69,3 +60,23 @@ def random_codons(peptide, frequency_cutoff=0.0, weighted=False,
             selection = random.choice(codons.keys())
         rna += selection
     return sequence.RNA(rna)
+
+
+def _cutoff(table, frequency_cutoff):
+    '''Generate new codon frequency table given a mean cutoff.
+
+    :param table: codon frequency table of form {amino acid: codon: frequency}
+    :type table: dict
+    :param frequency_cutoff: value between 0 and 1.0 for mean frequency cutoff
+    :type frequency_cutoff: float
+
+    '''
+    new_table = {}
+    # IDEA: cutoff should be relative to most-frequent codon, not average?
+    for amino_acid, codons in table.iteritems():
+        average_cutoff = frequency_cutoff * sum(codons.values()) / len(codons)
+        new_table[amino_acid] = {}
+        for codon, frequency in codons.iteritems():
+            if frequency > average_cutoff:
+                new_table[amino_acid][codon] = frequency
+    return new_table
