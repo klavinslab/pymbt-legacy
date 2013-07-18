@@ -26,6 +26,41 @@
         * Gibson
     * Reaction:
         * Ambiguous Gibson Detection
+    * Sequence:
+        * May want a base class for DNA/RNA. Things common to both:
+            * Both have init sequence that gets checked for alphabet
+            * Both have option to disable checks
+            * reverse complement method is identical but for ss/ds branch
+            * both have locate method which could share some but not all code
+            * __getitem__ identical but for topology change
+            * __delitem__ should be identical but isn't
+            * __setitem__ should be identical exept for rev comp of bottom strand for DNA
+            * __repr__ is identical except DNA also reports topology
+            * __str__ is identical
+            * __len__ is identical
+            * __add__ is much more complex for DNA than RNA due to possibility of ds gaps
+            * __radd__ should be identical
+            * __mul__ should be identical except for topology branch
+            * __eq__ is identical
+            * __ne__ is identical
+            * __contains__ is identical
+        * Peptide shares these with RNA (basically everything!): 
+            * locate method is identical to RNA's
+            * copy method is identical to RNA's
+            * __getitem__ is identical except Peptide ignores bottom strand
+              (RNA currently has no purpose for a bottom strand either!!!!!!)
+            * __delitem__ is identical except for bottom strand
+            * __setitem__ is identical
+            * __repr__ is identical except for bottom strand / words
+            * __str__ is identical
+            * __len__ is identical
+            * __add__ is identical
+            * __radd__ should be identical
+            * __mul__ is identical
+            * __eq__ is identical
+            * __ne__ is identical
+            * __str__ is identical
+
 * Medium Priority
     * Tests!
         * design primer with overhangs
