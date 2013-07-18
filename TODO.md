@@ -12,7 +12,7 @@
 
 ## Wishlist:
 * High Priority
-    * In general, replace .run stuff with methods
+    * In general, replace .run classes with functions 
         * classes to replace with functions:
             *Gibson? 
     * Classes / etc that have inconsistent APIs:
@@ -23,12 +23,15 @@
         * Gibson (reaction)
     * Design:
         * Gibson
+    * Reaction:
+        * Ambiguous Gibson Detection
 * Medium Priority
     * Analysis:
         * Read/write sequencing alignments (Sanger methods)
             * Need a format!
     * Sequence:
         * handle enzymes that cut outside of recognition site
+        * molecular weight method for gels with digested DNA, gapped DNA, etc.
 * Low Priority
     * Analysis:
         * Drop emboss dependency by using pycogent / pycogent approach for needleman-wunsch

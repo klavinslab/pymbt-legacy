@@ -3,11 +3,10 @@ from matplotlib import pyplot
 from matplotlib import cm
 from pymbt.analysis import needle
 
-# TODO:
-# multiprocessing for alignment
-# sequencing that goes past 'end' of a circular reference
+# TODO: multiprocessing for alignment
+# FIXME: sequencing that goes past 'end' of a circular reference
 # is reported as an insertion
-# consensus / master sequence for plotting / report / analysis
+# TODO: consensus / master sequence for plotting / report / analysis
 
 
 class Sanger(object):
