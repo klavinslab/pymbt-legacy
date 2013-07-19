@@ -26,12 +26,12 @@ def gibson_primers(dna1, dna2, split, overlap_tm=65.0, **kwargs):
     if split == 'left':
         overhang_f = design_primer(dna1.reverse_complement(), tm=overlap_tm,
                                    tm_undershoot=0)
-        overhang = overhang_f.primer.reverse_complement()
+        overhang = overhang_f.primer().reverse_complement()
         dna2_primer = design_primer(dna2, overhang=overhang, **kwargs)
         dna1_primer = design_primer(dna1.reverse_complement(), **kwargs)
     elif split == 'right':
         overhang_r = design_primer(dna2, tm=overlap_tm, tm_undershoot=0)
-        overhang = overhang_r.primer.reverse_complement()
+        overhang = overhang_r.primer().reverse_complement()
         dna2_primer = design_primer(dna2, **kwargs)
         dna1_primer = design_primer(dna1.reverse_complement(),
                                     overhang=overhang,

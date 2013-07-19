@@ -49,6 +49,6 @@ def test_design_primer_pcr():
                                             end_gc=False,
                                             tm_parameters='cloning',
                                             overhangs='')
-    primers = [str(x.primer) for x in primers_list]
+    primers = [str(x.primer()) for x in primers_list]
     assert_equals(primers, ['atggtgagcaagggcgaggag',
                             'ttacttgtacagctcgtccatgccg'])

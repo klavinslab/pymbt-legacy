@@ -520,7 +520,10 @@ class Primer(object):
         self.tm = tm
         self.anneal = anneal
         self.overhang = overhang
-        self.primer = overhang + anneal
+
+    def primer(self):
+        '''Retrieve full primer sequence.'''
+        return self.overhang + self.anneal
 
     def __repr__(self):
         '''Representation of a primer.'''
@@ -532,7 +535,7 @@ class Primer(object):
 
     def __str__(self):
         '''Coerce DNA object to string.'''
-        return str(self.primer)
+        return str(self.primer())
 
 
 class Feature(object):

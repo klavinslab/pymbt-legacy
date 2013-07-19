@@ -122,7 +122,7 @@ def _structure(primer):
     '''
     # Check whole primer for high-probability structure, focus in on
     # annealing sequence, report average
-    nupack = analysis.Nupack(primer.primer)
+    nupack = analysis.Nupack(primer.primer())
     pairs = nupack.pairs()
     anneal_len = len(primer.anneal)
     pairs_mean = sum(pairs[-anneal_len:]) / anneal_len
