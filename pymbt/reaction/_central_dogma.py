@@ -42,6 +42,8 @@ def coding_sequence(rna):
     :type material: str
 
     '''
+    if isinstance(rna, sequence.DNA):
+        rna = transcribe(rna)
     codons_left = len(rna) // 3
     start_codon = sequence.RNA('aug')
     stop_codons = [sequence.RNA('uag'), sequence.RNA('uga'),
@@ -50,7 +52,6 @@ def coding_sequence(rna):
     stop = None
     valid = [None, None]
     index = 0
-    # REFACTOR: this code is super redundant but functions exactly right
     while codons_left:
         codon = rna[index:index+3]
         if valid[0] is None:
