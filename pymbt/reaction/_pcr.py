@@ -24,4 +24,9 @@ def pcr(template, primer1, primer2):
     # Make 'reverse' index useful for slicing
     combined[1][0] = len(template) - combined[1][0]
     # Subset
-    return template[combined[0][0]:combined[1][0]]
+    amplicon = template[combined[0][0]:combined[1][0]]
+    if primer1.overhang:
+        amplicon = primer1.overhang.set_stranded('ds') + amplicon
+    if primer2.overhang:
+        amplicon += primer2.overhang.set_stranded('ds').reverse_complement()
+    return amplicon
