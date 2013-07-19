@@ -65,7 +65,7 @@
     * Tests!
         * design primer with overhangs
         * gibsons
-        * test for feature extraction
+        * test for feature extraction working
     * Analysis:
         * Read/write sequencing alignments (Sanger methods)
             * Need a format!

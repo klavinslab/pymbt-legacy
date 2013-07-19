@@ -166,7 +166,8 @@ class DNA(object):
         :type feature_name: str
 
         '''
-        found = [feature.name == feature_name for feature in self.features]
+        found = [feature for feature in self.features if
+                 feature.name == feature_name]
         if not found:
             raise ValueError('Feature name does not appear in features list')
         elif len(found) > 1:
