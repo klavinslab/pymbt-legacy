@@ -56,9 +56,15 @@ class TestDNA(object):
         assert_raises(ValueError, bad_argument, self.test_dna)
 
     def test_locate(self):
+        assert_equal(self.test_dna.locate('a'), ([0], [2]))
         assert_equal(self.test_dna.locate('at'), ([0], [2]))
         assert_equal(self.test_dna.locate('gc'), ([2], [0]))
         assert_equal(self.test_dna.locate('atgg'), ([], []))
+        # Circular DNA tests
+        assert_equal(self.test_dna.circularize().locate('a'), ([0], [2]))
+        assert_equal(self.test_dna.circularize().locate('at'), ([0], [2]))
+        assert_equal(self.test_dna.circularize().locate('gc'), ([2], [0]))
+        assert_equal(self.test_dna.circularize().locate('atgg'), ([], []))
 
     def test_copy(self):
         assert_equal(self.test_dna, self.test_dna.copy())

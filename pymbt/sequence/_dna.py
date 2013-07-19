@@ -130,8 +130,12 @@ class DNA(object):
         :type pattern: str
 
         '''
-        if len(pattern) > 2 * len(self):
-            raise Exception('Pattern must be less than 2 x sequence length.')
+        if self.topology == 'circular':
+            if len(pattern) > 2 * len(self):
+                raise Exception('Pattern longer than 2x (circular) sequence.')
+        else:
+            if len(pattern) > len(self):
+                raise Exception('Pattern longer than (linear) sequence.')
 
         pattern = str(pattern).lower()
         regex = '(?=' + pattern + ')'
@@ -149,7 +153,7 @@ class DNA(object):
         bottom_starts = [index.start() for index in re.finditer(regex, bottom)]
 
         # Adjust indices if doing circular search
-        if self.topology == 'circular':
+        if self.topology == 'circular' and len(pattern) > 1:
             top_starts = [start - roff + 1 for start in top_starts]
             bottom_starts = [start - roff + 1 for start in bottom_starts]
 
