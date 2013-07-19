@@ -5,9 +5,6 @@
     * on \_\_getitem\_\_
 * Features should be renamed when truncated
 
-## OO API:
-* Make sequences (DNA, RNA, Peptide) inherit from MutableSequence ABC
-
 ## Organization:
 
 ## Wishlist:
@@ -19,7 +16,6 @@
         * OligoAssembly
         * Gibson (reaction)
     * Design:
-        * Rename 'design_primer' to 'primer' and 'design_primer_pcr' to 'primers'
         * Gibson
     * Reaction:
         * Ambiguous Gibson Detection

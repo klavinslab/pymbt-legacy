@@ -3,6 +3,15 @@ import re
 from pymbt.sequence import utils
 
 
+# When does DNA change (must update features)?
+    # getitem
+    # setitem
+    # delitem
+    # add
+    # mul
+    # reverse complement
+    # linearize is covered by getitem
+    # extract is covered by getitem
 class DNA(object):
     '''DNA sequence.'''
     def __init__(self, seq, bottom=None, topology='linear', stranded='ds',
@@ -390,20 +399,7 @@ class DNA(object):
         if self.topology == 'circular':
             raise ValueError("Can't multiply circular DNA")
 
-        # Test concatenation by adding once
-        try:
-            self + self
-        except:
-            raise Exception('Failed to add, so cannot multiply.')
-
-        # Isolate top and bottom strands, multiply strings, recreate DNA
-        tops = self.top * multiplier
-        bottoms = self.bottom * multiplier
-
-        new_instance = DNA(tops, bottom=bottoms, topology=self.topology,
-                           stranded=self.stranded, run_checks=False)
-
-        return new_instance
+        return sum(x for x in _decompose(self, multiplier))
 
     def __eq__(self, other):
         '''Test DNA object equality.
@@ -606,3 +602,22 @@ class Feature(object):
             return False
         else:
             return True
+
+
+def _decompose(string, n):
+    '''Given string and multiplier, find n**2 decomposition.
+
+    :param string: input string
+    :type string: str
+    :param n: multiplier
+    :type n: int
+
+    '''
+    binary = [int(x) for x in bin(n)[2:]]
+    new_string = string
+    counter = 1
+    while counter <= len(binary):
+        if binary[-counter]:
+            yield new_string
+        new_string += new_string
+        counter += 1
