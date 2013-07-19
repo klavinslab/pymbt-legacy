@@ -12,9 +12,6 @@
 
 ## Wishlist:
 * High Priority
-    * In general, replace .run classes with functions 
-        * classes to replace with functions:
-            *Gibson? 
     * Classes / etc that have inconsistent APIs:
         * Nupack
         * Vienna

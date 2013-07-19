@@ -3,7 +3,7 @@ import csv
 from pymbt import analysis
 from pymbt import seqio
 from pymbt import sequence
-from pymbt.design import design_primer_pcr
+from pymbt.design import design_primers
 
 
 class OligoAssembly(object):
@@ -145,7 +145,7 @@ class OligoAssembly(object):
         :type tm: float
 
         '''
-        self.primers = design_primer_pcr(self.template, tm=tm)
+        self.primers = design_primers(self.template, tm=tm)
         return self.primers
 
     def write(self, path):
