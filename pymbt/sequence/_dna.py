@@ -159,17 +159,17 @@ class DNA(object):
 
         return (top_starts, bottom_starts)
 
-    def extract(self, feature_name):
+    def extract(self, name):
         '''Extract a feature from the DNA sequence.
 
-        :param feature_name: Name of the future. Must be unique.
-        :type feature_name: str
+        :param name: Name of the feature. Must be unique.
+        :type name: str
 
         '''
         found = [feature for feature in self.features if
-                 feature.name == feature_name]
+                 feature.name == name]
         if not found:
-            raise ValueError('Feature name does not appear in features list')
+            raise ValueError("Feature list has no feature '{}'".format(name))
         elif len(found) > 1:
             msg = 'Feature name was not unique, found more than one.'
             raise ValueError(msg)
