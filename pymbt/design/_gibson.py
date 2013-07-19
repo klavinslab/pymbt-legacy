@@ -23,6 +23,7 @@ def gibson_primers(dna1, dna2, split, overlap_tm=65.0, **kwargs):
     :type kwargs: dict
 
     '''
+    # TODO: if sequence is too short (overlap len = seq len), raise exception
     if split == 'left':
         overhang_f = design_primer(dna1.reverse_complement(), tm=overlap_tm,
                                    tm_undershoot=0)

@@ -16,8 +16,8 @@ def test_construction():
     f3 = seqio.read_dna(f3_path)
     f3_linear = seqio.read_dna(f3_linear_path)
 
-    gibsoned_circular = reaction.Gibson([f1, f2, f3]).run()
-    gibsoned_linear = reaction.Gibson([f1, f2, f3_linear]).run(linear=True)
+    gibsoned_circular = reaction.Gibson([f1, f2, f3]).run_circular()
+    gibsoned_linear = reaction.Gibson([f1, f2, f3_linear]).run_linear()
 
     expected_length = len(plasmid)
     gibsoned_circular_length = len(gibsoned_circular)

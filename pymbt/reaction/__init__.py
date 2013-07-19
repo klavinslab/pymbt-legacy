@@ -1,4 +1,6 @@
 '''Reactions for simulating and designing cloning reactions and assemblies.'''
+from pymbt.reaction._resect import three_resect
+from pymbt.reaction._resect import five_resect
 from pymbt.reaction._central_dogma import transcribe
 from pymbt.reaction._central_dogma import translate
 from pymbt.reaction._central_dogma import reverse_transcribe

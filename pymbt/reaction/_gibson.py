@@ -13,7 +13,25 @@ class Gibson(object):
         if any(seq.topology == 'circular' for seq in self._seq_list):
             raise ValueError('Input sequences must be linear, not circular.')
 
-    def run(self, linear=False, homology_min=15):
+    def run_circular(self, homology_min=15):
+        '''Attempt to produce circular fragment from input fragments.
+
+        :param homology_min: minimum bp of homology allowed
+        :type homology_min: int
+
+        '''
+        return self._run(linear=False, homology_min=homology_min)
+
+    def run_linear(self, homology_min=15):
+        '''Attempt to produce linear fragment from input fragments.
+
+        :param homology_min: minimum bp of homology allowed
+        :type homology_min: int
+
+        '''
+        return self._run(linear=True, homology_min=homology_min)
+
+    def _run(self, linear=False, homology_min=15):
         '''Run the Gibson reaction.
 
         :param linear: Return a linear fragment rather than attempting to

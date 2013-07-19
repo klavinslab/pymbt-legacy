@@ -1,4 +1,5 @@
 '''Restriction endonuclease reactions.'''
+from pymbt.reaction import five_resect, three_resect
 
 
 # FIXME: pmod4G-yevenus-stuff is incorrect when digested with NcoI
@@ -71,12 +72,12 @@ def _cut(dna, index, restriction_enzyme):
     elif diff > 0:
         # 3' overhangs
         left_r = left.reverse_complement()
-        left = left_r.five_resect(diff).reverse_complement()
-        right = right.five_resect(diff)
+        left = five_resect(left_r, diff).reverse_complement()
+        right = five_resect(right, diff)
     else:
         # 5' overhangs
-        left = left.three_resect(abs(diff))
+        left = three_resect(left, abs(diff))
         right_r = right.reverse_complement()
-        right = right_r.three_resect(abs(diff)).reverse_complement()
+        right = three_resect(right_r, abs(diff)).reverse_complement()
 
     return [left, right]
