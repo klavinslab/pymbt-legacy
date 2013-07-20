@@ -1,21 +1,16 @@
 '''DNA object classes.'''
 import re
 from pymbt.sequence import utils
+import pymbt.seqio
+import tempfile
+import shutil
+import subprocess
 
 
-# When does DNA change (must update features)?
-    # getitem
-    # setitem
-    # delitem
-    # add
-    # mul
-    # reverse complement
-    # linearize is covered by getitem
-    # extract is covered by getitem
 class DNA(object):
     '''DNA sequence.'''
     def __init__(self, seq, bottom=None, topology='linear', stranded='ds',
-                 features=None, run_checks=True, id=None, name=None):
+                 features=None, run_checks=True, id=None, name=''):
         '''
         :param seq: Input sequence (DNA).
         :type seq: str
@@ -49,7 +44,7 @@ class DNA(object):
             if all(isinstance(feature, Feature) for feature in features):
                 self.features = features
             else:
-                raise Exception('Invalid feature input')
+                raise Exception('features element was not a Feature instance')
         else:
             self.features = []
         self.stranded = stranded
@@ -80,6 +75,19 @@ class DNA(object):
             new_instance.bottom = self.top
         elif self.stranded == 'ss':
             new_instance.top = utils.reverse_complement(self.top, 'dna')
+        # Fix features (invert)
+        for feature in new_instance.features:
+            # Swap strand
+            if feature.strand == 1:
+                feature.strand = 0
+            else:
+                feature.strand = 1
+            # Swap start and stop
+            feature.start, feature.stop = (feature.stop, feature.start)
+            # Adjust start/stop to feature len
+            feature.start = len(new_instance) - feature.start
+            feature.stop = len(new_instance) - feature.stop
+
         return new_instance
 
     def circularize(self):
@@ -189,9 +197,10 @@ class DNA(object):
         '''Create a copy of the current instance.'''
         # Alphabet checking disabled on copy to improve performance
         # note: id is not copied because a change is implied
+        features_copy = [feature.copy() for feature in self.features]
         new_instance = DNA(self.top, bottom=self.bottom,
                            topology=self.topology, stranded=self.stranded,
-                           features=self.features, run_checks=False,
+                           features=features_copy, run_checks=False,
                            name=self.name)
 
         return new_instance
@@ -221,6 +230,19 @@ class DNA(object):
         '''Report whether sequence is palindromic.'''
         return utils.palindrome(self)
 
+    def ape(self):
+        '''Open in ApE.'''
+        tmp = tempfile.mkdtemp()
+        filename = tmp + '/tmp.ape'
+        pymbt.seqio.write_dna(self, filename)
+        process = subprocess.Popen(['ApE', filename])
+        # Block until window is closed
+        try:
+            process.wait()
+            shutil.rmtree(tmp)
+        except KeyboardInterrupt:
+            shutil.rmtree(tmp)
+
     def __getitem__(self, key):
         '''Index and slice sequences.
 
@@ -229,44 +251,51 @@ class DNA(object):
 
         '''
         new_instance = self.copy()
-        # If referencing an incomplete feature, should automatically rename it
-        # e.g. gfp sliced from indices 10 to 100 should be something like:
-        # 'gfp(10:100)' for a name
-        if isinstance(key, slice):
-            # If a slice, remove stuff that isn't in the slide and adjust
-            # feature starts/stops
-
-            #print key.start
-            #print key.stop
-            #print key.step
-
-            # For all features, keep those that are in the slice.
-            # i.e. for all features, if feature.stop <= key.start or
-            # feature.start >= key.stop, discard, else keep
-
-            # For remaining features start = oldstart - key.start and
-            # stop = oldstop - key.start.
-
-            # should do these two in a single loop so that name is modified
-            # once. Should
-            # For features with feature.start < 0, set feature.start to 0 and
-            # rename feature based on that (i.e. gfp.10.).
-
-            # For features with feature.stop > len(seq), set feature.stop to
-            # len(seq) and rename feature based on that (i.e. gfp.10.100)
-            # Could also implement more attributes for the future that
-            # describe whether it's truncated
-            pass
-        else:
-            # Should just be an index. Remove features not in that index.
-            # Could type check / cast to int / raise useful exception
-
-            #print key
-            pass
         new_instance.top = new_instance.top[key]
         new_instance.bottom = new_instance.bottom[::-1][key][::-1]
         new_instance.topology = 'linear'
+        if len(new_instance):
+            if new_instance.features:
+                new_instance.features = self._features_on_slice(key)
+        else:
+            new_instance.features = []
         return new_instance
+
+    def _features_on_slice(self, key):
+        '''Process features when given a slice (__getitem__).
+
+        :param key: input to __getitem__, is a slice or int
+        :type key: slice or int
+
+        '''
+        remaining = []
+        if isinstance(key, slice):
+            # If a slice, remove stuff that isn't in the slide and adjust
+            # feature starts/stops
+            if key.step == 1 or key.step is None:
+                starts, stops = zip(*[(feature.start, feature.stop) for feature
+                                      in self.features])
+                for feature in self.features:
+                    # if there's key.start only exclude feature.stop too small
+                    if key.start and feature.start < key.start:
+                        pass
+                    # if there's key.stop only exclude feature.stop too big
+                    elif key.stop and feature.stop > key.stop:
+                        pass
+                    else:
+                        # if there was a key.start, move feature
+                        feature_copy = feature.copy()
+                        if key.start:
+                            feature_copy.move(-key.start)
+                        remaining.append(feature_copy)
+        else:
+            # Should just be an index. Remove features not in that index.
+            # Could type check / cast to int / raise useful exception
+            for feature in self.features:
+                if feature.start == feature.stop == key:
+                    feature.move(key)
+                    remaining.append(feature.copy())
+        return remaining
 
     def __delitem__(self, index):
         '''Delete sequence at an index.
@@ -275,6 +304,10 @@ class DNA(object):
         type index: int
 
         '''
+        if self.features:
+            for i, feature in enumerate(self.features[::-1]):
+                if index in range(feature.start, feature.stop):
+                    self.features.pop(-(i + 1))
         top_list = list(self.top)
         bottom_list = list(self.bottom[::-1])
         del top_list[index]
@@ -286,7 +319,10 @@ class DNA(object):
         '''Sets value at index to new value.'''
         if new_value == '-':
             raise ValueError("Can't insert gap - split sequence instead.")
-
+        if self.features:
+            for i, feature in enumerate(self.features[::-1]):
+                if index in range(feature.start, feature.stop):
+                    self.features.pop(-(i + 1))
         insert = DNA(str(new_value))
         new_top = insert.top
         if self.stranded == 'ds':
@@ -359,9 +395,14 @@ class DNA(object):
 
         tops = self.top + other.top
         bottoms = other.bottom + self.bottom
+        self_features = [feature.copy() for feature in self.features]
+        other_features = [feature.copy() for feature in other.features]
+        for feature in other_features:
+            feature.move(len(self))
 
         new_instance = DNA(tops, bottom=bottoms, topology='linear',
-                           stranded=stranded, run_checks=False)
+                           stranded=stranded, run_checks=False,
+                           features=self_features + other_features)
 
         return new_instance
 
@@ -577,6 +618,11 @@ class Feature(object):
         '''
         self.start += bases
         self.stop += bases
+
+    def copy(self):
+        '''Return a copy of the Feature.'''
+        return Feature(self.name, self.start, self.stop, self.feature_type,
+                       self.strand)
 
     def __repr__(self):
         '''Represent a feature.'''

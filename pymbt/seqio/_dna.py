@@ -5,7 +5,7 @@ from Bio.Alphabet.IUPAC import ambiguous_dna
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.SeqFeature import SeqFeature, FeatureLocation, ExactPosition
-from pymbt import sequence
+import pymbt.sequence
 
 
 def read_dna(path):
@@ -31,7 +31,7 @@ def read_dna(path):
         raise ValueError('File format not recognized.')
 
     seq = SeqIO.read(path, file_format)
-    dna = sequence.DNA(seq.seq.tostring())
+    dna = pymbt.sequence.DNA(seq.seq.tostring())
     dna.name = seq.name
 
     # Features
@@ -41,9 +41,9 @@ def read_dna(path):
         feature_stop = int(feature.location.end)
         feature_type = _process_feature_type(feature.type)
         feature_strand = max(feature.location.strand, 0)
-        dna.features.append(sequence.Feature(feature_name, feature_start,
-                                             feature_stop, feature_type,
-                                             strand=feature_strand))
+        dna.features.append(pymbt.sequence.Feature(feature_name, feature_start,
+                                                   feature_stop, feature_type,
+                                                   strand=feature_strand))
     dna.features = sorted(dna.features, key=lambda feature: feature.start)
     try:
         if seq.annotations['data_file_division'] == 'circular':
