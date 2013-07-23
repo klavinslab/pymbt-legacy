@@ -1,6 +1,7 @@
 ~*
-*.pyc
+*__pycache__
 *.coverage
 *.error
-*__pycache__
+*.log
+*.pyc
 venv/

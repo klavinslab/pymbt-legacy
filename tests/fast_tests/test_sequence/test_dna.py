@@ -177,6 +177,11 @@ class TestDNA(object):
         assert_true('c' in self.test_dna)
         assert_false('u' in self.test_dna)
 
+    def test_swap(self):
+        swapped = self.test_dna.swap()
+        assert_equal(self.test_dna.top, swapped.bottom)
+        assert_equal(self.test_dna.bottom, swapped.top)
+
 
 def test_bad_bottom_init():
     def init_dna(top, bottom):
@@ -233,10 +238,13 @@ class TestFeatures(object):
         rbs_feature = sequence.Feature('RBS Feature', 101, 120, 'rbs')
         origin_feature = sequence.Feature('Origin Feature', 121, 140, 'origin')
         utr3_feature = sequence.Feature('3\'UTR Feature', 141, 160, '3\'utr')
+        origin_feature2 = sequence.Feature('Origin Feature', 161, 180,
+                                           'origin')
 
         input_features = [misc_feature, misc_1_feature, coding_feature,
                           primer_feature, promoter_feature, terminator_feature,
-                          rbs_feature, origin_feature, utr3_feature]
+                          rbs_feature, origin_feature, utr3_feature,
+                          origin_feature2]
         self.dna = sequence.DNA(self.dna.top, features=input_features)
 
     def test_good_features(self):
@@ -258,3 +266,34 @@ class TestFeatures(object):
             assert_not_equal(feature.strand, rev_feature.strand)
             assert_equal(len(self.dna) - feature.start, rev_feature.stop)
             assert_equal(len(self.dna) - feature.stop, rev_feature.start)
+
+    def test_extract(self):
+        test_utr3_feature = sequence.Feature('3\'UTR Feature', 0, 19, '3\'utr')
+        extracted = self.dna.extract('3\'UTR Feature')
+        assert_equal(test_utr3_feature, extracted.features[0])
+        assert_equal(extracted.top, 'tgcatgcatgcatgcatgc')
+
+        def extract_nonexistent(seq):
+            seq.extract('duck')
+
+        def extract_redundant(seq):
+            seq.extract('Origin Feature')
+
+        assert_raises(ValueError, extract_nonexistent, self.dna)
+        assert_raises(ValueError, extract_redundant, self.dna)
+
+    def test_getitem(self):
+        subsequence = self.dna[30:100]
+        remaining_features = [sequence.Feature('Primer Feature', 11, 30,
+                                               'coding'),
+                              sequence.Feature('Promoter Feature', 31, 50,
+                                               'promoter'),
+                              sequence.Feature('Terminator Feature', 51, 70,
+                                               'terminator')]
+
+        assert_equal(subsequence.features, remaining_features)
+        assert_false(self.dna[10].features)
+        new_seq = sequence.DNA('ATGC', features=[sequence.Feature('A', 0, 0,
+                                                                  'misc')])
+        assert_equal(new_seq[0].features[0],
+                     sequence.Feature('A', 0, 0, 'misc'))
