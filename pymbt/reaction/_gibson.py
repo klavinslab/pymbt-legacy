@@ -9,7 +9,11 @@ class Gibson(object):
         :type seq_list: list of pymbt.sequence.DNA
 
         '''
-        self._seq_list = seq_list
+        # Remove any redundant (identical) sequences
+        self._seq_list = []
+        for seq in seq_list:
+            if seq not in self._seq_list:
+                self._seq_list.append(seq)
         if any(seq.topology == 'circular' for seq in self._seq_list):
             raise ValueError('Input sequences must be linear, not circular.')
 
@@ -70,7 +74,7 @@ class Gibson(object):
                      x != self._seq_list[0]]
             # If there are no results, throw an exception
             if not [z for x in found for y in x for z in y]:
-                raise Exception('Failed to find compatible Gibson ends.')
+                raise ValueError('Failed to find compatible Gibson ends.')
             # If there are results, see if any match homology length
             matches = []
             for i, (top, bottom) in enumerate(found):
@@ -84,7 +88,7 @@ class Gibson(object):
                 # If more than one are perfect matches, Gibson is ambiguous
                 if len(matches) > 1:
                     msg = 'Ambiguous Gibson (multiple compatible ends)'
-                    raise Exception(msg)
+                    raise AmbiguousGibsonError(msg)
                 else:
                     # If all those other checks passed, match is unique!
                     # Combine the working sequence with that sequence
@@ -107,19 +111,21 @@ class Gibson(object):
         while True:
             pattern = self._seq_list[0].top[-homology:]
             # Generate matches for working sequence terminal homology
+            # Ignore bottom strand matches
             found = self._seq_list[0].locate(pattern)[0]
             found.pop(-1)
             if not found:
-                raise Exception('Failed to find compatible Gibson ends.')
+                raise ValueError('Failed to find compatible Gibson ends.')
             # There are matches so see if any match homology length
-            # If more than one are perfect matches, Gibson is ambiguous
             matches = [index for index in found if index == 0]
-            if len(matches) > 1:
-                msg = 'Ambiguous Gibson (multiple compatible ends)'
-                raise Exception(msg)
-            elif len(matches) == 1:
+            if len(matches) == 1:
                 # If all those other checks passed, match is unique!
                 # Trim off redundant homology and circularize
                 self._seq_list[0] = self._seq_list[0][:-homology].circularize()
                 break
             homology += 1
+
+
+class AmbiguousGibsonError(ValueError):
+    '''Exception to raise when Gibson is ambiguous.'''
+    pass
