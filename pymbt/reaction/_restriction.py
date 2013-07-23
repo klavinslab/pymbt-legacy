@@ -2,7 +2,6 @@
 from pymbt.reaction import five_resect, three_resect
 
 
-# FIXME: pmod4G-yevenus-stuff is incorrect when digested with NcoI
 def digest(dna, restriction_enzyme):
     '''Restriction endonuclease reaction.
 
@@ -16,7 +15,6 @@ def digest(dna, restriction_enzyme):
     located = dna.locate(pattern)
     if not located[0] and not located[1]:
         # TODO: should this raise an exception?
-        print 'Restriction site not present in template DNA.'
         return [dna]
     # Bottom strand indices are relative to the bottom strand 5' end.
     # Convert to same type as top strand
@@ -54,6 +52,8 @@ def _cut(dna, index, restriction_enzyme):
     :type restriction_enzyme: pymbt.sequence.RestrictionSite
 
     '''
+    # TODO: handle case where cut site is outside of recognition sequence,
+    # for both circular and linear cases where site is at index 0
     # Find absolute indices at which to cut
     cut_site = restriction_enzyme.cut_site
     top_cut = index + cut_site[0]
@@ -61,13 +61,15 @@ def _cut(dna, index, restriction_enzyme):
 
     # Isolate left and ride sequences
     to_cut = dna.pop()
-    left = to_cut[0:top_cut]
-    right = to_cut[bottom_cut:]
+    max_cut = max(top_cut, bottom_cut)
+    min_cut = min(top_cut, bottom_cut)
+    left = to_cut[:max_cut]
+    right = to_cut[min_cut:]
 
     # If applicable, leave overhangs
     diff = top_cut - bottom_cut
     if not diff:
-        # Blunt-end cutter, no adjustment necessaryy
+        # Blunt-end cutter, no adjustment necessary
         pass
     elif diff > 0:
         # 3' overhangs

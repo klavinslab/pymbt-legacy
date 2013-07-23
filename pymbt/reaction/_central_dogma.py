@@ -67,9 +67,9 @@ def coding_sequence(rna):
         codons_left -= 1
 
     if valid[0] is None:
-        raise Exception('Sequence has no start codon.')
+        raise ValueError('Sequence has no start codon.')
     elif stop is None:
-        raise Exception('Sequence has no stop codon.')
+        raise ValueError('Sequence has no stop codon.')
     coding_rna = rna[start:stop]
 
     return coding_rna

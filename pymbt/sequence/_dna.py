@@ -56,7 +56,7 @@ class DNA(object):
                     raise ValueError('Bottom strand is too short.')
                 r_bottom = utils.reverse_complement(self.bottom, 'dna')
                 mismatches = [1 for t, b in zip(self.top, r_bottom) if
-                              (t != b and (t != '-' or b != '-'))]
+                              (t != b and not (t == '-' or b == '-'))]
                 if mismatches:
                     raise ValueError("Bottom strand doesn't match top strand.")
         elif stranded == 'ss':
@@ -313,9 +313,11 @@ class DNA(object):
 
         '''
         if self.features:
-            for i, feature in enumerate(self.features[::-1]):
-                if index in range(feature.start, feature.stop):
-                    self.features.pop(-(i + 1))
+            self.features = [feature for feature in self.features if index not
+                             in range(feature.start, feature.stop)]
+            for feature in self.features:
+                if feature.start >= index:
+                    feature.move(-1)
         top_list = list(self.top)
         bottom_list = list(self.bottom[::-1])
         del top_list[index]
@@ -528,9 +530,8 @@ class RestrictionSite(object):
     def __repr__(self):
         '''Represent a restriction site.'''
         site = self.recognition_site
-        cut = self.cut_site
         cut_symbols = ('|', '|')
-        if cut[0] in range(0, len(site)) and cut[1] in range(0, len(site)):
+        if not self.cuts_outside():
             top_left = str(site[0:self.cut_site[0]])
             top_right = str(site[self.cut_site[0]:])
             top_w_cut = top_left + cut_symbols[0] + top_right
@@ -541,7 +542,8 @@ class RestrictionSite(object):
             bottom_right = str(bottom_right)[::-1]
             bottom_w_cut = bottom_left + cut_symbols[1] + bottom_right
         else:
-            return NotImplemented
+            # Not implemented
+            return 'Type IIS Restriction Site'
 
         return '\n'.join([top_w_cut, bottom_w_cut])
 
@@ -650,12 +652,12 @@ class Feature(object):
         else:
             return False
 
-    def __neq__(self, other):
+    def __ne__(self, other):
         '''Define inequality.'''
         if not self == other:
-            return False
-        else:
             return True
+        else:
+            return False
 
 
 def _decompose(string, n):

@@ -35,15 +35,10 @@ def test_transcription():
     assert_equal(coding_rna_output, reference_rna[:-3])
 
     # Should fail is sequence lacks start codon or stop codon
-    def nostart():
-        transcription_nostart = reaction.transcribe(sequence.DNA('aaatag'))
-        return reaction.coding_sequence(transcription_nostart)
-    assert_raises(Exception, nostart)
-
-    def nostop():
-        transcription_nostop = reaction.transcribe(sequence.DNA('atgaaa'))
-        return reaction.coding_sequence(transcription_nostop)
-    assert_raises(Exception, nostop)
+    assert_raises(ValueError, reaction.coding_sequence,
+                  reaction.transcribe(sequence.DNA('aaatag')))
+    assert_raises(ValueError, reaction.coding_sequence,
+                  reaction.transcribe(sequence.DNA('atgaaa')))
 
 
 def test_translation():
@@ -68,17 +63,6 @@ def test_translation():
     coding_rna = reaction.coding_sequence(test_rna)
     coding_peptide = reaction.translate(coding_rna)
     assert_equal(coding_peptide, reference_peptide)
-
-    # Should fail is sequence lacks start codon or stop codon
-    def nostart():
-        coding_nostart = reaction.coding_sequence(sequence.RNA('aaauag'))
-        return reaction.translate(coding_nostart)
-    assert_raises(Exception, nostart)
-
-    def nostop():
-        coding_nostop = reaction.coding_sequence(sequence.RNA('augaaa'))
-        return reaction.translate(coding_nostop)
-    assert_raises(Exception, nostop)
 
 
 def test_reverse_transcription():

@@ -34,14 +34,11 @@ def test_convert_sequence():
     trans = reaction.utils.convert_sequence(rna, 'peptide')
     assert_equal(str(trans), prot)
     assert_equal(str(r_trans), seq)
+    assert_raises(ValueError, reaction.utils.convert_sequence, seq, 'rna')
 
     # Gapped sequence shouldfail
-    def convert_gap_seq(seq):
-        reaction.utils.convert_sequence(seq, 'rna')
-
-    gapped_dna = sequence.DNA('atg-')
-
-    assert_raises(ValueError, convert_gap_seq, gapped_dna)
+    assert_raises(ValueError, reaction.utils.convert_sequence,
+                  sequence.DNA('atg-'), 'rna')
 
     # Sequence without stop codon should still work
     nostop_dna = sequence.DNA('atgaaaaaaaaaaaa')
@@ -49,3 +46,5 @@ def test_convert_sequence():
     nostop_peptide = reaction.utils.convert_sequence(nostop_rna, 'peptide')
     assert_equal(str(nostop_rna), 'augaaaaaaaaaaaa')
     assert_equal(str(nostop_peptide), 'mkkkk')
+
+    assert_raises(ValueError, reaction.utils.convert_sequence, 'duck', 'rna')

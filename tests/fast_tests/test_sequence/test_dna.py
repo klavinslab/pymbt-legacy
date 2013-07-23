@@ -21,10 +21,7 @@ class TestDNA(object):
         assert_equal(circ_dna.linearize(2).top, 'gcat')
         assert_equal(circ_dna.linearize(3).top, 'catg')
         assert_equal(circ_dna.linearize(-1).top, 'catg')
-
-        def linearize_linear(seq):
-            return seq.linearize()
-        assert_raises(ValueError, linearize_linear, circ_dna.linearize())
+        assert_raises(ValueError, circ_dna.linearize().linearize)
 
     def test_set_stranded(self):
         assert_equal(self.test_dna.set_stranded('ds'), self.test_dna)
@@ -45,9 +42,7 @@ class TestDNA(object):
         empty_top = reaction.three_resect(self.test_dna, 400)
         assert_equal(empty_top.set_stranded('ds'), self.test_dna)
 
-        def bad_argument(seq):
-            seq.set_stranded('duck')
-        assert_raises(ValueError, bad_argument, self.test_dna)
+        assert_raises(ValueError, self.test_dna.set_stranded, 'duck')
 
     def test_locate(self):
         assert_equal(self.test_dna.locate('a'), ([0], [2]))
@@ -111,6 +106,10 @@ class TestDNA(object):
         copy_1 = self.test_dna.copy()
         copy_1[-1] = 'a'
         assert_equal(copy_1.top, 'atga')
+
+        def set_gap(seq):
+            seq[2] = '-'
+        assert_raises(ValueError, set_gap, self.test_dna)
 
     def test_repr(self):
         expected_repr = 'linear dsDNA:\natgc\ntacg'
@@ -187,8 +186,8 @@ def test_bad_bottom_init():
     def init_dna(top, bottom):
         sequence.DNA(top, bottom=bottom)
 
-    assert_raises(ValueError, init_dna, 'atgc', 'at')
-    assert_raises(ValueError, init_dna, 'atgc', 'gggg')
+    assert_raises(ValueError, sequence.DNA, 'atgc', bottom='at')
+    assert_raises(ValueError, sequence.DNA, 'atgc', bottom='gggg')
     try:
         sequence.DNA('atgc', bottom='gcat')
     except:
@@ -211,12 +210,6 @@ def test_stranded_complemented():
                                                                   'dna'))
     assert_equal(ss_dna.top, sequence.utils.reverse_complement(r_ss_dna.bottom,
                                                                'dna'))
-
-
-def test_feature():
-    def badtype():
-        sequence.Feature('yEVenus', 0, 717, 'duck')
-    assert_raises(ValueError, badtype)
 
 
 class TestFeatures(object):
@@ -252,13 +245,9 @@ class TestFeatures(object):
             assert_true(feature.copy() in self.dna.features)
 
     def test_bad_feature(self):
-        def duckfeature():
-            sequence.DNA('atgc', features='duck')
-        assert_raises(ValueError, duckfeature)
-
-        def duckfeaturelist():
-            sequence.DNA('atgc', features=['duck'])
-        assert_raises(ValueError, duckfeaturelist)
+        assert_raises(ValueError, sequence.DNA, 'atgc', features='duck')
+        assert_raises(ValueError, sequence.DNA, 'atgc', features=['duck'])
+        assert_raises(ValueError, sequence.Feature, 'yEVenus', 0, 717, 'duck')
 
     def test_rev_comp(self):
         rev = self.dna.reverse_complement()
@@ -273,14 +262,8 @@ class TestFeatures(object):
         assert_equal(test_utr3_feature, extracted.features[0])
         assert_equal(extracted.top, 'tgcatgcatgcatgcatgc')
 
-        def extract_nonexistent(seq):
-            seq.extract('duck')
-
-        def extract_redundant(seq):
-            seq.extract('Origin Feature')
-
-        assert_raises(ValueError, extract_nonexistent, self.dna)
-        assert_raises(ValueError, extract_redundant, self.dna)
+        assert_raises(ValueError, self.dna.extract, 'duck')
+        assert_raises(ValueError, self.dna.extract, 'Origin Feature')
 
     def test_getitem(self):
         subsequence = self.dna[30:100]
@@ -297,3 +280,48 @@ class TestFeatures(object):
                                                                   'misc')])
         assert_equal(new_seq[0].features[0],
                      sequence.Feature('A', 0, 0, 'misc'))
+
+    def test_delitem(self):
+        copy = self.dna.copy()
+        del copy[3]
+
+        coding_feature = sequence.Feature('Coding Feature', 20, 39, 'coding')
+        primer_feature = sequence.Feature('Primer Feature', 40, 59, 'coding')
+        promoter_feature = sequence.Feature('Promoter Feature', 60, 79,
+                                            'promoter')
+        terminator_feature = sequence.Feature('Terminator Feature', 80, 99,
+                                              'terminator')
+        rbs_feature = sequence.Feature('RBS Feature', 100, 119, 'rbs')
+        origin_feature = sequence.Feature('Origin Feature', 120, 139, 'origin')
+        utr3_feature = sequence.Feature('3\'UTR Feature', 140, 159, '3\'utr')
+        origin_feature2 = sequence.Feature('Origin Feature', 160, 179,
+                                           'origin')
+        input_features_ref = [coding_feature, primer_feature,
+                              promoter_feature, terminator_feature,
+                              rbs_feature, origin_feature, utr3_feature,
+                              origin_feature2]
+        assert_equal(copy.features, input_features_ref)
+
+    def test_ne(self):
+        '''Test != operator'''
+        assert_true(self.dna.features[0] != self.dna.features[4])
+        assert_false(self.dna.features[0] != self.dna.features[0])
+
+
+class TestRestrictionSite(object):
+    '''Test RestrictionSite class.'''
+    def __init__(self):
+        self.ecorv = sequence.RestrictionSite(sequence.DNA('GATATC'), (3, 3),
+                                              name='EcoRV')
+        self.foki = sequence.RestrictionSite(sequence.DNA('GGATG'), (14, 18),
+                                             name='FokI')
+
+    def test_cuts_outside(self):
+        '''Test cuts_outside method.'''
+        assert_false(self.ecorv.cuts_outside())
+        assert_true(self.foki.cuts_outside())
+
+    def test_len(self):
+        '''Test len function.'''
+        assert_equal(len(self.ecorv), 6)
+        assert_equal(len(self.foki), 5)
