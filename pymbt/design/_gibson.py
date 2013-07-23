@@ -1,5 +1,6 @@
 '''Gibson design module.'''
 from pymbt import analysis
+from pymbt import sequence
 from pymbt.design import design_primer
 # IDEA: Separate design of Gibson overlaps from design of primers
 
@@ -24,19 +25,17 @@ def gibson_primers(dna1, dna2, split, overlap_tm=65.0, **kwargs):
 
     '''
     # TODO: if sequence is too short (overlap len = seq len), raise exception
+    dna1_primer = design_primer(dna1.reverse_complement(), **kwargs)
+    dna2_primer = design_primer(dna2, **kwargs)
     if split == 'left':
         overhang_f = design_primer(dna1.reverse_complement(), tm=overlap_tm,
                                    tm_undershoot=0)
-        overhang = overhang_f.primer().reverse_complement()
-        dna2_primer = design_primer(dna2, overhang=overhang, **kwargs)
-        dna1_primer = design_primer(dna1.reverse_complement(), **kwargs)
+        overhang2 = overhang_f.primer().reverse_complement().swap()
+        overhang1 = None
     elif split == 'right':
         overhang_r = design_primer(dna2, tm=overlap_tm, tm_undershoot=0)
-        overhang = overhang_r.primer().reverse_complement()
-        dna2_primer = design_primer(dna2, **kwargs)
-        dna1_primer = design_primer(dna1.reverse_complement(),
-                                    overhang=overhang,
-                                    **kwargs)
+        overhang1 = overhang_r.primer().reverse_complement().swap()
+        overhang2 = None
     elif split == 'mixed':
         overlap_l = dna1[0:0]
         overlap_r = dna2[0]
@@ -50,11 +49,13 @@ def gibson_primers(dna1, dna2, split, overlap_tm=65.0, **kwargs):
                 overlap_r = dna2[:(llen + 1)]
             overlap = overlap_l + overlap_r
             overlap_melt = analysis.tm(overlap)
-        dna2_primer = design_primer(dna2, overhang=overlap_l, **kwargs)
-        dna1_primer = design_primer(dna1.reverse_complement(),
-                                    overhang=overlap_r.reverse_complement(),
-                                    **kwargs)
+        overhang1 = overlap_r.reverse_complement().swap()
+        overhang2 = overlap_l
     else:
         raise ValueError('split argument must be left, right, or mixed')
+    primer1 = sequence.Primer(dna1_primer.anneal, tm=dna1_primer.tm,
+                              overhang=overhang1)
+    primer2 = sequence.Primer(dna2_primer.anneal, tm=dna2_primer.tm,
+                              overhang=overhang2)
 
-    return dna1_primer, dna2_primer
+    return primer1, primer2

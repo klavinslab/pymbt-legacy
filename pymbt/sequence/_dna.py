@@ -554,7 +554,7 @@ class RestrictionSite(object):
 
 class Primer(object):
     '''A DNA primer - ssDNA with tm, anneal, and optional overhang.'''
-    def __init__(self, anneal, overhang, tm):
+    def __init__(self, anneal, tm, overhang=None):
         '''
         :param anneal: Annealing sequence
         :type anneal: pymbt.sequence.DNA
@@ -565,8 +565,11 @@ class Primer(object):
 
         '''
         self.tm = tm
-        self.anneal = anneal
-        self.overhang = overhang
+        self.anneal = anneal.set_stranded('ss')
+        if overhang is not None:
+            self.overhang = overhang.set_stranded('ss')
+        else:
+            self.overhang = DNA('', stranded='ss')
 
     def primer(self):
         '''Retrieve full primer sequence.'''
@@ -583,6 +586,13 @@ class Primer(object):
     def __str__(self):
         '''Coerce DNA object to string.'''
         return str(self.primer())
+
+    def __eq__(self, other):
+        '''Define equality.'''
+        if vars(self) == vars(other):
+            return True
+        else:
+            return False
 
 
 class Feature(object):

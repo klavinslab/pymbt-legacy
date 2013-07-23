@@ -9,6 +9,8 @@ class Gibson(object):
         :type seq_list: list of pymbt.sequence.DNA
 
         '''
+        # TODO: Two modes - one is homology length based, the other on min
+        # tm
         # Remove any redundant (identical) sequences
         self._seq_list = []
         for seq in seq_list:

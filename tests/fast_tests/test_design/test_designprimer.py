@@ -24,7 +24,7 @@ def test_design_primer():
     primer = design.design_primer(dna_seq, tm=72, min_len=10,
                                   tm_undershoot=1, tm_overshoot=3,
                                   end_gc=False, tm_parameters='cloning',
-                                  overhang='')
+                                  overhang=None)
     assert_equals(str(primer), 'atggtgagcaagggcgaggag')
 
 
@@ -48,7 +48,7 @@ def test_design_primers():
                                          tm_undershoot=1, tm_overshoot=3,
                                          end_gc=False,
                                          tm_parameters='cloning',
-                                         overhangs='')
+                                         overhangs=None)
     primers = [str(x.primer()) for x in primers_list]
     assert_equals(primers, ['atggtgagcaagggcgaggag',
                             'ttacttgtacagctcgtccatgccg'])
