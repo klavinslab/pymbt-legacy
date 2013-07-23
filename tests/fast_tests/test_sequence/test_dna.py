@@ -1,29 +1,14 @@
-'''
-Tests for the DNA sequence class.
-
-'''
-
+'''Tests for the DNA sequence class.'''
 from pymbt import sequence
+from pymbt import reaction
 from nose.tools import assert_equal, assert_false, assert_true, assert_raises
+from nose.tools import assert_not_equal
 
 
 class TestDNA(object):
-    '''
-    Testing class for sequence.DNA
-
-    '''
-
+    '''Testing class for sequence.DNA'''
     def __init__(self):
         self.test_dna = sequence.DNA('atgc')
-
-    def bad_feature(self):
-        def duckfeature():
-            sequence.DNA('atgc', features='duck')
-        assert_raises(ValueError, duckfeature)
-
-        def duckfeaturelist():
-            sequence.DNA('atgc', features=['duck'])
-        assert_raises(ValueError, duckfeaturelist)
 
     def test_reverse_complement(self):
         assert_equal(self.test_dna.reverse_complement().top, 'gcat')
@@ -36,6 +21,10 @@ class TestDNA(object):
         assert_equal(circ_dna.linearize(2).top, 'gcat')
         assert_equal(circ_dna.linearize(3).top, 'catg')
         assert_equal(circ_dna.linearize(-1).top, 'catg')
+
+        def linearize_linear(seq):
+            return seq.linearize()
+        assert_raises(ValueError, linearize_linear, circ_dna.linearize())
 
     def test_set_stranded(self):
         assert_equal(self.test_dna.set_stranded('ds'), self.test_dna)
@@ -50,9 +39,14 @@ class TestDNA(object):
         r_ds_dna = self.test_dna.set_stranded('ds')
         assert_equal(r_ds_dna.reverse_complement().top, r_ss_dna.bottom)
 
+        ds_to_ss_to_ds = self.test_dna.set_stranded('ss').set_stranded('ds')
+        assert_equal(self.test_dna, ds_to_ss_to_ds)
+
+        empty_top = reaction.three_resect(self.test_dna, 400)
+        assert_equal(empty_top.set_stranded('ds'), self.test_dna)
+
         def bad_argument(seq):
             seq.set_stranded('duck')
-
         assert_raises(ValueError, bad_argument, self.test_dna)
 
     def test_locate(self):
@@ -72,8 +66,10 @@ class TestDNA(object):
     def test_palindrome(self):
         palindromic_seq_even = sequence.DNA('ATGCGCAT')
         nonpalindromic_seq_even = sequence.DNA('ATGCGCAA')
+        almost_palindrome_odd = sequence.DNA('ATGCCAT')
         assert_true(palindromic_seq_even.is_palindrome())
         assert_false(nonpalindromic_seq_even.is_palindrome())
+        assert_false(almost_palindrome_odd.is_palindrome())
 
     def test_getitem(self):
         assert_equal(self.test_dna[0].top, 'a')
@@ -206,8 +202,9 @@ def test_stranded_init():
 def test_stranded_complemented():
     ss_dna = sequence.DNA('atgc', stranded='ss')
     r_ss_dna = ss_dna.reverse_complement()
-    assert_equal(ss_dna.bottom, r_ss_dna.bottom)
-    assert_equal(ss_dna.top, sequence.utils.reverse_complement(r_ss_dna.top,
+    assert_equal(ss_dna.bottom, sequence.utils.reverse_complement(r_ss_dna.top,
+                                                                  'dna'))
+    assert_equal(ss_dna.top, sequence.utils.reverse_complement(r_ss_dna.bottom,
                                                                'dna'))
 
 
@@ -215,3 +212,49 @@ def test_feature():
     def badtype():
         sequence.Feature('yEVenus', 0, 717, 'duck')
     assert_raises(ValueError, badtype)
+
+
+class TestFeatures(object):
+    '''Test features model using DNA object.'''
+    def __init__(self):
+        self.dna = sequence.DNA('ATGC') * 50
+        self.apply_features()
+
+    def apply_features(self):
+        misc_feature = sequence.Feature('Misc Feature', 1, 20, 'misc')
+        misc_1_feature = sequence.Feature('Misc Feature', 1, 20, 'misc',
+                                          strand=1)
+        coding_feature = sequence.Feature('Coding Feature', 21, 40, 'coding')
+        primer_feature = sequence.Feature('Primer Feature', 41, 60, 'coding')
+        promoter_feature = sequence.Feature('Promoter Feature', 61, 80,
+                                            'promoter')
+        terminator_feature = sequence.Feature('Terminator Feature', 81, 100,
+                                              'terminator')
+        rbs_feature = sequence.Feature('RBS Feature', 101, 120, 'rbs')
+        origin_feature = sequence.Feature('Origin Feature', 121, 140, 'origin')
+        utr3_feature = sequence.Feature('3\'UTR Feature', 141, 160, '3\'utr')
+
+        input_features = [misc_feature, misc_1_feature, coding_feature,
+                          primer_feature, promoter_feature, terminator_feature,
+                          rbs_feature, origin_feature, utr3_feature]
+        self.dna = sequence.DNA(self.dna.top, features=input_features)
+
+    def test_good_features(self):
+        for feature in self.dna.features:
+            assert_true(feature.copy() in self.dna.features)
+
+    def test_bad_feature(self):
+        def duckfeature():
+            sequence.DNA('atgc', features='duck')
+        assert_raises(ValueError, duckfeature)
+
+        def duckfeaturelist():
+            sequence.DNA('atgc', features=['duck'])
+        assert_raises(ValueError, duckfeaturelist)
+
+    def test_rev_comp(self):
+        rev = self.dna.reverse_complement()
+        for feature, rev_feature in zip(self.dna.features, rev.features):
+            assert_not_equal(feature.strand, rev_feature.strand)
+            assert_equal(len(self.dna) - feature.start, rev_feature.stop)
+            assert_equal(len(self.dna) - feature.stop, rev_feature.start)

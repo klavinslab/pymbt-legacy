@@ -15,7 +15,8 @@ def five_resect(dna, n_bases):
     new_instance.top = new_top
     new_instance.remove_end_gaps()
     if n_bases >= len(dna):
-        new_instance = dna.set_stranded('ss')
+        new_instance.top = ''.join('-' for i in range(len(dna)))
+        new_instance.stranded = 'ss'
     return new_instance
 
 
@@ -34,5 +35,6 @@ def three_resect(dna, n_bases):
     new_instance.top = new_top
     new_instance.remove_end_gaps()
     if n_bases >= len(dna):
-        new_instance = dna.set_stranded('ss')
+        new_instance.top = ''.join('-' for i in range(len(dna)))
+        new_instance.stranded = 'ss'
     return new_instance

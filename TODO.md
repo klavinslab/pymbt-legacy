@@ -1,12 +1,7 @@
 # TODO List
 
 ## Fixes:
-* Features should be updated whenever sequence changes:
-    * on \_\_getitem\_\_
-* Features should be renamed when truncated
-
 ## Organization:
-
 ## Wishlist:
 * High Priority
     * Classes / etc that have inconsistent APIs:

@@ -44,7 +44,7 @@ class DNA(object):
             if all(isinstance(feature, Feature) for feature in features):
                 self.features = features
             else:
-                raise Exception('features element was not a Feature instance')
+                raise ValueError("non-Feature input for 'features'.")
         else:
             self.features = []
         self.stranded = stranded
@@ -73,8 +73,10 @@ class DNA(object):
         if self.stranded == 'ds':
             new_instance.top = self.bottom
             new_instance.bottom = self.top
-        elif self.stranded == 'ss':
-            new_instance.top = utils.reverse_complement(self.top, 'dna')
+        else:
+            new_instance.top = utils.reverse_complement(self.bottom, 'dna')
+            new_instance.bottom = utils.reverse_complement(self.top, 'dna')
+
         # Fix features (invert)
         for feature in new_instance.features:
             # Swap strand
@@ -104,7 +106,7 @@ class DNA(object):
 
         '''
         if self.topology == 'linear':
-            raise Exception('Cannot relinearize linear DNA.')
+            raise ValueError('Cannot relinearize linear DNA.')
 
         new_instance = self.copy()
         new_instance = new_instance[index:] + new_instance[:index]
@@ -131,9 +133,9 @@ class DNA(object):
             # Find strand that's all gaps (if ss this should be the case)
             reverse_seq = self.reverse_complement()
             if all(char == '-' for char in self.top):
-                new_instance.top = reverse_seq.bottom
+                new_instance.top = reverse_seq.top
             elif all(char == '-' for char in self.bottom):
-                new_instance.bottom = reverse_seq.top
+                new_instance.bottom = reverse_seq.bottom
             new_instance.stranded = 'ds'
         else:
             raise ValueError("'stranded' must be 'ss' or 'ds'.")
@@ -260,6 +262,12 @@ class DNA(object):
         else:
             new_instance.features = []
         return new_instance
+
+    def swap(self):
+        '''Switch top and bottom strands.'''
+        copy = self.copy()
+        copy.top, copy.bottom = copy.bottom, copy.top
+        return copy
 
     def _features_on_slice(self, key):
         '''Process features when given a slice (__getitem__).
