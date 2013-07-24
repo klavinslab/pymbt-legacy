@@ -17,7 +17,7 @@ class TestRNA(object):
         self.test_rna = sequence.RNA('augc')
 
     def test_reverse_complement(self):
-        assert_equal(self.test_rna.reverse_complement().top, 'gcau')
+        assert_equal(str(self.test_rna.reverse_complement()), 'gcau')
 
     def test_locate(self):
         assert_equal(self.test_rna.locate('au'), [0])
@@ -28,56 +28,45 @@ class TestRNA(object):
         assert_equal(self.test_rna, self.test_rna.copy())
 
     def test_getitem(self):
-        assert_equal(self.test_rna[0].top, 'a')
-        assert_equal(self.test_rna[1].top, 'u')
-        assert_equal(self.test_rna[2].top, 'g')
-        assert_equal(self.test_rna[3].top, 'c')
-        assert_equal(self.test_rna[-1].top, 'c')
+        assert_equal(str(self.test_rna[0]), 'a')
+        assert_equal(str(self.test_rna[1]), 'u')
+        assert_equal(str(self.test_rna[2]), 'g')
+        assert_equal(str(self.test_rna[3]), 'c')
+        assert_equal(str(self.test_rna[-1]), 'c')
 
     def test_delitem(self):
         copy0 = self.test_rna.copy()
         del copy0[0]
-        assert_equal(copy0.top, 'ugc')
+        assert_equal(str(copy0), 'ugc')
         copy1 = self.test_rna.copy()
         del copy1[1]
-        assert_equal(copy1.top, 'agc')
+        assert_equal(str(copy1), 'agc')
         copy2 = self.test_rna.copy()
         del copy2[2]
-        assert_equal(copy2.top, 'auc')
+        assert_equal(str(copy2), 'auc')
         copy3 = self.test_rna.copy()
         del copy3[3]
-        assert_equal(copy3.top, 'aug')
+        assert_equal(str(copy3), 'aug')
         copy_1 = self.test_rna.copy()
         del copy_1[-1]
-        assert_equal(copy_1.top, 'aug')
+        assert_equal(str(copy_1), 'aug')
 
     def test_setitem(self):
         copy0 = self.test_rna.copy()
         copy0[0] = 'u'
-        assert_equal(copy0.top, 'uugc')
+        assert_equal(str(copy0), 'uugc')
         copy1 = self.test_rna.copy()
         copy1[1] = 'a'
-        assert_equal(copy1.top, 'aagc')
+        assert_equal(str(copy1), 'aagc')
         copy2 = self.test_rna.copy()
         copy2[2] = 'a'
-        assert_equal(copy2.top, 'auac')
+        assert_equal(str(copy2), 'auac')
         copy3 = self.test_rna.copy()
         copy3[3] = 'a'
-        assert_equal(copy3.top, 'auga')
+        assert_equal(str(copy3), 'auga')
         copy_1 = self.test_rna.copy()
         copy_1[-1] = 'a'
-        assert_equal(copy_1.top, 'auga')
-
-    def test_repr(self):
-        expected_repr = 'RNA:\naugc\n----'
-        assert_equal(repr(self.test_rna), expected_repr)
-
-        repr_1 = 'RNA:\naugcaugcaugcaugcaugcaugcaugcaugcaugcaugc ... '
-        repr_2 = 'augcaugcaugcaugcaugcaugcaugcaugcaugcaugc\n'
-        repr_3 = '---------------------------------------- ... '
-        repr_4 = '----------------------------------------'
-        expected_long_repr = repr_1 + repr_2 + repr_3 + repr_4
-        assert_equal(repr(self.test_rna * 50), expected_long_repr)
+        assert_equal(str(copy_1), 'auga')
 
     def test_str(self):
         assert_equal(str(self.test_rna), 'augc')
@@ -86,10 +75,10 @@ class TestRNA(object):
         assert_equal(len(self.test_rna), 4)
 
     def test_add(self):
-        assert_equal((self.test_rna + self.test_rna).top, 'augcaugc')
+        assert_equal(str((self.test_rna + self.test_rna)), 'augcaugc')
 
     def test_radd(self):
-        assert_equal(sum([self.test_rna, self.test_rna]).top, 'augcaugc')
+        assert_equal(str(sum([self.test_rna, self.test_rna])), 'augcaugc')
 
         def radd_800(seq):
             return 800 + seq
@@ -97,7 +86,7 @@ class TestRNA(object):
         assert_raises(TypeError, radd_800, self.test_rna)
 
     def test_mul(self):
-        assert_equal((self.test_rna * 4).top, 'augcaugcaugcaugc')
+        assert_equal(str((self.test_rna * 4)), 'augcaugcaugcaugc')
 
         def mul_float(seq):
             return seq * 7.56

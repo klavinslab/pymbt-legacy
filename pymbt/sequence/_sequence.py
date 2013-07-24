@@ -36,7 +36,7 @@ class BaseSequence(object):
     def copy(self):
         '''Create a copy of the current instance.'''
         # Significant performance improvements by skipping alphabet check
-        return BaseSequence(self._sequence, self._material, run_checks=False)
+        return type(self)(self._sequence, self._material, run_checks=False)
 
     def __getitem__(self, key):
         '''Indexing and slicing of sequences.
@@ -181,19 +181,6 @@ def _decompose(string, n):
             yield new_string
         new_string += new_string
         counter += 1
-
-
-class RNA(BaseSequence):
-    '''RNA sequence.'''
-    def __init__(self, rna, run_checks=True):
-        super(RNA, self).__init__(rna, 'rna', run_checks=run_checks)
-
-    def reverse_complement(self):
-        '''Reverse complement sequence.'''
-        new_instance = self.copy()
-        new_instance._sequence = utils.reverse_complement(self._sequence,
-                                                          'rna')
-        return new_instance
 
 
 class Peptide(BaseSequence):
