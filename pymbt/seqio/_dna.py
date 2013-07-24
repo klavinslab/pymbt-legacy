@@ -106,7 +106,7 @@ def write_dna(dna, path):
     # Biopython doesn't like 'None' here
     bio_id = dna.id if dna.id else ''
     # Maximum length of name is 16
-    seq = SeqRecord(Seq(dna.top, alphabet=ambiguous_dna), id=bio_id,
+    seq = SeqRecord(Seq(str(dna), alphabet=ambiguous_dna), id=bio_id,
                     name=dna.name[0:16], features=features,
                     description=dna.name)
 

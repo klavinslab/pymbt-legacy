@@ -70,7 +70,7 @@ class Gibson(object):
 
         '''
         while True:
-            pattern = self._seq_list[0].top[-homology:]
+            pattern = str(self._seq_list[0])[-homology:]
             # Generate matches for working sequence terminal homology
             found = [x.locate(pattern) for x in self._seq_list if
                      x != self._seq_list[0]]
@@ -111,7 +111,7 @@ class Gibson(object):
         '''
         # Should use basically the same approach as above...
         while True:
-            pattern = self._seq_list[0].top[-homology:]
+            pattern = str(self._seq_list[0])[-homology:]
             # Generate matches for working sequence terminal homology
             # Ignore bottom strand matches
             found = self._seq_list[0].locate(pattern)[0]

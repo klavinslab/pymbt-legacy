@@ -35,27 +35,9 @@
             * __eq__ is identical
             * __ne__ is identical
             * __contains__ is identical
-        * Peptide shares these with RNA (basically everything!): 
-            * locate method is identical to RNA's
-            * copy method is identical to RNA's
-            * __getitem__ is identical except Peptide ignores bottom strand
-              (RNA currently has no purpose for a bottom strand either!!!!!!)
-            * __delitem__ is identical except for bottom strand
-            * __setitem__ is identical
-            * __repr__ is identical except for bottom strand / words
-            * __str__ is identical
-            * __len__ is identical
-            * __add__ is identical
-            * __radd__ should be identical
-            * __mul__ is identical
-            * __eq__ is identical
-            * __ne__ is identical
-            * __str__ is identical
-            * __contains__ is identical
 
-        * Things that differ between peptide / RNA
-            * reverse_complement: exists for rna, not peptide (sweet)
-
+        Idea for top vs bottom strands: keep _sequence, add _bottom, and
+        have .top() and .bottom() methods.
 * Medium Priority
     * Analysis:
         * Read/write sequencing alignments (Sanger methods)

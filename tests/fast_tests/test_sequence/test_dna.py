@@ -11,16 +11,16 @@ class TestDNA(object):
         self.test_dna = sequence.DNA('atgc')
 
     def test_reverse_complement(self):
-        assert_equal(self.test_dna.reverse_complement().top, 'gcat')
+        assert_equal(str(self.test_dna.reverse_complement()), 'gcat')
 
     def test_linearize(self):
         circ_dna = self.test_dna.circularize()
-        assert_equal(circ_dna.linearize().top, 'atgc')
-        assert_equal(circ_dna.linearize(0).top, 'atgc')
-        assert_equal(circ_dna.linearize(1).top, 'tgca')
-        assert_equal(circ_dna.linearize(2).top, 'gcat')
-        assert_equal(circ_dna.linearize(3).top, 'catg')
-        assert_equal(circ_dna.linearize(-1).top, 'catg')
+        assert_equal(str(circ_dna.linearize()), 'atgc')
+        assert_equal(str(circ_dna.linearize(0)), 'atgc')
+        assert_equal(str(circ_dna.linearize(1)), 'tgca')
+        assert_equal(str(circ_dna.linearize(2)), 'gcat')
+        assert_equal(str(circ_dna.linearize(3)), 'catg')
+        assert_equal(str(circ_dna.linearize(-1)), 'catg')
         assert_raises(ValueError, circ_dna.linearize().linearize)
 
     def test_set_stranded(self):
@@ -29,12 +29,12 @@ class TestDNA(object):
         assert_equal(ss_dna.stranded, 'ss')
         ds_dna = self.test_dna.set_stranded('ds')
         assert_equal(ds_dna.stranded, 'ds')
-        assert_equal(sequence.utils.reverse_complement(ds_dna.bottom, 'dna'),
-                     ss_dna.top)
+        assert_equal(sequence.utils.reverse_complement(ds_dna._bottom, 'dna'),
+                     str(ss_dna))
 
         r_ss_dna = ds_dna  # TODO: make sure this is worth testing
         r_ds_dna = self.test_dna.set_stranded('ds')
-        assert_equal(r_ds_dna.reverse_complement().top, r_ss_dna.bottom)
+        assert_equal(str(r_ds_dna.reverse_complement()), r_ss_dna.bottom())
 
         ds_to_ss_to_ds = self.test_dna.set_stranded('ss').set_stranded('ds')
         assert_equal(self.test_dna, ds_to_ss_to_ds)
@@ -67,45 +67,45 @@ class TestDNA(object):
         assert_false(almost_palindrome_odd.is_palindrome())
 
     def test_getitem(self):
-        assert_equal(self.test_dna[0].top, 'a')
-        assert_equal(self.test_dna[1].top, 't')
-        assert_equal(self.test_dna[2].top, 'g')
-        assert_equal(self.test_dna[3].top, 'c')
-        assert_equal(self.test_dna[-1].top, 'c')
+        assert_equal(str(self.test_dna[0]), 'a')
+        assert_equal(str(self.test_dna[1]), 't')
+        assert_equal(str(self.test_dna[2]), 'g')
+        assert_equal(str(self.test_dna[3]), 'c')
+        assert_equal(str(self.test_dna[-1]), 'c')
 
     def test_delitem(self):
         copy0 = self.test_dna.copy()
         del copy0[0]
-        assert_equal(copy0.top, 'tgc')
+        assert_equal(str(copy0), 'tgc')
         copy1 = self.test_dna.copy()
         del copy1[1]
-        assert_equal(copy1.top, 'agc')
+        assert_equal(str(copy1), 'agc')
         copy2 = self.test_dna.copy()
         del copy2[2]
-        assert_equal(copy2.top, 'atc')
+        assert_equal(str(copy2), 'atc')
         copy3 = self.test_dna.copy()
         del copy3[3]
-        assert_equal(copy3.top, 'atg')
+        assert_equal(str(copy3), 'atg')
         copy_1 = self.test_dna.copy()
         del copy_1[-1]
-        assert_equal(copy_1.top, 'atg')
+        assert_equal(str(copy_1), 'atg')
 
     def test_setitem(self):
         copy0 = self.test_dna.copy()
         copy0[0] = 't'
-        assert_equal(copy0.top, 'ttgc')
+        assert_equal(str(copy0), 'ttgc')
         copy1 = self.test_dna.copy()
         copy1[1] = 'a'
-        assert_equal(copy1.top, 'aagc')
+        assert_equal(str(copy1), 'aagc')
         copy2 = self.test_dna.copy()
         copy2[2] = 'a'
-        assert_equal(copy2.top, 'atac')
+        assert_equal(str(copy2), 'atac')
         copy3 = self.test_dna.copy()
         copy3[3] = 'a'
-        assert_equal(copy3.top, 'atga')
+        assert_equal(str(copy3), 'atga')
         copy_1 = self.test_dna.copy()
         copy_1[-1] = 'a'
-        assert_equal(copy_1.top, 'atga')
+        assert_equal(str(copy_1), 'atga')
 
         def set_gap(seq):
             seq[2] = '-'
@@ -132,12 +132,12 @@ class TestDNA(object):
         assert_equal(len(self.test_dna), 4)
 
     def test_add(self):
-        assert_equal((self.test_dna + self.test_dna).top, 'atgcatgc')
-        assert_equal((self.test_dna.set_stranded('ss') +
-                      self.test_dna.set_stranded('ss')).top, 'atgcatgc')
+        assert_equal(str(self.test_dna + self.test_dna), 'atgcatgc')
+        assert_equal(str(self.test_dna.set_stranded('ss') +
+                         self.test_dna.set_stranded('ss')), 'atgcatgc')
 
     def test_radd(self):
-        assert_equal(sum([self.test_dna, self.test_dna]).top, 'atgcatgc')
+        assert_equal(str(sum([self.test_dna, self.test_dna])), 'atgcatgc')
 
         def radd_800(seq):
             return 800 + seq
@@ -145,7 +145,7 @@ class TestDNA(object):
         assert_raises(TypeError, radd_800, self.test_dna)
 
     def test_mul(self):
-        assert_equal((self.test_dna * 4).top, 'atgcatgcatgcatgc')
+        assert_equal(str(self.test_dna * 4), 'atgcatgcatgcatgc')
 
         def mul_float(seq):
             return seq * 7.56
@@ -178,8 +178,8 @@ class TestDNA(object):
 
     def test_swap(self):
         swapped = self.test_dna.swap()
-        assert_equal(self.test_dna.top, swapped.bottom)
-        assert_equal(self.test_dna.bottom, swapped.top)
+        assert_equal(str(self.test_dna), swapped._bottom)
+        assert_equal(self.test_dna._bottom, str(swapped))
 
 
 def test_bad_bottom_init():
@@ -196,20 +196,20 @@ def test_bad_bottom_init():
 
 def test_stranded_init():
     ss_dna = sequence.DNA('atgc', stranded='ss')
-    assert_true(all([base == '-' for base in ss_dna.bottom]))
+    assert_true(all([base == '-' for base in ss_dna._bottom]))
 
     ds_dna = sequence.DNA('atgc')
-    assert_equal(ds_dna.top, sequence.utils.reverse_complement(ds_dna.bottom,
-                                                               'dna'))
+    assert_equal(str(ds_dna), sequence.utils.reverse_complement(ds_dna._bottom,
+                                                                'dna'))
 
 
 def test_stranded_complemented():
     ss_dna = sequence.DNA('atgc', stranded='ss')
     r_ss_dna = ss_dna.reverse_complement()
-    assert_equal(ss_dna.bottom, sequence.utils.reverse_complement(r_ss_dna.top,
-                                                                  'dna'))
-    assert_equal(ss_dna.top, sequence.utils.reverse_complement(r_ss_dna.bottom,
-                                                               'dna'))
+    assert_equal(ss_dna._bottom,
+                 sequence.utils.reverse_complement(str(r_ss_dna), 'dna'))
+    assert_equal(str(ss_dna),
+                 sequence.utils.reverse_complement(r_ss_dna._bottom, 'dna'))
 
 
 class TestFeatures(object):
@@ -238,7 +238,7 @@ class TestFeatures(object):
                           primer_feature, promoter_feature, terminator_feature,
                           rbs_feature, origin_feature, utr3_feature,
                           origin_feature2]
-        self.dna = sequence.DNA(self.dna.top, features=input_features)
+        self.dna = sequence.DNA(str(self.dna), features=input_features)
 
     def test_good_features(self):
         for feature in self.dna.features:
@@ -260,7 +260,7 @@ class TestFeatures(object):
         test_utr3_feature = sequence.Feature('3\'UTR Feature', 0, 19, '3\'utr')
         extracted = self.dna.extract('3\'UTR Feature')
         assert_equal(test_utr3_feature, extracted.features[0])
-        assert_equal(extracted.top, 'tgcatgcatgcatgcatgc')
+        assert_equal(str(extracted), 'tgcatgcatgcatgcatgc')
 
         assert_raises(ValueError, self.dna.extract, 'duck')
         assert_raises(ValueError, self.dna.extract, 'Origin Feature')

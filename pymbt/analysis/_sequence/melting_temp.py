@@ -160,10 +160,10 @@ def breslauer_corrections(seq, pars_error):
 
     '''
     deltas_corr = [0, 0]
-    contains_gc = 'G' in seq.top or 'C' in seq.top
-    only_at = seq.top.count('a') + seq.top.count('t') == len(seq)
+    contains_gc = 'G' in str(seq) or 'C' in str(seq)
+    only_at = str(seq).count('a') + str(seq).count('t') == len(seq)
     symmetric = seq == seq.reverse_complement()
-    terminal_t = seq.top[0] == 't' + seq.top[-1] == 't'
+    terminal_t = str(seq)[0] == 't' + str(seq)[-1] == 't'
 
     for i, delta in enumerate(['delta_h', 'delta_s']):
         if contains_gc:
@@ -187,8 +187,8 @@ def santalucia98_corrections(seq, pars_error):
 
     '''
     deltas_corr = [0, 0]
-    first = seq.top[0]
-    last = seq.top[-1]
+    first = str(seq)[0]
+    last = str(seq)[-1]
 
     start_gc = first == 'g' or first == 'c'
     start_at = first == 'a' or first == 't'

@@ -26,8 +26,8 @@ def test_construction():
     assert_equal(gibsoned_linear_length, expected_length)
     assert_equal(gibsoned_circular.topology, 'circular')
     assert_equal(gibsoned_linear.topology, 'linear')
-    assert_equal(plasmid.top, gibsoned_circular.top)
-    assert_equal(plasmid.top, gibsoned_linear.top)
+    assert_equal(str(plasmid), str(gibsoned_circular))
+    assert_equal(str(plasmid), str(gibsoned_linear))
 
     # Should fail with circular input
     assert_raises(ValueError, reaction.Gibson, [f1.circularize()])
