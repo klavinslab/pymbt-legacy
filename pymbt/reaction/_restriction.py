@@ -14,7 +14,6 @@ def digest(dna, restriction_enzyme):
     pattern = restriction_enzyme.recognition_site
     located = dna.locate(pattern)
     if not located[0] and not located[1]:
-        # TODO: should this raise an exception?
         return [dna]
     # Bottom strand indices are relative to the bottom strand 5' end.
     # Convert to same type as top strand

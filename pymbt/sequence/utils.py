@@ -42,7 +42,7 @@ def check_alphabet(seq, material):
     # optional parameter in sequence objects..
     # First attempt with cython was slower. Could also try pypy.
     if re.search('[^' + alphabet + ']', seq):
-        raise ValueError('Sequence has a non-%s character' % err_msg)
+        raise ValueError('Encountered a non-%s character' % err_msg)
 
 
 def process_seq(seq, material):

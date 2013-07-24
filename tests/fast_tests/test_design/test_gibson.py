@@ -1,5 +1,5 @@
 '''Test gibson design module.'''
-from nose.tools import assert_equal
+from nose.tools import assert_equal, assert_raises
 from pymbt import design, sequence
 
 
@@ -43,3 +43,6 @@ def test_gibson_primers():
                                     tm=72.01339235265078,
                                     overhang=sequence.DNA('TTCTTAAACTTC'))
     assert_equal(mixed, (mixed_primer1, mixed_primer2))
+
+    assert_raises(ValueError, design.gibson_primers, tdh3_3prime, yfp_nterm,
+                  'duck')

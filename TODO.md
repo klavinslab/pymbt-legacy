@@ -4,12 +4,15 @@
 ## Organization:
 ## Wishlist:
 * High Priority
-    * Classes / etc that have inconsistent APIs:
-        * Nupack
-        * Vienna
-        * StructureWindows
-        * OligoAssembly
-        * Gibson (reaction)
+    * Multi-functional class API:
+        * sequence are inputted on init
+        * calls to methods:
+            * should return output and not write public attributes if calculations are fast
+            * should also write public attribute(s) if calculations are slow
+        * classes that violate these rules:
+          * StructureWindows
+          * OligoAssembly
+          * Gibson (reaction)
     * Design:
         * Gibson
     * Reaction:
@@ -48,12 +51,12 @@
             * __eq__ is identical
             * __ne__ is identical
             * __str__ is identical
+            * __contains__ is identical
+
+        * Things that differ between peptide / RNA
+            * reverse_complement: exists for rna, not peptide (sweet)
 
 * Medium Priority
-    * Tests!
-        * design primer with overhangs
-        * gibsons
-        * test for feature extraction working
     * Analysis:
         * Read/write sequencing alignments (Sanger methods)
             * Need a format!
