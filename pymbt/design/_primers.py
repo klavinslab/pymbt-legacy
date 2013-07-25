@@ -56,7 +56,7 @@ def design_primer(dna, tm=72, min_len=10, tm_undershoot=1, tm_overshoot=3,
     if end_gc:
         primers_tms = [(primer, melt) for primer, melt in primers_tms if
                        primer.endswith(('c', 'g'))]
-    if not primers_tms[0]:
+    if not primers_tms:
         raise Exception('No primers could be generated using these settings')
 
     # Find the primer closest to the set Tm, make it single stranded

@@ -185,8 +185,8 @@ class Sanger(object):
         :type seq: str
 
         '''
-        largest = max([x for x in seq.top.split('n')], key=len)
-        seq_start = seq.top.index(largest)
+        largest = max([x for x in seq.top().split('n')], key=len)
+        seq_start = seq.top().index(largest)
         seq_stop = seq_start + len(largest)
         processed = seq[seq_start:seq_stop]
         return processed
