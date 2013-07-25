@@ -6,7 +6,6 @@ import pymbt.seqio
 import tempfile
 import shutil
 import subprocess
-# FIXME: DNA.__len__ is not accurate for DNA with overhangs
 
 
 class DNA(BaseSequence):
@@ -459,8 +458,8 @@ class RestrictionSite(object):
             bottom_right = str(bottom_right)[::-1]
             bottom_w_cut = bottom_left + cut_symbols[1] + bottom_right
         else:
-            # Not implemented
-            return 'Type IIS Restriction Site'
+            return '\n'.join([site.top() + ' {}'.format(self.cut_site),
+                              site.bottom()])
 
         return '\n'.join([top_w_cut, bottom_w_cut])
 
