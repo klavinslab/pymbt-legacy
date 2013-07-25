@@ -29,6 +29,13 @@ for needleman-wunsch alignment
 emboss
 ```
 
+for structure analysis
+
+```
+NUPACK
+Vienna RNA
+```
+
 ## Clone and install:
 
 ```

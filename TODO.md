@@ -18,26 +18,6 @@
     * Reaction:
         * Ambiguous Gibson Detection
     * Sequence:
-        * May want a base class for DNA/RNA. Things common to both:
-            * Both have init sequence that gets checked for alphabet
-            * Both have option to disable checks
-            * reverse complement method is identical but for ss/ds branch
-            * both have locate method which could share some but not all code
-            * __getitem__ identical but for topology change
-            * __delitem__ should be identical but isn't
-            * __setitem__ should be identical exept for rev comp of bottom strand for DNA
-            * __repr__ is identical except DNA also reports topology
-            * __str__ is identical
-            * __len__ is identical
-            * __add__ is much more complex for DNA than RNA due to possibility of ds gaps
-            * __radd__ should be identical
-            * __mul__ should be identical except for topology branch
-            * __eq__ is identical
-            * __ne__ is identical
-            * __contains__ is identical
-
-        Idea for top vs bottom strands: keep _sequence, add _bottom, and
-        have .top() and .bottom() methods.
 * Medium Priority
     * Analysis:
         * Read/write sequencing alignments (Sanger methods)
