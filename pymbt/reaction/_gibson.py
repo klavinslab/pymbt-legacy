@@ -73,7 +73,9 @@ class Gibson(object):
         # 2. Throw out matches that are too short or have too low of tm
         for i, target in enumerate(report):
             for j, side in enumerate(target):
+                # If too short, throw out match
                 report[i][j] = [x for x in side if x > homology]
+                # If tm is too low, throw out match
                 if j == 0:
                     seqs = [targets[i][:x] for x in side]
                     report[i][j] = [x for k, x in enumerate(side) if
@@ -115,6 +117,8 @@ class Gibson(object):
         pattern = self._working_list[0]
         report = homology_report(pattern, pattern)
         report_l = [x for x in report[0] if x != len(pattern)]
+        report_l = [x for x in report_l if x > homology]
+        report_l = [x for x in report_l if analysis.tm(pattern[:x + 1]) > tm]
         if not report_l:
             raise ValueError('Failed to find compatible Gibson ends.')
         elif len(report_l) > 1:
