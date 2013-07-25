@@ -1,6 +1,5 @@
 '''Gibson design module.'''
-from pymbt import analysis
-from pymbt import sequence
+from pymbt import analysis, sequence
 from pymbt.design import design_primer
 # IDEA: Separate design of Gibson overlaps from design of primers
 
@@ -49,7 +48,7 @@ def gibson_primers(dna1, dna2, split, overlap_tm=65.0, **kwargs):
                 overlap_r = dna2[:(llen + 1)]
             overlap = overlap_l + overlap_r
             overlap_melt = analysis.tm(overlap)
-        overhang1 = overlap_r.reverse_complement().swap()
+        overhang1 = overlap_r.reverse_complement()
         overhang2 = overlap_l
     else:
         raise ValueError('split argument must be left, right, or mixed')
@@ -59,3 +58,65 @@ def gibson_primers(dna1, dna2, split, overlap_tm=65.0, **kwargs):
                               overhang=overhang2)
 
     return primer1, primer2
+
+
+def gibson(seq_list, circular=True, splits='mixed', overlap_tm=65, **kwargs):
+    '''Design Gibson primers given a set of sequences
+
+    :param seq_list: List of DNA sequences to stitch together
+    :type seq_list: list containing pymbt.sequence.DNA
+    :param circular: If true, designs primers for making a circular construct.
+                     If false, designs primers for a linear construct.
+    :type circular: bool
+    :param splits: Specifies locations of overlap. Must be either a single
+                   entry of the same type as the 'split' parameter in
+                   gibson_primers or a list of those types of the appropriate
+                   length (for circular construct, len(seq_list), for
+                   linear construct, len(seq_list) - 1)
+    :type splits: str or list of str
+    :param overlap_tm: Minimum Tm of overlap
+    :type overlap_tm: float
+    :param kwargs: keyword arguments to pass to design_primer
+    :type kwargs: dict
+
+    '''
+
+    # Input checking
+    if circular:
+        n_overlaps = len(seq_list)
+    else:
+        n_overlaps = len(seq_list) - 1
+
+    if type(splits) is str:
+        splits = [splits] * n_overlaps
+    else:
+        if len(splits) != n_overlaps:
+            raise ValueError("Incorrect number of 'splits' entries.")
+        else:
+            for split in splits:
+                if split not in ['left', 'right', 'mixed']:
+                    raise ValueError("Invalid 'splits' setting.")
+
+    # If here, inputs were good
+    # Design primers for linear constructs:
+    primers_list = []
+    for i, (left, right) in enumerate(zip(seq_list[:-1], seq_list[1:])):
+        primers_list.append(gibson_primers(left, right, splits[i],
+                                           overlap_tm=overlap_tm))
+    if circular:
+        primers_list.append(gibson_primers(seq_list[-1], seq_list[0],
+                                           splits[-1], overlap_tm=overlap_tm))
+    else:
+        primer_f = design_primer(seq_list[0])
+        primer_r = design_primer(seq_list[-1].reverse_complement())
+        primers_list.append((primer_r, primer_f))
+
+    # Primers are now in order of 'reverse for seq1, forward for seq2' config
+    # Should be in 'forward and reverse primers for seq1, then seq2', etc
+    # Just need to rotate one to the right
+    flat = [y for x in primers_list for y in x]
+    flat = [flat[-1]] + flat[:-1]
+    grouped_primers = [(flat[2 * i], flat[2 * i + 1]) for i in
+                       range(len(flat) / 2)]
+
+    return grouped_primers

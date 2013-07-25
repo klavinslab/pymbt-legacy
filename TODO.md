@@ -5,10 +5,7 @@
 ## Wishlist:
 * High Priority
     * Design:
-        * Gibson
-    * Reaction:
-        * Ambiguous Gibson Detection
-    * Sequence:
+        * Tests for Gibson
 * Medium Priority
     * Analysis:
         * Read/write sequencing alignments (Sanger methods)

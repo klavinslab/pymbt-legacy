@@ -38,7 +38,7 @@ def test_gibson_primers():
     mixed_primer1 = sequence.Primer(sequence.DNA('gaagtttaagaaatagatttacagaa' +
                                                  'ttacaatcaatacctaccgtcttt'),
                                     tm=71.99388428631767,
-                                    overhang=sequence.DNA('ATGGTGAGCAAGG'))
+                                    overhang=sequence.DNA('CCTTGCTCACCAT'))
     mixed_primer2 = sequence.Primer(sequence.DNA('atggtgagcaagggcgaggag'),
                                     tm=72.01339235265078,
                                     overhang=sequence.DNA('TTCTTAAACTTC'))
