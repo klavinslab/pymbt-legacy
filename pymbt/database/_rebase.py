@@ -12,6 +12,7 @@ class Rebase(object):
         self.update()
 
     def update(self):
+        '''Update definitions.'''
         # Download http://rebase.neb.com/rebase/link_withref to tmp
         if self._tmpdir is None:
             self._tmpdir = tempfile.mkdtemp()
@@ -33,6 +34,7 @@ class Rebase(object):
         # Process into RestrictionSite objects? (depends on speed)
         print 'Processing into RestrictionSite instances.'
         self.restriction_sites = {}
+        # TODO: make sure all names are unique
         for key, (site, cuts) in self._enzyme_dict.iteritems():
             # Make a site
             try:
@@ -46,22 +48,20 @@ class Rebase(object):
                 pass
 
     def get(self, name):
-        # Looks for restriction enzyme name in database.
-        # TODO: make sure all names are unique
-        pass
+        '''Retrieve enzyme by name.
+
+        :param name: Name of the restriction enzyme, e.g. EcoRV.
+        :type name: str
+
+        '''
+        # Looks for restriction enzyme by name
+        try:
+            return self.restriction_sites[name]
+        except KeyError:
+            raise Exception('Enzyme not found.')
 
     def _process_file(self):
-        # Given rebase file, process it - extract:
-        #    name
-        #    site
-        #    cut locations
-        # Remove:
-        #   Sites with unknown recognition sequence ('?' in sequence)
-        #   Sites that don't contain '^' or parentheses, incidcating known
-        #   cut site
-        #   Sites that have complex cut sites (for now) like Bsp24I
-        #   (has four numbers indicating cut site - should start and end with
-        #   '(' and ')'
+        '''Process rebase file into dict with name and cut site information.'''
         print 'Processing file'
         with open(self._rebase_file, 'r') as f:
             raw = f.readlines()
