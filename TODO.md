@@ -4,15 +4,6 @@
 ## Organization:
 ## Wishlist:
 * High Priority
-    * Multi-functional class API:
-        * sequence are inputted on init
-        * calls to methods:
-            * should return output and not write public attributes if calculations are fast
-            * should also write public attribute(s) if calculations are slow
-        * classes that violate these rules:
-          * StructureWindows
-          * OligoAssembly
-          * Gibson (reaction)
     * Design:
         * Gibson
     * Reaction:

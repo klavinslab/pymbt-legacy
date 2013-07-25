@@ -61,7 +61,7 @@ def test_oligo_assembly():
                                     length_range=(120, 120),
                                     require_even=True,
                                     start_5=True)
-    assembly.run()
+    assembly.design_assembly()
 
     # Prepare outputs vs reference
     output_oligos = [str(oligo).lower() for oligo in assembly.oligos]
@@ -77,5 +77,5 @@ def test_oligo_assembly():
                                               length_range=(120, 120),
                                               require_even=True,
                                               start_5=True)
-    too_short_assembly.run()
+    too_short_assembly.design_assembly()
     assert_equal(str(too_short_assembly.oligos[0]), str(too_short))

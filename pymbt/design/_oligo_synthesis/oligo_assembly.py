@@ -55,7 +55,7 @@ class OligoAssembly(object):
         self._has_run = False
         self.warning = None
 
-    def run(self):
+    def design_assembly(self):
         '''Design the overlapping oligos.'''
         # Input parameters needed to design the oligos
         length_range = self.kwargs['length_range']
@@ -137,6 +137,7 @@ class OligoAssembly(object):
                 print self.warning
 
         self._has_run = True
+        return assembly_dict
 
     def design_primers(self, tm=60):
         '''Design primers for amplifying the assembled sequence.
