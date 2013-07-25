@@ -24,12 +24,12 @@ c = get_config()
 # c.InteractiveShellApp.code_to_run = ''
 
 # lines of code to run at IPython startup.
-c.InteractiveShellApp.exec_lines = ['from pymbt.sequence_manipulation import *',
-                                    'from pymbt.primer_design import *',
-                                    'from pymbt.tm_calc import *',
-                                    'from pymbt.sequence_analysis.alignment import Sanger',
-                                    'from pymbt.oligo_synthesis import *',
-                                    'from pymbt.sequence_generation import *']
+c.InteractiveShellApp.exec_lines = ['from pymbt import analysis',
+                                    'from pymbt import data',
+                                    'from pymbt import design',
+                                    'from pymbt import reaction',
+                                    'from pymbt import seqio',
+                                    'from pymbt import sequence']
 
 # Enable GUI event loop integration ('qt', 'wx', 'gtk', 'glut', 'pyglet',
 # 'osx').
