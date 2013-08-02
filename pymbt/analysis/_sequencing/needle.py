@@ -4,6 +4,7 @@ from shutil import rmtree
 from pymbt import sequence
 from Bio.Emboss.Applications import NeedleallCommandline
 from Bio import AlignIO
+from Bio.Application import ApplicationError
 
 
 def needle(reference, target, gapopen=10, gapextend=0.5):
@@ -40,7 +41,12 @@ def needle(reference, target, gapopen=10, gapextend=0.5):
     cline.outfile = workdir + '/alignment.txt'
 
     # Run 'needle'
-    cline()
+    try:
+        cline()
+    except ApplicationError:
+        # TODO: replace this with a useful message
+        rmtree(workdir)
+        raise AlignmentError('Failed to align sequences.')
 
     # Grab the alignment using AlignIO
     alignio = AlignIO.read(workdir + '/alignment.txt', 'emboss')
@@ -64,3 +70,8 @@ def needle(reference, target, gapopen=10, gapextend=0.5):
     # 'alignment' is a list. Each element of the list is a tuple of (1)
     # the aligned reference sequence and (2) the aligned target sequene
     return aligned_reference, aligned_result, score
+
+
+class AlignmentError(Exception):
+    '''Exception to throw when an alignment fails to run at all.'''
+    pass

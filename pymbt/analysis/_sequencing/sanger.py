@@ -17,7 +17,7 @@ class Sanger(object):
         :type reference: pymbt.sequence.DNA
         :param results: Sequencing result string. A list of DNA objects is also
                         valid.
-        :type results: list of pymbt.sequence.DNA elements
+        :type results: list of pymbt.sequence.DNA sequences
 
         '''
         if type(results) != list:
@@ -204,7 +204,8 @@ class Sanger(object):
         for i, score in enumerate(scores):
             if score < 1300:
                 reversed_result = self._processed[i].reverse_complement()
-                new_needle = needle(self._reference, reversed_result)
+                swapped_result = reversed_result.swap()
+                new_needle = needle(self._reference, swapped_result)
                 alignments[i] = (str(new_needle[0]), str(new_needle[1]))
                 score = new_needle[2]
         return alignments, scores

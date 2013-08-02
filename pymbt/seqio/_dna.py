@@ -56,17 +56,19 @@ def read_dna(path):
     return dna
 
 
-def read_sequencing(dirpath):
+def read_sequencing(directory):
     '''Read .seq and .abi/.ab1 results files from a dir.
 
-    :param dirpath: Path to directory containing sequencing files.
-    :type dirpath: str
+    :param directory: Path to directory containing sequencing files.
+    :type directory: str
 
     '''
+    dirfiles = os.listdir(directory)
     seq_exts = ['.seq', '.abi', '.ab1']
-    dirfiles = os.listdir(dirpath)
+    # Exclude files that aren't sequencing results
     seq_paths = [x for x in dirfiles if os.path.splitext(x)[1] in seq_exts]
-    sequences = [read_dna(dirpath + x).set_stranded('ss') for x in seq_paths]
+    paths = [os.path.join(directory, x) for x in seq_paths]
+    sequences = [read_dna(x).set_stranded('ss') for x in paths]
 
     return sequences
 

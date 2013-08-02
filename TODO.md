@@ -4,8 +4,8 @@
 ## Organization:
 ## Wishlist:
 * High Priority
-    * Design:
-        * Tests for Gibson
+    * Reaction:
+        * Oligo assembly
 * Medium Priority
     * Analysis:
         * Read/write sequencing alignments (Sanger methods)
@@ -20,9 +20,8 @@
             * optimize pycogent method or try numpy or cython
         * Nupack's method outputs could be cleaner. They're usually dicts and
           some return a small fraction of the useful output of nupack
-    * Data:
+    * Database:
         * Scientific database access object(s)
-            * NEB API for restriction enzymes?
             * SGD, EcoCYC
     * Design:
         * Repeat detection for OligoAssembly
