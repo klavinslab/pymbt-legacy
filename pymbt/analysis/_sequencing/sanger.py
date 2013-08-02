@@ -82,11 +82,11 @@ class Sanger(object):
         features = self._reference.features
         feature_ranges = [(feature.start, feature.stop) for feature in
                           features]
-        feature_bins = _disjoint_bins(feature_ranges)
+        feature_bins = disjoint_bins(feature_ranges)
         feature_nbin = len(feature_bins)
 
         # Bin the alignments so they don't overlap when plotted
-        alignment_bins = _disjoint_bins(self.coverage)
+        alignment_bins = disjoint_bins(self.coverage)
 
         # Calculate discrepancy coordinates
         discrepancy_coords = [[], [], []]
@@ -152,7 +152,7 @@ class Sanger(object):
                 sub1.broken_barh([(start, width)], (y_index, height),
                                  facecolors='pink', edgecolors='black')
                 if text:
-                    sub1.text(text_x, y_index + size // 3, _wrap_name(name),
+                    sub1.text(text_x, y_index + size // 3, wrap_name(name),
                               rotation=0)
 
         # Plot mismatches, insertions, deletions
@@ -350,7 +350,7 @@ def _sequences_display(seq1, seq2, start, stop, context=10):
     print indent + highlight
 
 
-def _disjoint_bins(ranges_list):
+def disjoint_bins(ranges_list):
     '''Construct disjoint bins given a list of 1-D ranges (tuples).
 
     :param range_tuple_list: A list of tuples containing range values.
@@ -384,7 +384,7 @@ def _disjoint_bins(ranges_list):
     return bins
 
 
-def _wrap_name(str_in, wrap_len=15):
+def wrap_name(str_in, wrap_len=15):
     '''Wrap plotted text to avoid overlaps (not perfect).
 
     :param str_in: Input string.

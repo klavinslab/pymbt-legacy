@@ -1,6 +1,10 @@
 '''Test sequencing module.'''
 import os
+import sys
+import contextlib
 from pymbt import analysis, seqio
+from nose.tools import assert_equal
+# IDEA: unit tests for plotting?
 
 
 class TestSanger(object):
@@ -23,9 +27,36 @@ class TestSanger(object):
         return seq
 
     def test_sanger(self):
-        '''Test that Sanger __init__ works without error.'''
-        self.sanger = analysis.Sanger(self.reference, self.results)
+        '''Test basic Sanger methods and init'''
+        with nostdout():
+            self.sanger = analysis.Sanger(self.reference, self.results)
+            self.sanger.report()
+        # There should be one mismatch at position 381
+        assert_equal(self.sanger.mismatches, [[(381, 381)], []])
+        # There should be a two-base insertion at position 763
+        assert_equal(self.sanger.insertions, [[(763, 765)], []])
+        # There should be a two-base deletion at position 440
+        assert_equal(self.sanger.deletions, [[(440, 441)], []])
+
+    def test_input_single(self):
+        '''If users inputs single sequence as a result, handle seamlessly.'''
+        with nostdout():
+            analysis.Sanger(self.reference, self.results[0])
 
     def test_alignment(self):
         '''Ensure that alignment is consistent.'''
+        # TODO: this
         pass
+
+
+@contextlib.contextmanager
+def nostdout():
+    '''Sanger has methods that output to stderr. Shut those up.'''
+    class Quiet(object):
+        def write(self, _):
+            pass
+
+    savedstdout = sys.stdout
+    sys.stdout = Quiet()
+    yield
+    sys.stdout = savedstdout
