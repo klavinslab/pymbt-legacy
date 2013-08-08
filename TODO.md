@@ -4,8 +4,13 @@
 ## Organization:
 ## Wishlist:
 * High Priority
+    * Analysis:
+        * Sanger report() on Yaoyu's pGP4-GalZif-ZifAVNY doesn't include a T in the sequence near the insertion
     * Reaction:
         * Oligo assembly
+    * SeqIO:
+        * Cover all of genbank feature types
+            * Ran into issues with: repeat_region, protein_bind
 * Medium Priority
     * Analysis:
         * Read/write sequencing alignments (Sanger methods)

@@ -251,9 +251,16 @@ class Sanger(object):
 
     def __repr__(self):
         '''Representation of a Sanger sequencing object.'''
-        msg = 'Sanger sequencing alignment object with differences: \n'
-        differences = ','.join(self._difference_n)
-        return msg + differences
+        disc_sum = sum(self._difference_n)
+        head = 'An alignment with {} discrepancies.'.format(disc_sum)
+        if disc_sum:
+            mismatches = 'mismatches: {}, '.format(self._difference_n[0])
+            insertions = 'insertions: {}, '.format(self._difference_n[1])
+            deletions = 'deletions: {}'.format(self._difference_n[2])
+            diffs = '\n' + mismatches + insertions + deletions
+        else:
+            diffs = ''
+        return head + diffs
 
 
 def _group_differences(difference_list):
