@@ -137,14 +137,18 @@ def _process_feature_type(feature_type, bio_to_pymbt=True):
                 'primer_bind': 'primer',
                 'rep_origin': 'origin',
                 'promoter': 'promoter',
-                'terminator': 'terminator'}
+                'terminator': 'terminator',
+                'repeat_region': 'repeat',
+                'protein_bind': 'protein_binding'}
     to_bio = {'misc': 'misc_feature',
               '3\'utr': '3\'UTR',
               'coding': 'CDS',
               'primer': 'primer_bind',
               'origin': 'rep_origin',
               'promoter': 'promoter',
-              'terminator': 'terminator'}
+              'terminator': 'terminator',
+              'repeat': 'repeat_region',
+              'protein_binding': 'protein_bind'}
 
     err_msg = 'Unrecognized feature type: {}'.format(feature_type)
     if bio_to_pymbt:
