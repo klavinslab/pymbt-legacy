@@ -107,7 +107,7 @@ class Sanger(object):
 
         # Matplotlib commands
         # Plot a black reference bar at the bottom
-        fig = pyplot.figure()
+        fig = pyplot.figure(figsize=(12, 9), dpi=90)
         sub1 = fig.add_subplot(111)
         sub1.broken_barh([(reference_x, reference_width)],
                          (reference_y, reference_height),
@@ -136,7 +136,8 @@ class Sanger(object):
                                  facecolors=cm.Set3(pos),
                                  edgecolors='black')
                 if text:
-                    sub1.text(mid, y_index + size / 2, name, rotation=90)
+                    sub1.text(mid, y_index + size / 2, name, rotation=90,
+                              size='smaller')
 
         # Plot sequencing results by bin
         for i, result_bin in enumerate(alignment_bins):
@@ -147,13 +148,13 @@ class Sanger(object):
                 width = stop - start
                 height = size - 1
                 y_index = (i + feature_nbin + 2) * size
-                text_x = start + (stop - start) // 6
+                text_x = start + (stop - start) // 8
 
                 sub1.broken_barh([(start, width)], (y_index, height),
                                  facecolors='pink', edgecolors='black')
                 if text:
                     sub1.text(text_x, y_index + size // 3, wrap_name(name),
-                              rotation=0)
+                              rotation=0, size='smaller')
 
         # Plot mismatches, insertions, deletions
         sub1.plot(1000, 25)

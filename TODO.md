@@ -10,7 +10,6 @@
         * Oligo assembly
     * SeqIO:
         * Cover all of genbank feature types
-            * Ran into issues with: repeat_region, protein_bind
 * Medium Priority
     * Analysis:
         * Read/write sequencing alignments (Sanger methods)
