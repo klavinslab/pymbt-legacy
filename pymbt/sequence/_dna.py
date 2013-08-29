@@ -537,7 +537,7 @@ class Feature(object):
 
         allowed_types = ['coding', 'primer', 'promoter', 'terminator', 'rbs',
                          'misc', 'origin', '3\'utr', 'repeat',
-                         'protein_binding']
+                         'protein_binding', 'poly_a_signal', 'stem_loop']
 
         if feature_type in allowed_types:
             self.feature_type = feature_type

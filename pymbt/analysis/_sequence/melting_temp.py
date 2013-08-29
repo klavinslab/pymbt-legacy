@@ -33,6 +33,7 @@ def tm(seq, dna_conc=50, salt_conc=50, parameters='cloning'):
                        'santalucia96': SantaLucia96 parameters
                        'santalucia98': SantaLucia98 parameters
                        'cloning': breslauer without corrections
+                       'cloning_sl98': santalucia98 fit to 'cloning'
     :type parameters: str
 
     '''
@@ -42,7 +43,7 @@ def tm(seq, dna_conc=50, salt_conc=50, parameters='cloning'):
         params = tm_params.SUGIMOTO
     elif parameters == 'santalucia96':
         params = tm_params.SANTALUCIA96
-    elif parameters == 'santalucia98':
+    elif parameters == 'santalucia98' or parameters == 'cloning_sl98':
         params = tm_params.SANTALUCIA98
     elif parameters == 'cloning':
         params = tm_params.CLONING
@@ -61,7 +62,7 @@ def tm(seq, dna_conc=50, salt_conc=50, parameters='cloning'):
         deltas = breslauer_corrections(seq, pars_error)
     elif parameters == 'santalucia96':
         deltas = breslauer_corrections(seq, pars_error)
-    elif parameters == 'santalucia98':
+    elif parameters == 'santalucia98' or parameters == 'cloning_sl98':
         deltas = santalucia98_corrections(seq, pars_error)
     elif parameters == 'cloning':
         deltas = breslauer_corrections(seq, pars_error)
@@ -102,8 +103,7 @@ def tm(seq, dna_conc=50, salt_conc=50, parameters='cloning'):
         # Modified Schildkraut-Lifson equation adjustment
         salt_adjustment = 16.6 * log(salt_conc) / log(10.0)
         melt = numerator / denominator + salt_adjustment - 273.15
-    elif parameters == 'santalucia98':
-        # This one is definitely correct
+    elif parameters == 'santalucia98' or 'cloning_sl98':
         # TODO: dna_conc should be divided by 2.0 when dna_conc >> template
         # (like PCR)
         numerator = -deltas[0]
@@ -128,6 +128,12 @@ def tm(seq, dna_conc=50, salt_conc=50, parameters='cloning'):
         # it's so similar to santalucia98?
         salt_correction = 16.6 * log10(salt_conc)
         melt = numerator / denominator + salt_correction - 273.15
+
+    if parameters == 'cloning_sl98':
+        # Corrections to make santalucia98 method approximate cloning method.
+        # May be even better for cloning with Phusion than 'cloning' method
+        melt *= 1.27329212575
+        melt += -2.55585450119
 
     return melt
 
