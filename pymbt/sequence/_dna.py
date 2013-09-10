@@ -510,6 +510,10 @@ class Primer(object):
         else:
             return False
 
+    def __len__(self):
+        '''Define len operator.'''
+        return len(self.primer())
+
 
 class Feature(object):
     '''Represent A DNA feature - annotate and extract sequence by metadata.'''
