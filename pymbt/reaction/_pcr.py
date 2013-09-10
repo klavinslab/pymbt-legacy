@@ -23,27 +23,27 @@ def pcr(template, primer1, primer2):
     # Make 'reverse' index useful for slicing
     fwd = fwds[0]
     rev = len(template) - revs[0]
-    # if rev == fwd (start/stop is the same), amplify whole plasmid
-    # if rev > fwd and rev - fwd is less than the size of one of the primers,
-    # then a weird overlap starts to occur - primer dimers become likely.
-    # if rev > fwd, rev - fwd < maxlen(fwd, rev), weird stuff happens:
-    #   if rev - fwd >= minlen(fwd, rev) as well, primer dimers are guaranteed
-    #   if rev - fwd < minlen(fwd, rev), primer dimers are also likely, but
-    # less so.
-    # The problem of primer dimers is separate from just trying to simulate a
-    # PCR based on molecular genetics rules. What's the best compromise to use
-    # here?
-    #   If rev - fwd > maxlen(rev, fwd), everything is OK.
-    #   If rev - fwd == maxlen(rev, fwd), should ampify primer dimer (desired?)
-    #   If rev - fwd < maxlen(rev, fwd), there's a risk of weird amplifications
-    #       Should raise exception for now with a note to address it later
+    # TODO: circular search will muck things up. If primers are at the very
+    # beginning or end of the plasmid coordinates, things will get weird
+    # TODO: Should actually just evaluate the length of the product prior
+    # to adding primer overhangs, compare to length of anneal regions.
+    '''Notes on PCR amplification decisions:
+        If rev == fwd, primers should ampify entire plasmid
+        If rev - fwd >= max(len(rev), len(fwd)), amplify sequence normally
+        If rev - fwd < max(len9rev), len(fwd)), raise exception - who knows
+        how this construct will amplify
+
+    '''
     # Subset
     if rev - fwd < max(len(primer1), len(primer2)):
         raise Exception('Primers bind in one another, no solution implemented')
     if rev > fwd:
         amplicon = template[fwd:rev]
     else:
-        amplicon = template[fwd:] + template[:rev]
+        if template.topology == 'circular':
+            amplicon = template[fwd:] + template[:rev]
+        else:
+            raise Exception('Primers would amplify if template were circular.')
     if primer1.overhang:
         amplicon = primer1.overhang.set_stranded('ds') + amplicon
     if primer2.overhang:
