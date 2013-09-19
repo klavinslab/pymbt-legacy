@@ -1,5 +1,6 @@
 '''DNA object classes.'''
 import re
+from pymbt.constants import genbank
 from pymbt.sequence import utils
 from pymbt.sequence._sequence import BaseSequence
 import pymbt.seqio
@@ -539,9 +540,7 @@ class Feature(object):
         self.modified = False
         self.strand = strand
 
-        allowed_types = ['coding', 'primer', 'promoter', 'terminator', 'rbs',
-                         'misc', 'origin', '3\'utr', 'repeat',
-                         'protein_binding', 'poly_a_signal', 'stem_loop']
+        allowed_types = genbank.TO_PYMBT.keys()
 
         if feature_type in allowed_types:
             self.feature_type = feature_type

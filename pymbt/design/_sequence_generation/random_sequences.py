@@ -1,6 +1,6 @@
 '''Generate a random DNA sequence.'''
 import random
-from pymbt import data
+from pymbt import constants
 from pymbt import sequence
 
 
@@ -15,7 +15,7 @@ def random_dna(length):
 
 
 def random_codons(peptide, frequency_cutoff=0.0, weighted=False,
-                  table=data.common.CODON_FREQ_BY_AA['sc']):
+                  table=constants.molecular_bio.CODON_FREQ_BY_AA['sc']):
     '''Generate randomized codons given a peptide sequence.
 
     :param peptide: Peptide sequence for which to generate randomized

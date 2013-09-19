@@ -119,7 +119,9 @@ def write_dna(dna, path):
 
 
 def _process_feature_type(feature_type, bio_to_pymbt=True):
-    '''Translate BioPython / genbank feature types into usable ones.
+    '''Translate genbank feature types into usable ones (currently identical).
+    The feature table is derived from the official genbank spec (gbrel.txt)
+    available at http://www.insdc.org/documents/feature-table
 
     :param feature_type: feature to convert
     :type feature_type: str
@@ -128,33 +130,72 @@ def _process_feature_type(feature_type, bio_to_pymbt=True):
     :param bio_to_pymbt: bool
 
     '''
-    to_pymbt = {'misc_feature': 'misc',
-                'misc_difference': 'misc',
-                '3\'UTR': '3\'utr',
-                'CDS': 'coding',
-                'gene': 'coding',
-                'site': 'misc',
-                'primer_bind': 'primer',
-                'rep_origin': 'origin',
+    to_pymbt = {'-': '-',
+                '-10_signal': '-10_signal',
+                '-35_signal': '-35_signal',
+                "3'UTR": "3'UTR",
+                "3'clip": "3'clip",
+                "5'UTR": "5'UTR",
+                "5'clip": "5'clip",
+                'CAAT_signal': 'CAAT_signal',
+                'CDS': 'CDS',
+                'C_region': 'C_region',
+                'D-loop': 'D-loop',
+                'D_segment': 'D_segment',
+                'GC_signal': 'GC_signal',
+                'J_region': 'J_region',
+                'LTR': 'LTR',
+                'N_region': 'N_region',
+                'RBS': 'RBS',
+                'STS': 'STS',
+                'S_region': 'S_region',
+                'TATA_signal': 'TATA_signal',
+                'V_region': 'V_region',
+                'allele': 'allele',
+                'attenuator': 'attenuator',
+                'conflict': 'conflict',
+                'enhancer': 'enhancer',
+                'exon': 'exon',
+                'gene': 'gene',
+                'iDNA': 'iDNA',
+                'intron': 'intron',
+                'mRNA': 'mRNA',
+                'mat_peptide': 'mat_peptide',
+                'misc_RNA': 'misc_RNA',
+                'misc_binding': 'misc_binding',
+                'misc_difference': 'misc_difference',
+                'misc_feature': 'misc_feature',
+                'misc_recomb': 'misc_recomb',
+                'misc_signal': 'misc_signal',
+                'misc_structure': 'misc_structure',
+                'modified_base': 'modified_base',
+                'mutation ': 'mutation ',
+                'old_sequence': 'old_sequence',
+                'polyA_signal': 'polyA_signal',
+                'polyA_site': 'polyA_site',
+                'precursor_RNA': 'precursor_RNA',
+                'prim_transcript': 'prim_transcript',
+                'primer': 'primer',
+                'primer_bind': 'primer_bind',
                 'promoter': 'promoter',
+                'protein_bind': 'protein_bind',
+                'rRNA': 'rRNA',
+                'rep_origin': 'rep_origin',
+                'repeat_region': 'repeat_region',
+                'repeat_unit': 'repeat_unit',
+                'satellite': 'satellite',
+                'scRNA': 'scRNA',
+                'sig_peptide': 'sig_peptide',
+                'snRNA': 'snRNA',
+                'source': 'source',
+                'stem_loop': 'stem_loop',
+                'tRNA ': 'tRNA ',
                 'terminator': 'terminator',
-                'repeat_region': 'repeat',
-                'protein_bind': 'protein_binding',
-                'RBS': 'rbs',
-                'polyA_signal': 'poly_a_signal',
-                'stem_loop': 'stem_loop'}
-    to_bio = {'misc': 'misc_feature',
-              '3\'utr': '3\'UTR',
-              'coding': 'CDS',
-              'primer': 'primer_bind',
-              'origin': 'rep_origin',
-              'promoter': 'promoter',
-              'terminator': 'terminator',
-              'repeat': 'repeat_region',
-              'protein_binding': 'protein_bind',
-              'rbs': 'RBS',
-              'poly_a_signal': 'polyA_signal',
-              'stem_loop': 'stem_loop'}
+                'transit_peptide': 'transit_peptide',
+                'transposon': 'transposon',
+                'unsure': 'unsure',
+                'variation ': 'variation '}
+    to_bio = {value: key for key, value in to_pymbt}
 
     err_msg = 'Unrecognized feature type: {}'.format(feature_type)
     if bio_to_pymbt:

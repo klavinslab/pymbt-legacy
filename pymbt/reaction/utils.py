@@ -1,5 +1,5 @@
 '''Utilities for reactions.'''
-from pymbt import data
+from pymbt import constants
 from pymbt import sequence
 
 
@@ -25,8 +25,8 @@ def convert_sequence(seq, to_material):
         if '-' in seq:
             raise ValueError('Cannot transcribe gapped DNA')
         # Convert DNA chars to RNA chars
-        origin = data.common.ALPHABETS['dna'][:-1]
-        destination = data.common.ALPHABETS['rna']
+        origin = constants.molecular_bio.ALPHABETS['dna'][:-1]
+        destination = constants.molecular_bio.ALPHABETS['rna']
         code = dict(zip(origin, destination))
         converted = ''.join(code.get(str(k), str(k)) for k in seq)
         # Instantiate RNA object
@@ -34,8 +34,8 @@ def convert_sequence(seq, to_material):
     elif isinstance(seq, sequence.RNA):
         if to_material == 'dna':
             # Reverse transcribe
-            origin = data.common.ALPHABETS['rna']
-            destination = data.common.ALPHABETS['dna'][:-1]
+            origin = constants.molecular_bio.ALPHABETS['rna']
+            destination = constants.molecular_bio.ALPHABETS['dna'][:-1]
             code = dict(zip(origin, destination))
             converted = ''.join(code.get(str(k), str(k)) for k in seq)
             # Instantiate DNA object
@@ -51,7 +51,7 @@ def convert_sequence(seq, to_material):
                     base_2 = seq_list.pop(0)
                     base_3 = seq_list.pop(0)
                     codon = ''.join(base_1 + base_2 + base_3).upper()
-                    amino_acid = data.common.CODONS[codon]
+                    amino_acid = constants.molecular_bio.CODONS[codon]
                     # Stop when stop codon is found
                     if amino_acid == '*':
                         break

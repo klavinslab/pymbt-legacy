@@ -219,20 +219,21 @@ class TestFeatures(object):
         self.apply_features()
 
     def apply_features(self):
-        misc_feature = sequence.Feature('Misc Feature', 1, 20, 'misc')
-        misc_1_feature = sequence.Feature('Misc Feature', 1, 20, 'misc',
-                                          strand=1)
-        coding_feature = sequence.Feature('Coding Feature', 21, 40, 'coding')
-        primer_feature = sequence.Feature('Primer Feature', 41, 60, 'coding')
+        misc_feature = sequence.Feature('Misc Feature', 1, 20, 'misc_feature')
+        misc_1_feature = sequence.Feature('Misc Feature', 1, 20,
+                                          'misc_feature', strand=1)
+        coding_feature = sequence.Feature('Coding Feature', 21, 40, 'CDS')
+        primer_feature = sequence.Feature('Primer Feature', 41, 60, 'primer')
         promoter_feature = sequence.Feature('Promoter Feature', 61, 80,
                                             'promoter')
         terminator_feature = sequence.Feature('Terminator Feature', 81, 100,
                                               'terminator')
-        rbs_feature = sequence.Feature('RBS Feature', 101, 120, 'rbs')
-        origin_feature = sequence.Feature('Origin Feature', 121, 140, 'origin')
-        utr3_feature = sequence.Feature('3\'UTR Feature', 141, 160, '3\'utr')
+        rbs_feature = sequence.Feature('RBS Feature', 101, 120, 'RBS')
+        origin_feature = sequence.Feature('Origin Feature', 121, 140,
+                                          'rep_origin')
+        utr3_feature = sequence.Feature("3'UTR Feature", 141, 160, "3'UTR")
         origin_feature2 = sequence.Feature('Origin Feature', 161, 180,
-                                           'origin')
+                                           'rep_origin')
 
         input_features = [misc_feature, misc_1_feature, coding_feature,
                           primer_feature, promoter_feature, terminator_feature,
@@ -257,7 +258,7 @@ class TestFeatures(object):
             assert_equal(len(self.dna) - feature.stop, rev_feature.start)
 
     def test_extract(self):
-        test_utr3_feature = sequence.Feature('3\'UTR Feature', 0, 19, '3\'utr')
+        test_utr3_feature = sequence.Feature('3\'UTR Feature', 0, 19, '3\'UTR')
         extracted = self.dna.extract('3\'UTR Feature')
         assert_equal(test_utr3_feature, extracted.features[0])
         assert_equal(str(extracted), 'tgcatgcatgcatgcatgc')
@@ -268,7 +269,7 @@ class TestFeatures(object):
     def test_getitem(self):
         subsequence = self.dna[30:100]
         remaining_features = [sequence.Feature('Primer Feature', 11, 30,
-                                               'coding'),
+                                               'primer'),
                               sequence.Feature('Promoter Feature', 31, 50,
                                                'promoter'),
                               sequence.Feature('Terminator Feature', 51, 70,
@@ -276,26 +277,28 @@ class TestFeatures(object):
 
         assert_equal(subsequence.features, remaining_features)
         assert_false(self.dna[10].features)
-        new_seq = sequence.DNA('ATGC', features=[sequence.Feature('A', 0, 0,
-                                                                  'misc')])
+        new_seq = sequence.DNA('ATGC',
+                               features=[sequence.Feature('A', 0, 0,
+                                                          'misc_feature')])
         assert_equal(new_seq[0].features[0],
-                     sequence.Feature('A', 0, 0, 'misc'))
+                     sequence.Feature('A', 0, 0, 'misc_feature'))
 
     def test_delitem(self):
         copy = self.dna.copy()
         del copy[3]
 
-        coding_feature = sequence.Feature('Coding Feature', 20, 39, 'coding')
-        primer_feature = sequence.Feature('Primer Feature', 40, 59, 'coding')
+        coding_feature = sequence.Feature('Coding Feature', 20, 39, 'CDS')
+        primer_feature = sequence.Feature('Primer Feature', 40, 59, 'primer')
         promoter_feature = sequence.Feature('Promoter Feature', 60, 79,
                                             'promoter')
         terminator_feature = sequence.Feature('Terminator Feature', 80, 99,
                                               'terminator')
-        rbs_feature = sequence.Feature('RBS Feature', 100, 119, 'rbs')
-        origin_feature = sequence.Feature('Origin Feature', 120, 139, 'origin')
-        utr3_feature = sequence.Feature('3\'UTR Feature', 140, 159, '3\'utr')
+        rbs_feature = sequence.Feature('RBS Feature', 100, 119, 'RBS')
+        origin_feature = sequence.Feature('Origin Feature', 120, 139,
+                                          'rep_origin')
+        utr3_feature = sequence.Feature('3\'UTR Feature', 140, 159, '3\'UTR')
         origin_feature2 = sequence.Feature('Origin Feature', 160, 179,
-                                           'origin')
+                                           'rep_origin')
         input_features_ref = [coding_feature, primer_feature,
                               promoter_feature, terminator_feature,
                               rbs_feature, origin_feature, utr3_feature,

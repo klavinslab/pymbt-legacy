@@ -27,16 +27,18 @@ def pcr(template, primer1, primer2):
     # beginning or end of the plasmid coordinates, things will get weird
     # TODO: Should actually just evaluate the length of the product prior
     # to adding primer overhangs, compare to length of anneal regions.
+    #   But would need to keep track of sign - fwd - rev != rev - fwd
     '''Notes on PCR amplification decisions:
         If rev == fwd, primers should ampify entire plasmid
         If rev - fwd >= max(len(rev), len(fwd)), amplify sequence normally
-        If rev - fwd < max(len9rev), len(fwd)), raise exception - who knows
+        If rev - fwd < max(len(rev), len(fwd)), raise exception - who knows
         how this construct will amplify
 
     '''
-    # Subset
-    if rev - fwd < max(len(primer1), len(primer2)):
+    if rev - fwd < max(len(primer1), len(primer2)) and rev - fwd > 0:
         raise Exception('Primers bind in one another, no solution implemented')
+
+    # Subset
     if rev > fwd:
         amplicon = template[fwd:rev]
     else:
