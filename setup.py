@@ -19,7 +19,7 @@ config = {
                  'pymbt.analysis._sequence',
                  'pymbt.analysis._sequencing',
                  'pymbt.analysis._structure',
-                 'pymbt.data',
+                 'pymbt.constants',
                  'pymbt.database',
                  'pymbt.design',
                  'pymbt.design._oligo_synthesis',

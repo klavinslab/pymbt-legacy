@@ -6,6 +6,7 @@ from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.SeqFeature import SeqFeature, FeatureLocation, ExactPosition
 import pymbt.sequence
+from pymbt.constants import genbank
 
 
 def read_dna(path):
@@ -130,82 +131,16 @@ def _process_feature_type(feature_type, bio_to_pymbt=True):
     :param bio_to_pymbt: bool
 
     '''
-    to_pymbt = {'-': '-',
-                '-10_signal': '-10_signal',
-                '-35_signal': '-35_signal',
-                "3'UTR": "3'UTR",
-                "3'clip": "3'clip",
-                "5'UTR": "5'UTR",
-                "5'clip": "5'clip",
-                'CAAT_signal': 'CAAT_signal',
-                'CDS': 'CDS',
-                'C_region': 'C_region',
-                'D-loop': 'D-loop',
-                'D_segment': 'D_segment',
-                'GC_signal': 'GC_signal',
-                'J_region': 'J_region',
-                'LTR': 'LTR',
-                'N_region': 'N_region',
-                'RBS': 'RBS',
-                'STS': 'STS',
-                'S_region': 'S_region',
-                'TATA_signal': 'TATA_signal',
-                'V_region': 'V_region',
-                'allele': 'allele',
-                'attenuator': 'attenuator',
-                'conflict': 'conflict',
-                'enhancer': 'enhancer',
-                'exon': 'exon',
-                'gene': 'gene',
-                'iDNA': 'iDNA',
-                'intron': 'intron',
-                'mRNA': 'mRNA',
-                'mat_peptide': 'mat_peptide',
-                'misc_RNA': 'misc_RNA',
-                'misc_binding': 'misc_binding',
-                'misc_difference': 'misc_difference',
-                'misc_feature': 'misc_feature',
-                'misc_recomb': 'misc_recomb',
-                'misc_signal': 'misc_signal',
-                'misc_structure': 'misc_structure',
-                'modified_base': 'modified_base',
-                'mutation ': 'mutation ',
-                'old_sequence': 'old_sequence',
-                'polyA_signal': 'polyA_signal',
-                'polyA_site': 'polyA_site',
-                'precursor_RNA': 'precursor_RNA',
-                'prim_transcript': 'prim_transcript',
-                'primer': 'primer',
-                'primer_bind': 'primer_bind',
-                'promoter': 'promoter',
-                'protein_bind': 'protein_bind',
-                'rRNA': 'rRNA',
-                'rep_origin': 'rep_origin',
-                'repeat_region': 'repeat_region',
-                'repeat_unit': 'repeat_unit',
-                'satellite': 'satellite',
-                'scRNA': 'scRNA',
-                'sig_peptide': 'sig_peptide',
-                'snRNA': 'snRNA',
-                'source': 'source',
-                'stem_loop': 'stem_loop',
-                'tRNA ': 'tRNA ',
-                'terminator': 'terminator',
-                'transit_peptide': 'transit_peptide',
-                'transposon': 'transposon',
-                'unsure': 'unsure',
-                'variation ': 'variation '}
-    to_bio = {value: key for key, value in to_pymbt}
 
     err_msg = 'Unrecognized feature type: {}'.format(feature_type)
     if bio_to_pymbt:
         try:
-            name = to_pymbt[feature_type]
+            name = genbank.TO_PYMBT[feature_type]
         except KeyError:
             raise ValueError(err_msg)
     else:
         try:
-            name = to_bio[feature_type]
+            name = genbank.TO_BIO[feature_type]
         except KeyError:
             raise ValueError(err_msg)
     return name

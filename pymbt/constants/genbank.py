@@ -65,4 +65,6 @@ TO_PYMBT = {'-': '-',
             'transposon': 'transposon',
             'unsure': 'unsure',
             'variation ': 'variation '}
+# 'site' appears in some ApE files / Geneious exports, not sure why
+TO_PYMBT['site'] = 'site'
 TO_BIO = {value: key for key, value in TO_PYMBT.iteritems()}
