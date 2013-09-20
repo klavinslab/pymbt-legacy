@@ -1,4 +1,5 @@
 '''Needleman-Wunsch alignment using emboss needle.'''
+import os
 from tempfile import mkdtemp
 from shutil import rmtree
 from pymbt import sequence
@@ -20,6 +21,17 @@ def needle(reference, target, gapopen=10, gapextend=0.5):
     :type gapextend: float
 
     '''
+    # Check to see if 'needleall' command is installed - if not, give useful
+    # warning
+    msg = "The command 'needleall' is not available. You may need to " + \
+          "install EMBOSS."
+    needleall_executables = []
+    for path in os.environ['PATH'].split(os.pathsep):
+        exepath = os.path.join(path, 'needleall')
+        needleall_executables.append(os.access(exepath, os.X_OK))
+    if not any(needleall_executables):
+        raise Exception(msg)
+
     # Make temporary dir
     workdir = mkdtemp()
 
