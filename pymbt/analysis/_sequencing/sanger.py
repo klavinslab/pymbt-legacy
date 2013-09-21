@@ -209,6 +209,20 @@ class Sanger(object):
                 new_needle = needle(self._reference, swapped_result)
                 alignments[i] = (str(new_needle[0]), str(new_needle[1]))
                 score = new_needle[2]
+        # Trim to reference - if reference is shorter than results
+        # (e.g. reference is just plasmid insert, results start earlier)
+        for i, (reference, result) in enumerate(alignments):
+            count = 0
+            # Count beginning gaps (hyphens), then trim
+            for char in reference:
+                if char != '-':
+                    break
+                else:
+                    count += 1
+            trimmed_ref = reference[count:]
+            trimmed_res = result[count:]
+            alignments[i] = (trimmed_ref, trimmed_res)
+
         return alignments, scores
 
     def _find_coverage(self):
