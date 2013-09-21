@@ -212,15 +212,26 @@ class Sanger(object):
         # Trim to reference - if reference is shorter than results
         # (e.g. reference is just plasmid insert, results start earlier)
         for i, (reference, result) in enumerate(alignments):
-            count = 0
+            f_count = 0
+            r_count = 0
             # Count beginning gaps (hyphens), then trim
             for char in reference:
                 if char != '-':
                     break
                 else:
-                    count += 1
-            trimmed_ref = reference[count:]
-            trimmed_res = result[count:]
+                    f_count += 1
+            for char in reversed(reference):
+                if char != '-':
+                    break
+                else:
+                    r_count += 1
+
+            if r_count:
+                trimmed_ref = reference[f_count:]
+                trimmed_res = result[f_count:]
+            else:
+                trimmed_ref = reference[f_count:]
+                trimmed_res = result[f_count:]
             alignments[i] = (trimmed_ref, trimmed_res)
 
         return alignments, scores
