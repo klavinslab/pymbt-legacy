@@ -1,0 +1,42 @@
+
+Summary: 
+--------
+
+  Mismatches: 0
+  Insertions: 1
+  Deletions: 3
+
+## Insertions
+  pMODKan-HO-pACT1GEV_C3-771_C12.ab1
+
+    Positions 7805 to 8008:
+    gccctttcgt------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ||||||||||                                                                                                                                                                                                            
+    gccctttcgttcgcgcgtttcggtgatgacggtgaaaacctctgacacatgcagctcccggagacggtcacagcttgtctgtaagcggatgccgggagcagacaagcccgtcagggcgcgtcagcgggtgttggcgggtgtcggggctggcttaactatgcggcgtttaaacttagcagatgcgcgcacctgcgttgttaccacaactcttatg
+              ************************************************************************************************************************************************************************************************************
+
+## Deletions
+  pMODKan-HO-pACT1GEV_C3-T7-EEV_D11.ab1
+
+    Position 4689:
+    tccaaaggcaaattttacgtt
+    |||||||||| ||||||||||
+    --------ca-attttacgtt
+              *          
+
+  pMODKan-HO-pACT1GEV_C3-M13R_E11.ab1
+
+    Position 5548:
+    ttttagcttttttcactcgtg
+    |||||||||| ||||||||||
+    ttttagcttt-ttca------
+              *          
+
+  pMODKan-HO-pACT1GEV_C3-676_H11.ab1
+
+    Position 5117:
+    atggcaccgtttttgaattat
+    |||||||||| ||||||||||
+    atggcaccgt-tttga-----
+              *          
+

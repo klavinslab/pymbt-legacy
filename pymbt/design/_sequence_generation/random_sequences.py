@@ -14,8 +14,7 @@ def random_dna(length):
     return sequence.DNA(''.join(random.choice('ATGC') for i in range(length)))
 
 
-def random_codons(peptide, frequency_cutoff=0.0, weighted=False,
-                  table=constants.molecular_bio.CODON_FREQ_BY_AA['sc']):
+def random_codons(peptide, frequency_cutoff=0.0, weighted=False, table=None):
     '''Generate randomized codons given a peptide sequence.
 
     :param peptide: Peptide sequence for which to generate randomized
@@ -33,10 +32,12 @@ def random_codons(peptide, frequency_cutoff=0.0, weighted=False,
                   Only relevant if weighted=True or frequency_cutoff > 0.
                   Tables available:
 
-                  data.CODON_FREQ_SC_NESTED
+                  constants.molecular_bio.CODON_FREQ_BY_AA['sc'] (default)
     :type table: dict
 
     '''
+    if table is None:
+        table = constants.molecular_bio.CODON_FREQ_BY_AA['sc']
     # Process codon table using frequency_cutoff
     new_table = _cutoff(table, frequency_cutoff)
     # Select codons randomly or using weighted distribution

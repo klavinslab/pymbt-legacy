@@ -6,11 +6,20 @@
 Welcome to pymbt's documentation!
 =================================
 
-Contents:
+:Author: Nick Bolten
+:Source code: `github.com project <http://github.com/klavinslab/pymbt>`_
+:Issue Tracker: `github.com issues <http://github.com/klavinslab/pymbt/issues>`_
+:Generated: |today|
+:License: Apache 2.0
+:Version: |release|
+
+Tutorials and Examples:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
+   examples
+   api
 
 
 Indices and tables
