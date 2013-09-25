@@ -32,8 +32,11 @@ def needle(reference, target, gapopen=10, gapextend=0.5):
     if not any(needleall_executables):
         raise Exception(msg)
 
-    # Make temporary dir
+    # Make temporary dir and move there
     workdir = mkdtemp()
+    old_dir = os.getcwd()
+    # Purpose of moving is so that 'needleall.error' doesn't pollute other dirs
+    os.chdir(workdir)
 
     # Write input files to temp dir (fasta format)
     with open(workdir + '/reference.fasta', 'w') as reference_handle:
@@ -57,6 +60,7 @@ def needle(reference, target, gapopen=10, gapextend=0.5):
         cline()
     except ApplicationError:
         # TODO: replace this with a useful message
+        os.chdir(old_dir)
         rmtree(workdir)
         raise AlignmentError('Failed to align sequences.')
 
@@ -76,7 +80,8 @@ def needle(reference, target, gapopen=10, gapextend=0.5):
     if not score:
         raise Exception("Could not find alignment score (needle)!")
 
-    # Delete temporary dir
+    # Leave and delete temporary dir
+    os.chdir(old_dir)
     rmtree(workdir)
 
     # 'alignment' is a list. Each element of the list is a tuple of (1)
