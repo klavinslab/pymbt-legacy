@@ -12,7 +12,7 @@ Source documentation:
 ------------------------------------------
 
 .. automodule:: pymbt.analysis
-   :members: dimers, needle, Nupack, nupack_multiprocessing, repeats, StructureWindows, tm, Vienna
+   :members: dimers, needle, Nupack, nupack_multiprocessing, repeats, Sanger, StructureWindows, tm, Vienna
 
 
 :mod:`pymbt.constants` -- Data and constants

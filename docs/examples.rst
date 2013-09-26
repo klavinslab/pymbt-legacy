@@ -2,7 +2,8 @@ Examples
 =================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 0
    :glob:
 
-   examples/*
+   examples/modules
+   examples/analysis_sequencing
