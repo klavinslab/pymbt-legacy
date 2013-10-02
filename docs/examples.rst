@@ -6,5 +6,5 @@ Examples
    :glob:
 
    examples/modules
-   examples/sequence_dna
+   examples/sequence_DNA
    examples/analysis_sequencing
