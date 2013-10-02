@@ -9,7 +9,7 @@ import subprocess
 
 # The ipython_examples dir has to be in the same dir as this script
 basedir = os.path.dirname(os.path.abspath(__file__))
-ipynb_dirname = "ipython_examples"
+ipynb_dirname = "examples"
 ipynb_dir = os.path.join(basedir, ipynb_dirname)
 os.chdir(ipynb_dir)
 ipynb_files = filter(lambda x: x.endswith(".ipynb"), os.listdir(ipynb_dir))
