@@ -37,8 +37,8 @@ objects.
 
 .. code:: python
 
-    reference = seqio.read_dna('./sequencing_files/pMODKan-HO-pACT1GEV.ape')
-    results = seqio.read_sequencing('./sequencing_files/')
+    reference = seqio.read_dna('./files_for_docs/maps/pMODKan-HO-pACT1GEV.ape')
+    results = seqio.read_sequencing('./files_for_docs/sequencing_files/')
 To compare the results to our expected sequence, we use the ``Sanger``
 class, which does a Needleman-Wunsch alignment and scores any
 discrepancies.

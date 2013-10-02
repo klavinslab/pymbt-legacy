@@ -4,6 +4,7 @@
 can figure out a way to use a proper sphinx extension.'''
 
 # Doesn't even use IPython API (TODO!)
+# TODO: catch conversion errors (right now they pass silently)
 import os
 import subprocess
 
