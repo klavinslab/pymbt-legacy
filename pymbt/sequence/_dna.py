@@ -212,7 +212,7 @@ class DNA(BaseSequence):
         else:
             return self[found[0].start:found[0].stop]
 
-    def remove_end_gaps(self):
+    def _remove_end_gaps(self):
         '''Removes double-stranded gaps from ends of the sequence.'''
         # TODO: move this to _resect module
         top = self._sequence
@@ -256,6 +256,13 @@ class DNA(BaseSequence):
         copy = self.copy()
         copy._sequence, copy._bottom = copy._bottom, copy._sequence
         return copy
+
+    def reorient(self, index):
+        '''Reorient DNA to index'''
+        if index < 0:
+            raise ValueError("Reorientation index must be positive")
+        else:
+            return self[index:] + self[0:index + 1]
 
     def _features_on_slice(self, key):
         '''Process features when given a slice (__getitem__).
