@@ -1,7 +1,8 @@
 '''Test functionality of PCR class of reaction module.'''
 
-from pymbt import design, reaction, sequence
-from nose.tools import assert_equal
+import os
+from pymbt import design, reaction, seqio, sequence
+from nose.tools import assert_equal, assert_true
 
 
 def test_basic():
@@ -12,3 +13,15 @@ def test_basic():
 
     amplicon = reaction.pcr(template, forward, reverse)
     assert_equal(amplicon, template)
+
+
+def test_over_origin():
+    current_path = os.path.dirname(__file__)
+    template = seqio.read_dna(os.path.join(current_path,
+                                           "pMODKan-HO-pACT1GEV.ape"))
+    assert_true(template.topology == "circular")
+    primer1 = design.design_primer(template[-200:])
+    primer2 = design.design_primer(template.reverse_complement()[-200:])
+    over_origin = reaction.pcr(template, primer1, primer2)
+    expected = template[-200:] + template[0:200]
+    assert_equal(str(over_origin), str(expected))

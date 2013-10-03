@@ -403,6 +403,16 @@ class DNA(BaseSequence):
 
         return new_instance
 
+    def __eq__(self, other):
+        '''Define equality - sequences, topology, and strandedness are the
+        same.'''
+        tops_equal = self._sequence == other._sequence
+        bottoms_equal = self._bottom == other._bottom
+        topology_equal = self.topology == other.topology
+        stranded_equal = self.stranded == other.stranded
+        if tops_equal and bottoms_equal and topology_equal and stranded_equal:
+            return True
+
 
 class RestrictionSite(object):
     '''Recognition site and properties of a restriction endonuclease.'''
@@ -505,8 +515,11 @@ class Primer(object):
         return str(self.primer())
 
     def __eq__(self, other):
-        '''Define equality.'''
-        if vars(self) == vars(other):
+        '''Define equality - sequences, topology, and strandedness are the
+        same.'''
+        anneal_equal = self.anneal == other.anneal
+        overhang_equal = self.overhang == other.overhang
+        if anneal_equal and overhang_equal:
             return True
         else:
             return False
@@ -577,7 +590,14 @@ class Feature(object):
 
     def __eq__(self, other):
         '''Define equality.'''
-        if vars(self) == vars(other):
+        # name is the same
+        name_equal = self.name == other.name
+        # feature_type is the same
+        feature_type_equal = self.feature_type == other.feature_type
+        # FIXME: length of feature can't be deduced over origin of circular
+        # sequence. Features are very thin so this may not matter.
+        # Features are NOT parts and have no associated sequences yet.
+        if name_equal and feature_type_equal:
             return True
         else:
             return False

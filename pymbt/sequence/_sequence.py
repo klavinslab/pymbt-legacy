@@ -128,13 +128,13 @@ class BaseSequence(object):
         return sum(x for x in _decompose(self, multiplier))
 
     def __eq__(self, other):
-        '''Define == operator.
+        '''Define == operator. True if sequences are the same.
 
         :param other: Other sequence.
         :type other: pymbt.sequence._sequence.BaseSequence
 
         '''
-        if vars(self) == vars(other):
+        if self._sequence == other._sequence:
             return True
         else:
             return False
