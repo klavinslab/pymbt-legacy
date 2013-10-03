@@ -24,8 +24,8 @@ def dimers(primer1, primer2, concentrations=[5e-7, 5e-7, 3e-11]):
 
     # Simulate binding of template vs. primers
     nupack = Nupack([primer1.primer(), primer2.primer(),
-                     primer1.primer().reverse_complement().swap(),
-                     primer2.primer().reverse_complement().swap()])
+                     primer1.primer().reverse_complement().flip(),
+                     primer2.primer().reverse_complement().flip()])
     # Include reverse complement concentration
     concs = concentrations[:]
     concs.append(concentrations[2])

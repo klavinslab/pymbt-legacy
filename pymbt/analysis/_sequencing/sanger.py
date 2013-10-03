@@ -206,7 +206,7 @@ class Sanger(object):
         for i, score in enumerate(scores):
             if score < 1300:
                 reversed_result = self._processed[i].reverse_complement()
-                swapped_result = reversed_result.swap()
+                swapped_result = reversed_result.flip()
                 new_needle = needle(self._reference, swapped_result,
                                     gapopen=10, gapextend=0.5)
                 alignments[i] = (str(new_needle[0]), str(new_needle[1]))

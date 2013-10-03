@@ -81,7 +81,7 @@ class DNA(BaseSequence):
                           run_checks=False)
 
     def reverse_complement(self):
-        '''Reverse complement top and bottom strands.'''
+        '''Reverse complement the DNA.'''
         copy = self.copy()
         if self.stranded == 'ds':
             copy._sequence = self._bottom
@@ -251,8 +251,8 @@ class DNA(BaseSequence):
         except KeyboardInterrupt:
             shutil.rmtree(tmp)
 
-    def swap(self):
-        '''Switch top and bottom strands.'''
+    def flip(self):
+        '''Flip the DNA - swap the top and bottom strands.'''
         copy = self.copy()
         copy._sequence, copy._bottom = copy._bottom, copy._sequence
         return copy
