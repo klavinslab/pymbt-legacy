@@ -60,7 +60,7 @@ def test_oligo_assembly():
                                             require_even=True,
                                             start_5=True,
                                             oligo_number=12)
-    oligo_n_assembly.run()
+    oligo_n_assembly.design_assembly()
 
     oligo_n_output = [str(oligo).lower() for oligo in oligo_n_assembly.oligos]
     assert_equal(oligo_n_output, reference_oligos)
@@ -68,13 +68,14 @@ def test_oligo_assembly():
     # Test to make sure oligo_number parameter fails with too restrictive of
     # settings
     def design_impossible(test_seq):
-        oligo_n_assembly = design.OligoAssembly(test_seq,
-                                                tm=72,
-                                                length_range=(120, 120),
-                                                require_even=True,
-                                                start_5=True,
-                                                oligo_number=12)
-        oligo_n_assembly.run()
+        assembly = design.OligoAssembly(test_seq,
+                                        tm=72,
+                                        length_range=(120, 120),
+                                        require_even=True,
+                                        start_5=True,
+                                        oligo_number=12)
+        assembly.design_assembly()
+
     assert_raises(Exception, design_impossible, dna_seq)
 
 
@@ -94,5 +95,5 @@ def test_overlapping_overlaps():
                                             start_5=True,
                                             overlap_min=20,
                                             oligo_number=10)
-    oligo_n_assembly.run()
+    oligo_n_assembly.design_assembly()
     assert_true(type(oligo_n_assembly.warning) == str)
