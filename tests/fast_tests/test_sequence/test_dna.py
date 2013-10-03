@@ -176,10 +176,10 @@ class TestDNA(object):
         assert_true('c' in self.test_dna)
         assert_false('u' in self.test_dna)
 
-    def test_swap(self):
-        swapped = self.test_dna.swap()
-        assert_equal(str(self.test_dna), swapped._bottom)
-        assert_equal(self.test_dna._bottom, str(swapped))
+    def test_flip(self):
+        flipped = self.test_dna.flip()
+        assert_equal(str(self.test_dna), flipped._bottom)
+        assert_equal(self.test_dna._bottom, str(flipped))
 
 
 def test_bad_bottom_init():
