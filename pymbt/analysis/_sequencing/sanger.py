@@ -1,9 +1,8 @@
 '''Sanger sequencing alignment tools.'''
 from matplotlib import pyplot
 from matplotlib import cm
-from pymbt.analysis import needle
+from pymbt.analysis import needle, needle_multiprocessing
 
-# TODO: multiprocessing for alignment
 # FIXME: sequencing that goes past 'end' of a circular reference
 # is reported as an insertion
 # TODO: consensus / master sequence for plotting / report / analysis
@@ -183,7 +182,7 @@ class Sanger(object):
         '''Find largest non-N segment.
 
         :param seq: Sequence that contains Ns to remove
-        :type seq: str
+        :type seq: pymbt.sequence.DNA
 
         '''
         largest = max([x for x in seq.top().split('n')], key=len)
@@ -195,8 +194,10 @@ class Sanger(object):
     def _align(self):
         '''Align sequences using needle.'''
         # Align
-        needle_result = [needle(self._reference, seq) for seq in
-                         self._processed]
+        refs = [self._reference.copy() for x in self._processed]
+        needle_result = needle_multiprocessing(refs, self._processed,
+                                               gapopen=10,
+                                               gapextend=0.5)
         # Split into alignments and scores
         alignments = [(str(ref), str(res)) for ref, res, score in
                       needle_result]
@@ -206,7 +207,8 @@ class Sanger(object):
             if score < 1300:
                 reversed_result = self._processed[i].reverse_complement()
                 swapped_result = reversed_result.swap()
-                new_needle = needle(self._reference, swapped_result)
+                new_needle = needle(self._reference, swapped_result,
+                                    gapopen=10, gapextend=0.5)
                 alignments[i] = (str(new_needle[0]), str(new_needle[1]))
                 score = new_needle[2]
         # Trim to reference - if reference is shorter than results

@@ -2,10 +2,16 @@
 import os
 from tempfile import mkdtemp
 from shutil import rmtree
+import multiprocessing
 from pymbt import sequence
 from Bio.Emboss.Applications import NeedleallCommandline
 from Bio import AlignIO
 from Bio.Application import ApplicationError
+
+
+class AlignmentError(Exception):
+    '''Exception to throw when an alignment fails to run at all.'''
+    pass
 
 
 def needle(reference, target, gapopen=10, gapextend=0.5):
@@ -89,6 +95,34 @@ def needle(reference, target, gapopen=10, gapextend=0.5):
     return aligned_reference, aligned_result, score
 
 
-class AlignmentError(Exception):
-    '''Exception to throw when an alignment fails to run at all.'''
-    pass
+def run_needle(args):
+    """Run needle command using 4-tuple of the arguments (in the same order)
+    as is used for needle. Necessary to make picklable function for
+    multiprocessing."""
+    return needle(*args)
+
+
+def needle_multiprocessing(references, targets, gapopen=10, gapextend=0.5):
+    """Batch process of sequencing split over several cores. Acts just like
+    needle but sequence inputs are lists.
+
+    :param references: References sequence.
+    :type references: pymbt.sequence.DNA list
+    :param targets: Sequences to align against the reference.
+    :type targets: pymbt.sequence.DNA list
+    :param gapopen: Penalty for opening a gap.
+    :type gapopen: float
+    :param gapextend: Penalty for extending a gap.
+    :type gapextend: float
+
+    """
+    pool = multiprocessing.Pool()
+    try:
+        args_list = [list(x) + [gapopen, gapextend] for x in
+                     zip(references, targets)]
+        aligned = pool.map(run_needle, args_list)
+    except KeyboardInterrupt:
+        pool.terminate()
+        raise KeyboardInterrupt
+
+    return aligned
