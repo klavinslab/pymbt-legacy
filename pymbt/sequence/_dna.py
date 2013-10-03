@@ -262,7 +262,7 @@ class DNA(BaseSequence):
         if index < 0:
             raise ValueError("Reorientation index must be positive")
         else:
-            return self[index:] + self[0:index + 1]
+            return self[index:] + self[0:index]
 
     def _features_on_slice(self, key):
         '''Process features when given a slice (__getitem__).
@@ -419,6 +419,8 @@ class DNA(BaseSequence):
         stranded_equal = self.stranded == other.stranded
         if tops_equal and bottoms_equal and topology_equal and stranded_equal:
             return True
+        else:
+            return False
 
 
 class RestrictionSite(object):
