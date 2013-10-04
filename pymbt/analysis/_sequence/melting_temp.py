@@ -1,3 +1,4 @@
+# -*- coding: utf-8
 '''Calculate the thermodynamic melting temperatures of nucleotide sequences.'''
 from math import log, log10
 from pymbt.analysis._sequence import tm_params
@@ -35,6 +36,9 @@ def tm(seq, dna_conc=50, salt_conc=50, parameters='cloning'):
                        'cloning': breslauer without corrections
                        'cloning_sl98': santalucia98 fit to 'cloning'
     :type parameters: str
+    :returns: Melting temperature (Tm) in °C.
+    :rtype: float
+    :raises: ValueError if parameter argument is invalid.
 
     '''
     if parameters == 'breslauer':
@@ -145,6 +149,8 @@ def _pair_deltas(seq, pars):
     :type seq: str
     :param pars: parameter set to use
     :type pars: dict
+    :returns: nearest-neighbor delta_H and delta_S sums.
+    :rtype: tuple of floats
 
     '''
     delta0 = 0
@@ -163,6 +169,8 @@ def breslauer_corrections(seq, pars_error):
     :type seq: str
     :param pars_error: dictionary of error corrections
     :type pars_error: dict
+    :returns: Corrected delta_H and delta_S parameters
+    :rtype: list of floats
 
     '''
     deltas_corr = [0, 0]
@@ -190,6 +198,8 @@ def santalucia98_corrections(seq, pars_error):
     :type seq: str
     :param pars_error: dictionary of error corrections
     :type pars_error: dict
+    :returns: Corrected delta_H and delta_S parameters
+    :rtype: list of floats
 
     '''
     deltas_corr = [0, 0]

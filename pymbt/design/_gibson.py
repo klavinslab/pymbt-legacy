@@ -21,6 +21,9 @@ def gibson_primers(dna1, dna2, split, overlap_tm=65.0, **kwargs):
     :type overlap_tm: float
     :param kwargs: keyword arguments to pass to design_primer
     :type kwargs: dict
+    :returns: Forward and reverse primers for bridging the two sequences..
+    :rtype: A sequence.Primer tuple
+    :raises: ValueError if split parameter is an invalid string.
 
     '''
     # TODO: if sequence is too short (overlap len = seq len), raise exception
@@ -78,6 +81,9 @@ def gibson(seq_list, circular=True, splits='mixed', overlap_tm=65, **kwargs):
     :type overlap_tm: float
     :param kwargs: keyword arguments to pass to design_primer
     :type kwargs: dict
+    :returns: Forward and reverse primers for amplifying every fragment.
+    :rtype: a list of sequence.Primer tuples
+    :raises: ValueError if split parameter is an invalid string or wrong size.
 
     '''
 

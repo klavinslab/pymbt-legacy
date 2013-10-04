@@ -52,6 +52,7 @@ class Rebase(object):
 
         :param name: Name of the restriction enzyme, e.g. EcoRV.
         :type name: str
+        :raises: Exception when enzyme is not found in the database.
 
         '''
         # Looks for restriction enzyme by name

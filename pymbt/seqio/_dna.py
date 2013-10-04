@@ -41,7 +41,10 @@ def read_dna(path):
         feature_start = int(feature.location.start)
         feature_stop = int(feature.location.end)
         feature_type = _process_feature_type(feature.type)
-        feature_strand = max(feature.location.strand, 0)
+        if feature.location.strand == -1:
+            feature_strand = 1
+        else:
+            feature_strand = 0
         dna.features.append(pymbt.sequence.Feature(feature_name, feature_start,
                                                    feature_stop, feature_type,
                                                    strand=feature_strand))

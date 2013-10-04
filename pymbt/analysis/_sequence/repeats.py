@@ -9,6 +9,8 @@ def repeats(seq, size):
     :type seq: pymbt.sequence.DNA or pymbt.sequence.RNA
     :param size: Size of the repeat to count.
     :type size: int
+    :returns: Occurrences of repeats and how many
+    :rtype: tuple of the matched sequence and how many times it occurs
 
     '''
     seq = str(seq)
