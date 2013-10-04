@@ -1,4 +1,5 @@
 '''Read and write DNA sequences.'''
+import csv
 import os
 from Bio import SeqIO
 from Bio.Alphabet.IUPAC import ambiguous_dna
@@ -7,6 +8,10 @@ from Bio.SeqRecord import SeqRecord
 from Bio.SeqFeature import SeqFeature, FeatureLocation, ExactPosition
 import pymbt.sequence
 from pymbt.constants import genbank
+
+
+def NoteNumberError(ValueError):
+    pass
 
 
 def read_dna(path):
@@ -120,6 +125,32 @@ def write_dna(dna, path):
         SeqIO.write(seq, path, 'genbank')
     elif filetype == 'fasta':
         SeqIO.write(seq, path, 'fasta')
+
+
+def write_primers(primer_list, path, notes=None):
+    """Write a list of primers out to a csv file. The first three columns are
+    compatible with the current IDT order form (name, sequence, notes). By
+    default there are no notes, which is an optional parameter.
+
+    :param primer_list: A list of primers.
+    :type primer_list: pymbt.sequence.Primer list
+    :param path: A path to the csv you want to write.
+    :type path: str
+    :param notes: a list of strings to add for each oligo. Must be same length
+                  as primer_list.
+    :type notes: str list
+
+    """
+    if notes is not None:
+        if len(notes) != len(primer_list):
+            raise NoteNumberError("Number of primers and notes is not equal.")
+    else:
+        notes = ["" for x in primer_list]
+    with open(path, "w") as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerow(["name", "sequence", "notes"])
+        for primer, note in zip(primer_list, notes):
+            writer.writerow([primer.name, primer.primer(), note])
 
 
 def _process_feature_type(feature_type, bio_to_pymbt=True):
