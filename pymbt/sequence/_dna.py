@@ -257,8 +257,14 @@ class DNA(BaseSequence):
         copy._sequence, copy._bottom = copy._bottom, copy._sequence
         return copy
 
-    def reorient(self, index):
-        '''Reorient DNA to index'''
+    def orient(self, index):
+        '''Orient DNA to index.
+
+        :param index: DNA position at which to re-zero the DNA.
+        :type index: int
+        '''
+        if self.topology == "linear" and index != 0:
+            raise ValueError("Can't reorient linear DNA")
         if index < 0:
             raise ValueError("Reorientation index must be positive")
         else:
@@ -275,6 +281,19 @@ class DNA(BaseSequence):
             return True
         else:
             return False
+
+    def orient_by_feature(self, featurename):
+        matched = []
+        for feature in self.features:
+            if feature.name == featurename:
+                matched.append(feature.copy())
+        count = len(matched)
+        if count == 1:
+            return self.orient(matched[0].start)
+        elif count > 1:
+            raise ValueError("More than one feature has that name.")
+        else:
+            raise ValueError("No such feature in the sequence.")
 
     def _features_on_slice(self, key):
         '''Process features when given a slice (__getitem__).
