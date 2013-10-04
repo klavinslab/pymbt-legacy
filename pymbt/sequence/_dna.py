@@ -264,6 +264,18 @@ class DNA(BaseSequence):
         else:
             return self[index:] + self[0:index]
 
+    def startswith(self, seq):
+        if self._sequence.startswith(str(seq)):
+            return True
+        else:
+            return False
+
+    def endswith(self, seq):
+        if self._sequence.endswith(str(seq)):
+            return True
+        else:
+            return False
+
     def _features_on_slice(self, key):
         '''Process features when given a slice (__getitem__).
 
