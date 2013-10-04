@@ -7,4 +7,5 @@ Examples
 
    examples/modules
    examples/sequence_DNA
+   examples/design_primers
    examples/analysis_sequencing

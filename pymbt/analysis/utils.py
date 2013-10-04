@@ -7,6 +7,9 @@ def sequence_type(seq):
 
     :param sequence_in: input DNA sequence.
     :type sequence_in: any
+    :returns: The material - 'dna', 'rna', or 'peptide'.
+    :rtype: str
+    :raises: ValueError
 
     '''
     if isinstance(seq, sequence.DNA):
@@ -16,5 +19,5 @@ def sequence_type(seq):
     elif isinstance(seq, sequence.Peptide):
         material = 'peptide'
     else:
-        raise Exception("Input was not a recognized pymbt.sequence object.")
+        raise ValueError("Input was not a recognized pymbt.sequence object.")
     return material
