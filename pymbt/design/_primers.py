@@ -70,6 +70,23 @@ def design_primer(dna, tm=72, min_len=10, tm_undershoot=1, tm_overshoot=3,
         overhang = overhang.set_stranded('ss')
 
     output_primer = sequence.Primer(best_primer, best_tm, overhang=overhang)
+
+    def _structure(primer):
+        '''Check annealing sequence for structure.
+
+        :param primer: Primer for which to evaluate structure
+        :type primer: sequence.Primer
+
+        '''
+        # Check whole primer for high-probability structure, focus in on
+        # annealing sequence, report average
+        nupack = analysis.Nupack(primer.primer())
+        pairs = nupack.pairs()
+        anneal_len = len(primer.anneal)
+        pairs_mean = sum(pairs[-anneal_len:]) / anneal_len
+        if pairs_mean < 0.5:
+            warnings.warn('High probability structure', Warning)
+        return pairs_mean
     if structure:
         _structure(output_primer)
     return output_primer
@@ -109,21 +126,3 @@ def design_primers(dna, tm=72, min_len=10, tm_undershoot=1, tm_overshoot=3,
                                  overhang=overhang)
         primer_list.append(primer_i)
     return primer_list
-
-
-def _structure(primer):
-    '''Check annealing sequence for structure.
-
-    :param primer: Primer for which to evaluate structure
-    :type primer: sequence.Primer
-
-    '''
-    # Check whole primer for high-probability structure, focus in on
-    # annealing sequence, report average
-    nupack = analysis.Nupack(primer.primer())
-    pairs = nupack.pairs()
-    anneal_len = len(primer.anneal)
-    pairs_mean = sum(pairs[-anneal_len:]) / anneal_len
-    if pairs_mean < 0.5:
-        warnings.warn('High probability structure', Warning)
-    return pairs_mean
