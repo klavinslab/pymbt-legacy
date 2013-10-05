@@ -17,6 +17,8 @@ class Sanger(object):
         :param results: Sequencing result string. A list of DNA objects is also
                         valid.
         :type results: list of pymbt.sequence.DNA sequences
+        :returns: instance of pymbt.analysis.Sanger (contains alignment and
+                  provides analysis/visualization methods
 
         '''
         if type(results) != list:
@@ -296,6 +298,8 @@ def _group_differences(difference_list):
 
     :param difference_list: list of difference indices (2-tuple).
     :type difference_list: list
+    :returns: a list of the same format as the input, but with adjoining
+              insertions or deletions grouped together
 
     '''
     # By setting to (-2, -2), skips first base so that others can
@@ -390,6 +394,10 @@ def disjoint_bins(ranges_list):
 
     :param range_tuple_list: A list of tuples containing range values.
     :type range_tuple_list: list
+    :returns: a list of bins containing indices of the input list. e.g. if
+              the third (index 2) range is in the 2nd bin, the number 2 is in
+              the 2nd list.
+    :rtype: list of lists of ints
 
     '''
     # Keep track of the original order for reporting later
@@ -413,8 +421,7 @@ def disjoint_bins(ranges_list):
         else:
             remaining = next_bin
 
-    bins_pre = [[x[2] for x in range_bin] for range_bin in binned]
-    bins = bins_pre
+    bins = [[x[2] for x in range_bin] for range_bin in binned]
 
     return bins
 
@@ -426,6 +433,8 @@ def wrap_name(str_in, wrap_len=15):
     :type str_in: str
     :param wrap_len: Length at which to wrap lines.
     :type wrap_len: str
+    :returns: Wrapped text
+    :rtype: str
 
     '''
     wrap_positions = range(0, len(str_in), wrap_len)

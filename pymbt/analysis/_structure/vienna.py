@@ -13,13 +13,20 @@ class Vienna(object):
         :type seq: pymbt.sequence.DNA or pymbt.sequence.RNA
         :param temp: Temperature at which to run calculations.
         :type temp: float
+        :returns: pymbt.analysis.Vienna instance.
+
         '''
         self._seq = str(seq)
         self._temp = temp
         self._tempdir = mkdtemp()
 
     def mfe(self):
-        '''Calculate minimum free energy of sequence.'''
+        '''Calculate minimum free energy of sequence.
+
+        :returns: Minimum Free Energy (mfe).
+        :rtype: float
+
+        '''
         self._check_tempdir()
         process = Popen(['RNAfold', '-T', str(self._temp)], stdin=PIPE,
                         stdout=PIPE, stderr=STDOUT, cwd=self._tempdir)
@@ -31,7 +38,12 @@ class Vienna(object):
         return mfe
 
     def pairs(self):
-        '''Calculate pair probabilities.'''
+        '''Calculate internal binding pair probabilities.
+
+        :returns: Pair probability for every base in the sequence.
+        :rtype: list of floats.
+
+        '''
         self._check_tempdir()
         process = Popen(['RNAfold', '-p', '-T', str(self._temp)], stdin=PIPE,
                         stdout=PIPE, stderr=STDOUT, cwd=self._tempdir)

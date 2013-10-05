@@ -14,17 +14,20 @@ class AlignmentError(Exception):
     pass
 
 
-def needle(reference, target, gapopen=10, gapextend=0.5):
+def needle(reference, query, gapopen=10, gapextend=0.5):
     '''Do Needleman-Wunsch alignment.
 
     :param reference: Reference sequence.
     :type reference: pymbt.sequence.DNA
-    :param target: Sequence to align against the reference.
-    :type target: pymbt.sequence.DNA
+    :param query: Sequence to align against the reference.
+    :type query: pymbt.sequence.DNA
     :param gapopen: Penalty for opening a gap.
     :type gapopen: float
     :param gapextend: Penalty for extending a gap.
     :type gapextend: float
+    :returns: (aligned reference, aligned query, score)
+    :rtype: tuple of two pymbt.sequence.DNA instances and a float
+    :raises: Exception if EMBOSS can't be found
 
     '''
     # Check to see if 'needleall' command is installed - if not, give useful
@@ -48,16 +51,16 @@ def needle(reference, target, gapopen=10, gapextend=0.5):
     with open(workdir + '/reference.fasta', 'w') as reference_handle:
         reference_handle.write('>reference\n')
         reference_handle.write('{}\n'.format(str(reference)))
-    with open(workdir + '/target.fasta', 'w') as target_handle:
-        target_handle.write('>target\n')
-        target_handle.write('{}\n'.format(str(target)))
+    with open(workdir + '/query.fasta', 'w') as query_handle:
+        query_handle.write('>query\n')
+        query_handle.write('{}\n'.format(str(query)))
 
     # Set up Emboss 'needle' command
     cline = NeedleallCommandline(cmd='needleall')
     cline.gapopen = gapopen
     cline.gapextend = gapextend
     cline.bsequence = workdir + '/reference.fasta'
-    cline.asequence = workdir + '/target.fasta'
+    cline.asequence = workdir + '/query.fasta'
     cline.aformat = 'srspair'
     cline.outfile = workdir + '/alignment.txt'
 
@@ -83,15 +86,13 @@ def needle(reference, target, gapopen=10, gapextend=0.5):
         for line in align_file.readlines():
             if line.startswith('# Score'):
                 score = float(line.strip().lstrip('# Score: '))
-    if not score:
-        raise Exception("Could not find alignment score (needle)!")
 
     # Leave and delete temporary dir
     os.chdir(old_dir)
     rmtree(workdir)
 
     # 'alignment' is a list. Each element of the list is a tuple of (1)
-    # the aligned reference sequence and (2) the aligned target sequene
+    # the aligned reference sequence and (2) the aligned query sequene
     return aligned_reference, aligned_result, score
 
 
@@ -102,24 +103,26 @@ def run_needle(args):
     return needle(*args)
 
 
-def needle_multiprocessing(references, targets, gapopen=10, gapextend=0.5):
+def needle_multiprocessing(references, queries, gapopen=10, gapextend=0.5):
     """Batch process of sequencing split over several cores. Acts just like
     needle but sequence inputs are lists.
 
     :param references: References sequence.
     :type references: pymbt.sequence.DNA list
-    :param targets: Sequences to align against the reference.
-    :type targets: pymbt.sequence.DNA list
+    :param queries: Sequences to align against the reference.
+    :type queries: pymbt.sequence.DNA list
     :param gapopen: Penalty for opening a gap.
     :type gapopen: float
     :param gapextend: Penalty for extending a gap.
     :type gapextend: float
+    :returns: a list of the same output as pymbt.sequence.needle
+    :rtype: list
 
     """
     pool = multiprocessing.Pool()
     try:
         args_list = [list(x) + [gapopen, gapextend] for x in
-                     zip(references, targets)]
+                     zip(references, queries)]
         aligned = pool.map(run_needle, args_list)
     except KeyboardInterrupt:
         pool.terminate()

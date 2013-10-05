@@ -1,3 +1,4 @@
+# -*- coding: utf-8
 '''Wrapper for NUPACK 3.0.'''
 import multiprocessing
 import time
@@ -23,6 +24,12 @@ class Nupack(object):
         :param nupack_home: NUPACK home dir. The script attempts to find the
                             NUPACKHOME environment variable if this isn't set.
         :type nupack_home: str
+        :returns: Nupack instance.
+        :raises: ValueError if NUPACKHOME environment variable is not defined
+                 and nupack_home is undefined.
+                 ValueError if sequences are not all the same type (e.g. don't
+                 mix RNA and DNA).
+                 Exception if using rna1999 with a Tm other than 37°C.
 
         '''
         # Set up nupack environment variable
@@ -73,6 +80,8 @@ class Nupack(object):
         :type max_complexes: int
         :param mfe: Include mfe calculations (boolean, defaults to True).
         :type mfe: bool
+        :returns: complex types (list of interactions) and their energies.
+        :rtype: dict
 
         '''
         self._temp_dir()
@@ -127,6 +136,8 @@ class Nupack(object):
         :type conc: list
         :param mfe: Include mfe calculations.
         :type mfe: bool
+        :returns: complex types, their concentrations, and their energies.
+        :rtype: dict
 
         '''
         # If complexes hasn't been run, run it
@@ -181,6 +192,8 @@ class Nupack(object):
 
         :param index: Index of strand to analyze.
         :type index: int
+        :returns: Minimum Free Energy (mfe).
+        :rtype: float
 
         '''
         self._temp_dir()
@@ -205,6 +218,8 @@ class Nupack(object):
 
         :param index: Index of strand to analyze.
         :type index: int
+        :returns: Unbound pair probability for each base in the sequence.
+        :rtype: list
 
         '''
         self._temp_dir()
@@ -252,6 +267,7 @@ class Nupack(object):
         :type cmd: str
         :param cmd_args: Arguments to pass to the command line.
         :type cmd_args: str
+        :returns: Variable - whatever `cmd` returns.
 
         '''
         known_cmds = ['complexes', 'concentrations', 'mfe', 'pairs']
@@ -279,6 +295,8 @@ def nupack_multiprocessing(seqs, material, cmd, arguments, report=True):
     :type cmd: str
     :param arguments: Arguments for the command.
     :type arguments: str
+    :returns: A list of the same return value you would get from `cmd`.
+    :rtype: list
 
     '''
     nupack_pool = multiprocessing.Pool()
@@ -313,9 +331,10 @@ def nupack_multiprocessing(seqs, material, cmd, arguments, report=True):
 
 
 def run_nupack(kwargs):
-    '''Run Nupack command in a picklable way.
+    '''Run picklable Nupack command.
 
     :param kwargs: keyword arguments to pass to Nupack as well as 'cmd'.
+    :returns: Variable - whatever `cmd` returns.
 
     '''
     run = Nupack(kwargs['seq'])
