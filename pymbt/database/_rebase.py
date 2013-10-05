@@ -52,6 +52,8 @@ class Rebase(object):
 
         :param name: Name of the restriction enzyme, e.g. EcoRV.
         :type name: str
+        :returns: Restriction site matching the input name.
+        :rtype: pymbt.sequence.RestrictionSite
         :raises: Exception when enzyme is not found in the database.
 
         '''
