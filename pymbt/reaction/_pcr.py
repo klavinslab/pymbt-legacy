@@ -10,6 +10,12 @@ def pcr(template, primer1, primer2):
     :type primer1: pymbt.sequence.Primer
     :param primer2: First PCR primer.
     :type primer2: pymbt.sequence.Primer
+    :returns: A dsDNA Amplicon.
+    :rtype: pymbt.sequence.DNA
+    :raises: Exception if a primer binds more than once on the template.
+             Exception if primers bind in overlapping sequence of the template.
+             Exception if the PCR would work on a circular version of the
+             template (implies that input was linear).
 
     '''
     # Find match in top or bottom strands for each primer

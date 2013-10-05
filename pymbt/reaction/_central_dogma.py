@@ -8,6 +8,8 @@ def transcribe(dna):
 
     :param seq: Sequence to transcribe (DNA).
     :type seq: pymbt.sequence.DNA
+    :returns: Transcribed sequence - an RNA sequence.
+    :rtype: pymbt.sequence.RNA
 
     '''
     return utils.convert_sequence(dna, 'rna')
@@ -18,6 +20,8 @@ def translate(rna):
 
     :param rna: Sequence to translate (RNA).
     :type rna: pymbt.sequence.RNA
+    :returns: Translated sequence - a peptide.
+    :rtype: pymbt.sequence.Peptide
 
     '''
     return utils.convert_sequence(rna, 'peptide')
@@ -28,20 +32,28 @@ def reverse_transcribe(rna):
 
     :param rna: Sequence to reverse transcribe (RNA).
     :type rna: pymbt.sequence.RNA
+    :returns: Reverse-transcribed sequence - a DNA sequence.
+    :rtype: pymbt.sequence.DNA
 
     '''
     return utils.convert_sequence(rna, 'dna')
 
 
 def coding_sequence(rna):
-    '''Extract coding sequence from an RNA template.
+    """Extract coding sequence from an RNA template.
 
     :param seq: Sequence from which to extract a coding sequence.
     :type seq: pymbt.sequence.RNA
     :param material: Type of sequence ('dna' or 'rna')
     :type material: str
+    :returns: The first coding sequence (start codon -> stop codon) matched
+              from 5' to 3'.
+    :rtype: pymbt.sequence.RNA
+    :raises: ValueError if rna argument has no start codon.
+             ValueError if rna argument has no stop codon in-frame with the
+             first start codon.
 
-    '''
+    """
     if isinstance(rna, sequence.DNA):
         rna = transcribe(rna)
     codons_left = len(rna) // 3
@@ -53,7 +65,7 @@ def coding_sequence(rna):
     valid = [None, None]
     index = 0
     while codons_left:
-        codon = rna[index:index+3]
+        codon = rna[index:index + 3]
         if valid[0] is None:
             if codon in start_codon:
                 start = index

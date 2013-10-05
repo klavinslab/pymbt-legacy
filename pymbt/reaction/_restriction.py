@@ -9,6 +9,8 @@ def digest(dna, restriction_enzyme):
     :type dna: pymbt.sequence.DNA
     :param restriction_site: Restriction site to use.
     :type restriction_site: RestrictionSite
+    :returns: list of digested DNA fragments.
+    :rtype: pymbt.sequence.DNA list
 
     '''
     pattern = restriction_enzyme.recognition_site
@@ -49,6 +51,8 @@ def _cut(dna, index, restriction_enzyme):
     :type index: int
     :param restriction_enzyme: Enzyme with which to cut
     :type restriction_enzyme: pymbt.sequence.RestrictionSite
+    :returns: 2-element list of digested sequence, including any overhangs.
+    :rtype: list
 
     '''
     # TODO: handle case where cut site is outside of recognition sequence,

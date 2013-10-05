@@ -2,12 +2,19 @@
 from pymbt import analysis
 
 
+class AmbiguousGibsonError(ValueError):
+    '''Exception to raise when Gibson is ambiguous.'''
+    pass
+
+
 class Gibson(object):
     '''Gibson reaction.'''
     def __init__(self, seq_list):
         '''
         :param seq_list: list of DNA sequences to Gibson
         :type seq_list: list of pymbt.sequence.DNA
+        :returns: pymbt.reaction.Gibson instance.
+        :raises: ValueError if any input sequences are circular DNA.
 
         '''
         # TODO: Attempt to preserve features in overlap
@@ -25,6 +32,8 @@ class Gibson(object):
 
         :param homology_min: minimum bp of homology allowed
         :type homology_min: int
+        :returns: Gibson-assembled (circular) DNA.
+        :rtype: pymbt.sequence.DNA
 
         '''
         return self._run(linear=False, homology=homology_min, tm=tm_min)
@@ -34,6 +43,8 @@ class Gibson(object):
 
         :param homology_min: minimum bp of homology allowed
         :type homology_min: int
+        :returns: Gibson-assembled (linear) DNA.
+        :rtype: pymbt.sequence.DNA
 
         '''
         return self._run(linear=True, homology=homology_min, tm=tm_min)
@@ -46,6 +57,8 @@ class Gibson(object):
         :type linear: bool
         :param homology_min: minimum bp of homology allowed
         :type homology_min: int
+        :returns: Gibson-assembled DNA.
+        :rtype: pymbt.sequence.DNA
 
         '''
         # Copy input list
@@ -63,6 +76,8 @@ class Gibson(object):
 
         :param homology: length of terminal homology in bp
         :type homology: int
+        :raises: AmbiguousGibsonError if there is more than one way for the
+                 fragment ends to combine.
 
         '''
         # 1. Analyze all non-first sequences for matches
@@ -111,6 +126,9 @@ class Gibson(object):
 
         :param homology: length of terminal homology in bp.
         :type homology: int
+        :raises: AmbiguousGibsonError if either of the termini are palindromic
+                 (would bind self-self).
+                 ValueError if the ends are not compatible.
 
         '''
         # 1. Get report on self-self
@@ -134,6 +152,8 @@ def homology_report(seq1, seq2):
     :type seq1: pymbt.sequence.DNA
     :param seq2: Sequence to test both strands of, 3\' end
     :type seq1: pymbt.sequence.DNA
+    :returns: List of left and right identities.
+    :rtype: list of ints
 
     '''
     # Go through each other sequence, both forward and revcomp sequences,
@@ -153,8 +173,3 @@ def homology_report(seq1, seq2):
             right_list.append((i + 1))
 
     return [left_list, right_list]
-
-
-class AmbiguousGibsonError(ValueError):
-    '''Exception to raise when Gibson is ambiguous.'''
-    pass

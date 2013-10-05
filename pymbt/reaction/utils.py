@@ -16,6 +16,7 @@ def convert_sequence(seq, to_material):
     :param to_material: material to which to convert ('rna', 'dna', or
                         'peptide').
     :type to_material: str
+    :returns: sequence of type pymbt.sequence.[material type]
 
     '''
     if isinstance(seq, sequence.DNA) and to_material == 'rna':
