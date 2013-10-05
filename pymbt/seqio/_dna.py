@@ -19,6 +19,8 @@ def read_dna(path):
 
     :param path: Full path to input file.
     :type path: str
+    :returns: DNA sequence.
+    :rtype: pymbt.sequence.DNA
 
     '''
     ext = os.path.splitext(path)[1]
@@ -70,6 +72,8 @@ def read_sequencing(directory):
 
     :param directory: Path to directory containing sequencing files.
     :type directory: str
+    :returns: A list of DNA sequences.
+    :rtype: pymbt.sequence.DNA list
 
     '''
     dirfiles = os.listdir(directory)
@@ -163,6 +167,8 @@ def _process_feature_type(feature_type, bio_to_pymbt=True):
     :param bio_to_pymbt: from pymbt to Biopython (True) or the other direction
                    (False)
     :param bio_to_pymbt: bool
+    :returns: pymbt version of genbank feature_type, or vice-versa.
+    :rtype: str
 
     '''
 

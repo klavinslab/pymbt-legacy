@@ -13,6 +13,7 @@ class BaseSequence(object):
                            alphabet check
                            case
         :type run_checks: bool
+        :returns: pymbt.sequence.BaseSequence instance.
 
         '''
         if run_checks:
@@ -26,6 +27,8 @@ class BaseSequence(object):
 
         :param pattern: Sequence for which to find matches.
         :type pattern: str
+        :returns: Indices of pattern matches.
+        :rtype: list of ints
 
         '''
         pattern = str(pattern).lower()
@@ -34,7 +37,12 @@ class BaseSequence(object):
                 re.finditer(re_pattern, self._sequence)]
 
     def copy(self):
-        '''Create a copy of the current instance.'''
+        '''Create a copy of the current instance.
+
+        :returns: A safely editable copy of the current sequence.
+        :rtype: pymbt.sequence.BaseSequence
+
+        '''
         # Significant performance improvements by skipping alphabet check
         return type(self)(self._sequence, self._material, run_checks=False)
 
@@ -43,6 +51,8 @@ class BaseSequence(object):
 
         :param key: int or slice for subsetting.
         :type key: int or slice
+        :returns: Slice of the current sequence.
+        :rtype: pymbt.sequence.BaseSequence
 
         '''
         copy = self.copy()
@@ -52,8 +62,10 @@ class BaseSequence(object):
     def __delitem__(self, index):
         '''Deletes sequence at index.
 
-        param index: Index to delete
-        type index: int
+        :param index: Index to delete
+        :type index: int
+        :returns: The current sequence with the moiety at `index` removed.
+        :rtype: pymbt.sequence.BaseSequence
 
         '''
         sequence_list = list(self._sequence)
@@ -67,6 +79,9 @@ class BaseSequence(object):
         :type index: int
         :param new_value: Value to input.
         :type new_value: str or pymbt.sequence._sequence.BaseSequence
+        :returns: The current sequence with the moiety at `index` replaced
+                  by `new_value`.
+        :rtype: pymbt.sequence.BaseSequence
 
         '''
         sequence_list = list(self._sequence)
@@ -84,18 +99,30 @@ class BaseSequence(object):
         return sequence
 
     def __str__(self):
-        '''Cast to string.'''
+        '''Cast to string.
+
+        :returns: A string of the current sequence
+        :rtype: str
+
+        '''
         return self._sequence
 
     def __len__(self):
-        '''Calculate sequence length.'''
+        '''Calculate sequence length.
+
+        :returns: The length of the sequence.
+        :rtype: int
+
+        '''
         return len(self._sequence)
 
     def __add__(self, other):
         '''Defines addition.
 
         :param other: Instance with which to sum.
-        :type other: pymbt.sequence._sequence.BaseSequence
+        :type other: pymbt.sequence.BaseSequence
+        :returns: Concatenated sequence.
+        :rtype: pymbt.sequence.BaseSequence
 
         '''
         return BaseSequence(self._sequence + other._sequence, self._material,
@@ -106,6 +133,8 @@ class BaseSequence(object):
 
         :param other: Object of any other type.
         :param other: pymbt.sequence._sequence.BaseSequence
+        :returns: Concatenated sequence.
+        :rtype: pymbt.sequence.BaseSequence
 
         '''
         if other == 0 or other is None:
@@ -115,23 +144,28 @@ class BaseSequence(object):
             raise TypeError("Can't add {} to {}".format(self, other))
         return self + other
 
-    def __mul__(self, multiplier):
+    def __mul__(self, n):
         '''Concatenate copies of the sequence.
 
-        :param multiplier: Factor by which to multiply the sequence.
-        :type multiplier: int
+        :param n: Factor by which to multiply the sequence.
+        :type n: int
+        :returns: The current sequence repeated n times.
+        :rtype: pymbt.sequence.BaseSequence
+        :raises: TypeError if n is not an integer.
 
         '''
         # Input checking
-        if multiplier != int(multiplier):
+        if n != int(n):
             raise TypeError("Multiplication by non-integer.")
-        return sum(x for x in _decompose(self, multiplier))
+        return sum(x for x in _decompose(self, n))
 
     def __eq__(self, other):
         '''Define == operator. True if sequences are the same.
 
         :param other: Other sequence.
         :type other: pymbt.sequence._sequence.BaseSequence
+        :returns: Whether two sequences have the same base string (sequence).
+        :rtype: bool
 
         '''
         if self._sequence == other._sequence:
@@ -144,6 +178,8 @@ class BaseSequence(object):
 
         :param other: Other sequence.
         :type other: pymbt.sequence._sequence.BaseSequence
+        :returns: The opposite of ==.
+        :rtype: bool
 
         '''
         try:
@@ -151,26 +187,30 @@ class BaseSequence(object):
         except TypeError:
             return False
 
-    def __contains__(self, pattern):
+    def __contains__(self, query):
         '''`x in y`.
 
-        :param pattern: Pattern to find.
-        :type pattern: str
+        :param query: Query (i.e. exact pattern) sequence to find.
+        :type query: str
+        :returns: Whether the query is found in the current sequence.
+        :rtype: bool
 
         '''
-        if str(pattern) in str(self):
+        if str(query) in str(self):
             return True
         else:
             return False
 
 
 def _decompose(string, n):
-    '''Given string and multiplier, find 2**n decomposition.
+    '''Given string and multiplier n, find m**2 decomposition.
 
     :param string: input string
     :type string: str
     :param n: multiplier
     :type n: int
+    :returns: generator that produces m**2 * string if m**2 is a factor of n
+    :rtype: generator of 0 or 1
 
     '''
     binary = [int(x) for x in bin(n)[2:]]
@@ -181,10 +221,3 @@ def _decompose(string, n):
             yield new_string
         new_string += new_string
         counter += 1
-
-
-class Peptide(BaseSequence):
-    '''Peptide sequence.'''
-    def __init__(self, peptide, run_checks=True):
-        super(Peptide, self).__init__(peptide, 'peptide',
-                                      run_checks=run_checks)

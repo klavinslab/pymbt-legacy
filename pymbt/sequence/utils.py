@@ -11,6 +11,8 @@ def reverse_complement(seq, material):
     :type seq: str
     :param material: 'dna' or 'rna'.
     :type material: str
+    :returns: Reverse complement of the input.
+    :rtype: str
 
     '''
     complements = COMPLEMENTS[material]
@@ -29,6 +31,11 @@ def check_alphabet(seq, material):
     :type seq: str
     :param material: Input material - 'dna', 'rna', or 'pepide'.
     :type sequence: str
+    :returns: Whether the `seq` is a valid string of `material`.
+    :rtype: bool
+    :raises: ValueError if `material` isn't \"dna\", \"rna\", or \"peptide\".
+             ValueError if `seq` contains invalid characters for its
+             material type.
 
     '''
     errs = {'dna': 'DNA', 'rna': 'RNA', 'peptide': 'peptide'}
@@ -49,9 +56,13 @@ def process_seq(seq, material):
     '''Validate and process sequence inputs.
 
     :param seq: input sequence
-    :type seq: pymbt.sequence.{DNA, RNA, Peptide}
+    :type seq: str
     :param material: DNA, RNA, or peptide
     :type: str
+    :returns: Lowercase version of `seq` with the alphabet checked by
+              check_alphabet().
+    :rtype: str
+
     '''
     check_alphabet(seq, material)
     seq = seq.lower()
@@ -63,6 +74,8 @@ def palindrome(seq):
 
     :param seq: Sequence to analyze (DNA or RNA).
     :type seq: pymbt.sequence.DNA or pymbt.sequence.RNA
+    :returns: Whether a sequence is a palindrome.
+    :rtype: bool
 
     '''
     seq_len = len(seq)

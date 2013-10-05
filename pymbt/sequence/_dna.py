@@ -35,6 +35,11 @@ class DNA(BaseSequence):
         :type id: str
         :param name: Optional name field for your DNA sequence.
         :type name: str
+        :returns: pymbt.sequence.DNA instance.
+        :raises: ValueError if an element of `features` isn't of type
+                 pymbt.sequence.Feature.
+                 ValueError if top and bottom strands have different lengths.
+                 ValueError if top and bottom strands are not complementary.
 
         '''
         # Convert to lowercase, run alphabet check
@@ -57,7 +62,8 @@ class DNA(BaseSequence):
             if run_checks:
                 self._bottom = utils.process_seq(bottom, 'dna')
                 if len(self._bottom) != len(self._sequence):
-                    raise ValueError('Bottom strand is too short.')
+                    msg = "Top and bottom strands are difference lengths."
+                    raise ValueError(msg)
                 r_bottom = utils.reverse_complement(self._bottom, 'dna')
                 mismatches = [1 for t, b in zip(self._sequence, r_bottom) if
                               (t != b and not (t == '-' or b == '-'))]
@@ -73,7 +79,12 @@ class DNA(BaseSequence):
         self.name = name
 
     def copy(self):
-        '''Create a copy of the current instance.'''
+        '''Create a copy of the current instance.
+
+        :returns: A safely-editable copy of the current sequence.
+        :rtype: pymbt.sequence.DNA
+
+        '''
         # Significant performance improvements by skipping alphabet check
         features_copy = [feature.copy() for feature in self.features]
         return type(self)(self._sequence, bottom=self._bottom,
@@ -82,7 +93,12 @@ class DNA(BaseSequence):
                           run_checks=False)
 
     def reverse_complement(self):
-        '''Reverse complement the DNA.'''
+        '''Reverse complement the DNA.
+
+        :returns: A reverse-complemented instance of the current sequence.
+        :rtype: pymbt.sequence.DNA
+
+        '''
         copy = self.copy()
         if self.stranded == 'ds':
             copy._sequence = self._bottom
@@ -107,7 +123,13 @@ class DNA(BaseSequence):
         return copy
 
     def circularize(self):
-        '''Circularize linear DNA.'''
+        '''Circularize linear DNA.
+
+        :returns: A circularized version of the current sequence.
+        :rtype: pymbt.sequence.DNA
+
+        '''
+        # FIXME: this should fail for some cases of overhangs.
         copy = self.copy()
         copy.topology = 'circular'
         return copy
@@ -117,6 +139,9 @@ class DNA(BaseSequence):
 
         :param index: index at which to linearize.
         :type index: int
+        :returns: A linearized version of the current sequence.
+        :rtype: pymbt.sequence.DNA
+        :raises: ValueError if the input is linear DNA.
 
         '''
         if self.topology == 'linear':
@@ -131,6 +156,9 @@ class DNA(BaseSequence):
 
         :param stranded: 'ss' or 'ds' (DNA).
         :type stranded: str
+        :returns: The current sequence, converted to ssDNA or dsDNA.
+        :rtype: pymbt.sequence.DNA
+        :raises: ValueError if `stranded` is not \"ss\" or \"ds\".
 
         '''
         copy = self.copy()
@@ -159,14 +187,20 @@ class DNA(BaseSequence):
 
         :param pattern: Sequence for which to find matches.
         :type pattern: str
+        :returns: A list of top and bottom strand indices of matches.
+        :rtype: list of lists of indices (ints)
+        :raises: ValueError if the pattern is longer than either the input
+                 sequence (for linear DNA) or twice as long as the input
+                 sequence (for circular DNA).
 
         '''
+        # TODO: If linear, should use the methods in BaseSequence
         if self.topology == 'circular':
             if len(pattern) > 2 * len(self):
-                raise Exception('Pattern longer than 2x (circular) sequence.')
+                raise ValueError('Pattern too long.')
         else:
             if len(pattern) > len(self):
-                raise Exception('Pattern longer than (linear) sequence.')
+                raise ValueError('Pattern too long.')
 
         pattern = str(pattern).lower()
         regex = '(?=' + pattern + ')'
@@ -191,9 +225,21 @@ class DNA(BaseSequence):
         return (top_starts, bottom_starts)
 
     def top(self):
+        """Return the raw string of the Watson (top) strand.
+
+        :returns: The Watson strand.
+        :rtype: str
+
+        """
         return self._sequence
 
     def bottom(self):
+        """Return the raw string of the Crick (bottom) strand.
+
+        :returns: The Crick strand.
+        :rtype: str
+
+        """
         return self._bottom
 
     def extract(self, name):
@@ -201,6 +247,10 @@ class DNA(BaseSequence):
 
         :param name: Name of the feature. Must be unique.
         :type name: str
+        :returns: A subsequence from start to stop of the feature.
+        :rtype: pymbt.sequence.DNA
+        :raises: ValueError if no feature has `name` or more than one match
+                 `name`.
 
         '''
         found = [feature for feature in self.features if
@@ -214,7 +264,13 @@ class DNA(BaseSequence):
             return self[found[0].start:found[0].stop]
 
     def _remove_end_gaps(self):
-        '''Removes double-stranded gaps from ends of the sequence.'''
+        """Removes double-stranded gaps from ends of the sequence.
+
+        :returns: The current sequence wiht terminal double-strand gaps ('-')
+                  removed.
+        :rtype: pymbt.sequence.DNA
+
+        """
         # TODO: move this to _resect module
         top = self._sequence
         bottom_rev = self._bottom[::-1]
@@ -236,7 +292,12 @@ class DNA(BaseSequence):
         self._bottom = bottom
 
     def is_palindrome(self):
-        '''Report whether sequence is palindromic.'''
+        """Report whether sequence is palindromic.
+
+        :returns: Boolean stating whether sequence is a palindrome.
+        :rtype: bool
+
+        """
         return utils.palindrome(self)
 
     def ape(self):
@@ -253,7 +314,12 @@ class DNA(BaseSequence):
             shutil.rmtree(tmp)
 
     def flip(self):
-        '''Flip the DNA - swap the top and bottom strands.'''
+        '''Flip the DNA - swap the top and bottom strands.
+
+        :returns: Flipped DNA (bottom strand is now top strand, etc.).
+        :rtype: pymbt.sequence.DNA
+
+        '''
         copy = self.copy()
         copy._sequence, copy._bottom = copy._bottom, copy._sequence
         return copy
@@ -263,6 +329,8 @@ class DNA(BaseSequence):
 
         :param seq: Query sequence.
         :type seq: str or pymbt.sequence.DNA
+        :returns: Boolean of whether the top strand starts with the query.
+        :rtype: bool
 
         """
         if self._sequence.startswith(str(seq)):
@@ -275,6 +343,8 @@ class DNA(BaseSequence):
 
         :param seq: Query sequence.
         :type seq: str or pymbt.sequence.DNA
+        :returns: Boolean of whether the top strand ends with the query.
+        :rtype: bool
 
         """
         if self._sequence.endswith(str(seq)):
@@ -287,6 +357,10 @@ class DNA(BaseSequence):
 
         :param index: DNA position at which to re-zero the DNA.
         :type index: int
+        :returns: The current sequence reoriented at `index`.
+        :rtype: pymbt.sequence.DNA
+        :raises: ValueError if applied to linear sequence or `index` is
+                 negative.
 
         """
         if self.topology == "linear" and index != 0:
@@ -301,8 +375,14 @@ class DNA(BaseSequence):
 
         :param featurename: A uniquely-named feature.
         :type featurename: str
+        :returns: The current sequence reoriented at the start index of a
+                  unique feature matching `featurename`.
+        :rtype: pymbt.sequence.DNA
+        :raises: ValueError if there is no feature of `featurename` or
+                 more than one feature matches `featurename`.
 
         """
+        # REFACTOR: Parts are redundant with .extract()
         matched = []
         for feature in self.features:
             if feature.name == featurename:
@@ -316,7 +396,12 @@ class DNA(BaseSequence):
             raise ValueError("No such feature in the sequence.")
 
     def mw(self):
-        """Calculate the molecular weight."""
+        """Calculate the molecular weight.
+
+        :returns: The molecular weight of the current sequence.
+        :rtype: float
+
+        """
         counter = collections.Counter(self._sequence + self._bottom)
         mw_a = counter["a"] * 313.2
         mw_t = counter["t"] * 304.2
@@ -325,7 +410,8 @@ class DNA(BaseSequence):
         return mw_a + mw_t + mw_g + mw_c
 
     def _features_on_slice(self, key):
-        '''Process features when given a slice (__getitem__).
+        '''Process features when given a slice (__getitem__). Features that
+        would be truncated are simply removed.
 
         :param key: input to __getitem__, is a slice or int
         :type key: slice or int
@@ -365,6 +451,8 @@ class DNA(BaseSequence):
 
         :param key: int or slice object for subsetting.
         :type key: int or slice object
+        :returns: A subsequence matching the slice (`key`).
+        :rtype: pymbt.sequence.DNA
 
         '''
         copy = super(DNA, self).__getitem__(key)
@@ -380,8 +468,10 @@ class DNA(BaseSequence):
     def __delitem__(self, index):
         '''Delete sequence at an index.
 
-        param index: index to delete
-        type index: int
+        :param index: index to delete
+        :type index: int
+        :returns: The current sequence with the base at `index` removed.
+        :rtype: pymbt.sequence.DNA
 
         '''
         if self.features:
@@ -396,7 +486,19 @@ class DNA(BaseSequence):
         self._bottom = ''.join(bottom_list)[::-1]
 
     def __setitem__(self, index, new_value):
-        '''Sets value at index to new value.'''
+        '''Sets value at index to new value.
+
+        :param index: The index at which the sequence will be modified.
+        :type index: int
+        :param new_value: The new value at that index
+        :type new_value: str or pymbt.sequence.DNA
+        :returns: The current sequence with the sequence at `index` replaced
+                  with `new_value`.
+        :rtype: pymbt.sequence.DNA
+        :raises: ValueError if `new_value` is '-'.
+
+        '''
+        new_value = str(new_value)
         if new_value == '-':
             raise ValueError("Can't insert gap - split sequence instead.")
         if self.features:
@@ -432,6 +534,11 @@ class DNA(BaseSequence):
 
         :param other: instance to be added to.
         :type other: compatible sequence object (currently only DNA).
+        :returns: Concatenated DNA sequence.
+        :rtype: pymbt.sequence.DNA
+        :raises: Exception if either sequence is circular.
+                 Exception if concatenating a sequence with overhangs would
+                 create a discontinuity.
 
         '''
         if self.topology == 'circular' or other.topology == 'circular':
@@ -472,7 +579,13 @@ class DNA(BaseSequence):
 
     def __eq__(self, other):
         '''Define equality - sequences, topology, and strandedness are the
-        same.'''
+        same.
+
+        :returns: Whether current sequence's (Watson and Crick), topology,
+                  and strandedness are equivalent to those of another sequence.
+        :rtype: bool
+
+        '''
         tops_equal = self._sequence == other._sequence
         bottoms_equal = self._bottom == other._bottom
         topology_equal = self.topology == other.topology
@@ -495,6 +608,7 @@ class RestrictionSite(object):
         :type cut_site: 2-tuple.
         :param name: Identifier of this restriction site
         :type name: str
+        :returns: instance of pymbt.sequence.RestrictionSite
 
         '''
         self.recognition_site = recognition_site  # require DNA object
@@ -504,13 +618,20 @@ class RestrictionSite(object):
         self.name = name
 
     def is_palindrome(self):
-        '''Report whether sequence is palindromic.'''
+        '''Report whether sequence is palindromic.
+
+        :returns: Whether the restriction site is a palindrome.
+        :rtype: bool
+
+        '''
         return self.recognition_site.is_palindrome()
 
     def cuts_outside(self):
         '''Report whether the enzyme cuts outside its recognition site.
+        Cutting at the very end of the site returns True.
 
-        Cutting at the very end of the site returns True
+        :returns: Whether the enzyme will cut outside its recognition site.
+        :rtype: bool
 
         '''
         for index in self.cut_site:
@@ -519,7 +640,12 @@ class RestrictionSite(object):
         return False
 
     def copy(self):
-        '''Return copy of the restriction site.'''
+        '''Return copy of the restriction site.
+
+        :returns: A safely editable copy of the current restriction site.
+        :rtype: pymbt.sequence.RestrictionSite
+
+        '''
         return RestrictionSite(self.recognition_site, self.cut_site,
                                self.name)
 
@@ -544,7 +670,12 @@ class RestrictionSite(object):
         return '\n'.join([top_w_cut, bottom_w_cut])
 
     def __len__(self):
-        '''Defines len operator.'''
+        '''Defines len operator.
+
+        :returns: Length of the recognition site.
+        :rtype: int
+
+        '''
         return len(self.recognition_site)
 
 
@@ -561,6 +692,7 @@ class Primer(object):
         :param name: optional name attribute (useful when writing to csv with
         seqio.write_primers)
         :type name: str
+        :returns: pymbt.sequence.Primer instance.
 
         '''
         self.tm = tm
@@ -572,7 +704,12 @@ class Primer(object):
         self.name = name
 
     def primer(self):
-        '''Retrieve full primer sequence.'''
+        '''Produce full (overhang + annealing sequence) primer sequence.
+
+        :returns: The DNA sequence of the primer.
+        :rtype: pymbt.sequence.DNA
+
+        '''
         return self.overhang + self.anneal
 
     def __repr__(self):
@@ -584,12 +721,23 @@ class Primer(object):
             return 'Primer: {} Tm: {:.2f}'.format(self.anneal.top(), self.tm)
 
     def __str__(self):
-        '''Coerce DNA object to string.'''
+        '''Coerce DNA object to string.
+
+        :returns: A string of the full primer sequence.
+        :rtype: str
+
+        '''
         return str(self.primer())
 
     def __eq__(self, other):
         '''Define equality - sequences, topology, and strandedness are the
-        same.'''
+        same.
+
+        :returns: Whether two primers have the same overhang and annealing
+                  sequence.
+        :rtype: bool
+
+        '''
         anneal_equal = self.anneal == other.anneal
         overhang_equal = self.overhang == other.overhang
         if anneal_equal and overhang_equal:
@@ -598,7 +746,12 @@ class Primer(object):
             return False
 
     def __len__(self):
-        '''Define len operator.'''
+        '''Define len operator.
+
+        :returns: The length of the full primer sequence.
+        :rtype: int
+
+        '''
         return len(self.primer())
 
 
@@ -618,6 +771,9 @@ class Feature(object):
         :type name: str
         :param strand: Watson (0) or Crick (1) strand of the feature.
         :type strand: int
+        :returns: pymbt.sequence.Feature instance.
+        :raises: ValueError if `feature_type` is not in
+                 pymbt.constants.genbank.TO_PYMBT.
 
         '''
         self.name = name
@@ -646,7 +802,12 @@ class Feature(object):
         self.stop += bases
 
     def copy(self):
-        '''Return a copy of the Feature.'''
+        '''Return a copy of the Feature.
+
+        :returns: A safely editable copy of the current feature.
+        :rtype: pymbt.sequence.Feature
+
+        '''
         return Feature(self.name, self.start, self.stop, self.feature_type,
                        self.strand)
 
@@ -662,7 +823,12 @@ class Feature(object):
         return part1 + part2
 
     def __eq__(self, other):
-        '''Define equality.'''
+        '''Define equality.
+
+        :returns: Whether the name and feature type are the same.
+        :rtype: bool
+
+        '''
         # name is the same
         name_equal = self.name == other.name
         # feature_type is the same
@@ -681,22 +847,3 @@ class Feature(object):
             return True
         else:
             return False
-
-
-def _decompose(string, n):
-    '''Given string and multiplier, find n**2 decomposition.
-
-    :param string: input string
-    :type string: str
-    :param n: multiplier
-    :type n: int
-
-    '''
-    binary = [int(x) for x in bin(n)[2:]]
-    new_string = string
-    counter = 1
-    while counter <= len(binary):
-        if binary[-counter]:
-            yield new_string
-        new_string += new_string
-        counter += 1
