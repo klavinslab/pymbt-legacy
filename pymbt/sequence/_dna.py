@@ -1,4 +1,5 @@
 '''DNA object classes.'''
+import collections
 import re
 from pymbt.constants import genbank
 from pymbt.sequence import utils
@@ -257,12 +258,37 @@ class DNA(BaseSequence):
         copy._sequence, copy._bottom = copy._bottom, copy._sequence
         return copy
 
+    def startswith(self, seq):
+        """Report whether parent sequence starts with a query sequence.
+
+        :param seq: Query sequence.
+        :type seq: str or pymbt.sequence.DNA
+
+        """
+        if self._sequence.startswith(str(seq)):
+            return True
+        else:
+            return False
+
+    def endswith(self, seq):
+        """Report whether parent sequence ends with a query sequence.
+
+        :param seq: Query sequence.
+        :type seq: str or pymbt.sequence.DNA
+
+        """
+        if self._sequence.endswith(str(seq)):
+            return True
+        else:
+            return False
+
     def orient(self, index):
-        '''Orient DNA to index.
+        """Orient DNA to index (only applies to circular DNA).
 
         :param index: DNA position at which to re-zero the DNA.
         :type index: int
-        '''
+
+        """
         if self.topology == "linear" and index != 0:
             raise ValueError("Can't reorient linear DNA")
         if index < 0:
@@ -270,19 +296,13 @@ class DNA(BaseSequence):
         else:
             return self[index:] + self[0:index]
 
-    def startswith(self, seq):
-        if self._sequence.startswith(str(seq)):
-            return True
-        else:
-            return False
-
-    def endswith(self, seq):
-        if self._sequence.endswith(str(seq)):
-            return True
-        else:
-            return False
-
     def orient_by_feature(self, featurename):
+        """Reorient the DNA based on a feature it contains (circular DNA only).
+
+        :param featurename: A uniquely-named feature.
+        :type featurename: str
+
+        """
         matched = []
         for feature in self.features:
             if feature.name == featurename:
@@ -294,6 +314,15 @@ class DNA(BaseSequence):
             raise ValueError("More than one feature has that name.")
         else:
             raise ValueError("No such feature in the sequence.")
+
+    def mw(self):
+        """Calculate the molecular weight."""
+        counter = collections.Counter(self._sequence + self._bottom)
+        mw_a = counter["a"] * 313.2
+        mw_t = counter["t"] * 304.2
+        mw_g = counter["g"] * 289.2
+        mw_c = counter["c"] * 329.2
+        return mw_a + mw_t + mw_g + mw_c
 
     def _features_on_slice(self, key):
         '''Process features when given a slice (__getitem__).
