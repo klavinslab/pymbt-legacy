@@ -1,5 +1,6 @@
 '''DNA object classes.'''
 import collections
+import os
 import re
 from pymbt.constants import genbank
 from pymbt.sequence import utils
@@ -300,12 +301,24 @@ class DNA(BaseSequence):
         """
         return utils.palindrome(self)
 
-    def ape(self):
+    def ape(self, ape_path=None):
         '''Open in ApE.'''
+        cmd = "ApE"
+        if ape_path is None:
+            # Check for ApE in PATH
+            ape_executables = []
+            for path in os.environ["PATH"].split(os.pathsep):
+                exepath = os.path.join(path, cmd)
+                ape_executables.append(os.access(exepath, os.X_OK))
+            if not any(ape_executables):
+                raise Exception("Ape not in PATH. Use ape_path kwarg.")
+        else:
+            cmd = ape_path
+        # Check whether ApE exists in PATH
         tmp = tempfile.mkdtemp()
         filename = tmp + '/tmp.ape'
         pymbt.seqio.write_dna(self, filename)
-        process = subprocess.Popen(['ApE', filename])
+        process = subprocess.Popen([cmd, filename])
         # Block until window is closed
         try:
             process.wait()
