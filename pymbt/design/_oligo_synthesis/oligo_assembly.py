@@ -38,6 +38,7 @@ class OligoAssembly(object):
                               allow overlaps less than overlap_min to continue
                               growing above tm setpoint.
         :type min_exception: bool
+        :returns: pymbt.design.OligoAssembly instance.
 
         '''
         self.kwargs = {'tm': tm, 'length_range': length_range,
@@ -56,7 +57,13 @@ class OligoAssembly(object):
         self.warning = None
 
     def design_assembly(self):
-        '''Design the overlapping oligos.'''
+        '''Design the overlapping oligos.
+
+        :returns: Assembly oligos, and the sequences, Tms, and indices of their
+                  overlapping regions.
+        :rtype: dict
+
+        '''
         # Input parameters needed to design the oligos
         length_range = self.kwargs['length_range']
         oligo_number = self.kwargs['oligo_number']
@@ -88,7 +95,7 @@ class OligoAssembly(object):
             oligo_n_met = False
             above_min_len = length_max > length_range[0]
             if oligo_n_met or not above_min_len:
-                raise Exception('Failed!')
+                raise Exception("Failed to design assembly.")
             while not oligo_n_met and above_min_len:
                 # Starting with low range and going up doesnt work for longer
                 # sequence (overlaps become longer than 80)
@@ -144,6 +151,8 @@ class OligoAssembly(object):
 
         :param tm: melting temperature (lower than overlaps is best).
         :type tm: float
+        :returns: Primer list (the output of pymbt.design.design_primers).
+        :rtype: list
 
         '''
         self.primers = design_primers(self.template, tm=tm)
@@ -224,6 +233,9 @@ def _grow_overlaps(dna, melting_temp, require_even, length_max, overlap_min,
                           settings, allow overlaps less than overlap_min to
                           continue growing above melting_temp.
     :type min_exception: bool
+    :returns: Oligos, their overlapping regions, overlap Tms, and overlap
+              indices.
+    :rtype: tuple
 
     '''
     # TODO: prevent growing overlaps from bumping into each other -
@@ -346,6 +358,8 @@ def _recalculate_overlaps(dna, overlaps, oligo_indices):
     :type overlaps: pymbt.sequence.DNA list
     :param oligo_indices: List of oligo indices (starts and stops).
     :type oligo_indices: list
+    :returns: Overlap sequences.
+    :rtype: pymbt.sequence.DNA list
 
     '''
     for i, overlap in enumerate(overlaps):
@@ -372,6 +386,8 @@ def _expand_overlap(dna, oligo_indices, index, oligos, length_max):
     :type right_len: int
     :param length_max: length ceiling
     :type length_max: int
+    :returns: New oligo list with one expanded.
+    :rtype: list
 
     '''
     left_len = len(oligos[index])
@@ -404,6 +420,9 @@ def _adjust_overlap(positions_list, index, direction):
     :type index: int
     :param direction: which side of the overlap to increase - left or right.
     :type direction: str
+    :returns: A list of overlap positions (2-element lists)
+    :rtype: list
+    :raises: ValueError if direction isn't "left" or "right".
 
     '''
     if direction == 'left':

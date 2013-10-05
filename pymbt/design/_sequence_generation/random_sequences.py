@@ -4,14 +4,17 @@ from pymbt import constants
 from pymbt import sequence
 
 
-def random_dna(length):
+def random_dna(n):
     '''Generate a random DNA sequence.
 
     :param length: Output sequence length.
     :type length: int
+    :returns: Random DNA sequence of length n.
+    :rtype: pymbt.sequence.DNA
 
     '''
-    return sequence.DNA(''.join(random.choice('ATGC') for i in range(length)))
+    n_generator = (random.choice("ATGC") for i in range(n))
+    return sequence.DNA("".join(n_generator))
 
 
 def random_codons(peptide, frequency_cutoff=0.0, weighted=False, table=None):
@@ -34,6 +37,11 @@ def random_codons(peptide, frequency_cutoff=0.0, weighted=False, table=None):
 
                   constants.molecular_bio.CODON_FREQ_BY_AA['sc'] (default)
     :type table: dict
+    :returns: Randomized sequence of codons (DNA) that code for the input
+              peptide.
+    :rtype: pymbt.sequence.DNA
+    :raises: ValueError if frequency_cutoff is set so high that there are no
+             codons available for an amino acid in the input peptide.
 
     '''
     if table is None:
@@ -70,6 +78,8 @@ def _cutoff(table, frequency_cutoff):
     :type table: dict
     :param frequency_cutoff: value between 0 and 1.0 for mean frequency cutoff
     :type frequency_cutoff: float
+    :returns: A codon frequency table with some codons removed.
+    :rtype: dict
 
     '''
     new_table = {}

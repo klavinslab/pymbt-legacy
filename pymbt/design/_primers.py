@@ -28,6 +28,12 @@ def design_primer(dna, tm=72, min_len=10, tm_undershoot=1, tm_overshoot=3,
     :param structure: Evaluate primer for structure, with warning for high
                       structure.
     :type structure: bool
+    :returns: A primer.
+    :rtype: pymbt.sequence.Primer
+    :raises: ValueError if the input sequence is lower than the Tm settings
+             allow.
+             ValueError if a primer ending with G or C can't be found given
+             the Tm settings.
 
     '''
     # Check Tm of input sequence to see if it's already too low
@@ -112,6 +118,8 @@ def design_primers(dna, tm=72, min_len=10, tm_undershoot=1, tm_overshoot=3,
     :type tm_parameters: string
     :param overhangs: 2-tuple of overhang sequences.
     :type overhangs: tuple
+    :returns: A list primers (the output of design_primer).
+    :rtype: list
 
     '''
     if not overhangs:
