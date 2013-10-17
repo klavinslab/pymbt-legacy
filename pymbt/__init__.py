@@ -1,8 +1,8 @@
 '''python molecular biology tool, a cloning-oriented DNA design module.'''
-from pymbt import analysis
-from pymbt import constants
-from pymbt import database
-from pymbt import design
-from pymbt import seqio
-from pymbt import reaction
-from pymbt import sequence
+from . import analysis
+from . import constants
+from . import database
+from . import design
+from . import seqio
+from . import reaction
+from . import sequence

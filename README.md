@@ -7,9 +7,9 @@ PyMBT: Python molecular biology tools.
 ###python (pip-compatible):
 
 ```
-numpy  
-biopython  
-matplotlib  
+numpy
+biopython
+matplotlib
 ```
 
 ###system:
@@ -18,7 +18,7 @@ for matplotlib
 
 ```
 libpng-dev
-libfreetype-dev 
+libfreetype-dev
 tk-dev
 tcl-dev
 ```
@@ -36,10 +36,16 @@ NUPACK
 Vienna RNA
 ```
 
+to build the documentation:
+```
+sphinx
+ipython
+```
+
 ## Clone and install:
 
 ```
 git clone https://github.com/klavinslab/pymbt.git
-cd pymbt  
+cd pymbt
 pip install .
 ```
