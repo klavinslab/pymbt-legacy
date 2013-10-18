@@ -15,10 +15,7 @@ def reverse_complement(seq, material):
     :rtype: str
 
     '''
-    complements = COMPLEMENTS[material]
-    origin = complements[0]
-    destination = complements[1]
-    code = dict(zip(origin, destination))
+    code = COMPLEMENTS[material]
     complemented = ''.join(code.get(base) for base in seq)
     reverse_complemented = complemented[::-1]
     return reverse_complemented

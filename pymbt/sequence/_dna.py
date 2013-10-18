@@ -3,6 +3,7 @@ import collections
 import os
 import re
 from pymbt.constants import genbank
+from pymbt.constants.molecular_bio import COMPLEMENTS
 from pymbt.sequence import utils
 from pymbt.sequence._sequence import BaseSequence
 import pymbt.seqio
@@ -93,6 +94,35 @@ class DNA(BaseSequence):
                           features=features_copy, id=self.id, name=self.name,
                           run_checks=False)
 
+    def reverse(self):
+        '''Reverse the sequence.
+
+        :returns: A reversed instance of the current sequence.
+        :rtype: pymbt.sequence.DNA
+
+        '''
+        copy = self.copy()
+        copy._sequence = self._sequence[::-1]
+        copy._bottom = self._bottom[::-1]
+        # Remove features - reversed ones make no sense
+        copy.features = []
+        return copy
+
+    def complement(self):
+        '''Complement the bases of the sequence.
+
+        :returns: A base-complemented instance of the current sequence.
+        :rtype: pymbt.sequence.DNA
+
+        '''
+        copy = self.copy()
+        code = dict(COMPLEMENTS['dna'])
+        copy._sequence = ''.join(code[base] for base in copy._sequence)
+        copy._bottom = ''.join(code[base] for base in copy._bottom)
+        # Remove features - they make no sense in complement
+        copy.features = []
+        return copy
+
     def reverse_complement(self):
         '''Reverse complement the DNA.
 
@@ -101,12 +131,13 @@ class DNA(BaseSequence):
 
         '''
         copy = self.copy()
-        if self.stranded == 'ds':
-            copy._sequence = self._bottom
-            copy._bottom = self._sequence
-        else:
-            copy._sequence = utils.reverse_complement(self._bottom, 'dna')
-            copy._bottom = utils.reverse_complement(self._sequence, 'dna')
+        # Store features - they get removed on reverse/complement
+        feature_copy = copy.features
+        # Note: if sequence is double-stranded, swapping strand is basically
+        # (but not entirely) the same thing - gaps affect accuracy.
+        copy = copy.reverse()
+        copy = copy.complement()
+        copy.features = feature_copy
 
         # Fix features (invert)
         for feature in copy.features:
