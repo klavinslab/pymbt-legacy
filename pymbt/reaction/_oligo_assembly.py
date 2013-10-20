@@ -1,4 +1,7 @@
 """Simulate building a construct by assembling oligos with PCA."""
+# FIXME: Would not catch the case where e.g. the first and second oligos
+# bound each other almost perfectly, ruling out the third oligo from binding
+# i.e. the assemble_oligos function does not test for conflicting overlaps
 
 
 class AssemblyError(Exception):
@@ -6,10 +9,16 @@ class AssemblyError(Exception):
     pass
 
 
-def assemble_oligos(dna_list):
+def assemble_oligos(dna_list, reference=None):
     """Given a list of DNA sequences, assemble into a single construct.
     :param dna_list: List of DNA sequences - they must be single-stranded.
     :type dna_list: pymbt.sequence.DNA list
+    :param reference: Expected sequence - once assembly completed, this will
+                      be used to reorient the DNA (assembly could potentially
+                      occur from either side of a linear DNA construct if
+                      oligos are in a random order). If this fails, an
+                      AssemblyError is raised.
+    :type reference: pymbt.sequence.DNA
     :raises: AssemblyError if it can't assemble for any reason.
     :returns: A single assembled DNA sequence
     :rtype: pymbt.sequence.DNA
@@ -75,7 +84,13 @@ def assemble_oligos(dna_list):
         # Concatenate and update last oligo's information
         assembly += next_oligo
         last_index = current_index
-    return assembly
+    if reference:
+        if assembly == reference or assembly == reference.reverse_complement():
+            return assembly
+        else:
+            raise AssemblyError("Assembly did not match reference")
+    else:
+        return assembly
 
 
 def bind_unique(reference, query_list, min_overlap=12, right=True):
@@ -104,6 +119,8 @@ def bind_unique(reference, query_list, min_overlap=12, right=True):
     while not found and not size > len(reference):
         for i, seq in enumerate(rev_query):
             if right:
+                # FIXME: these getitems are the slowest part of assembly
+                # Easiest speedup?
                 if reference.endswith(seq[:size]):
                     found.append(i)
             else:
