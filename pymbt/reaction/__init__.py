@@ -9,4 +9,4 @@ from pymbt.reaction._restriction import digest
 from pymbt.reaction._pcr import pcr
 from pymbt.reaction._gibson import Gibson
 from pymbt.reaction._oligo_assembly import assemble_oligos
-from pymbt.reaction._oligo_assembly import match
+from pymbt.reaction._oligo_assembly import bind_unique

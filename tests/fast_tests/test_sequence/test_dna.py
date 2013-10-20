@@ -29,12 +29,7 @@ class TestDNA(object):
         assert_equal(ss_dna.stranded, 'ss')
         ds_dna = self.test_dna.set_stranded('ds')
         assert_equal(ds_dna.stranded, 'ds')
-        assert_equal(sequence.utils.reverse_complement(ds_dna._bottom, 'dna'),
-                     str(ss_dna))
-
-        r_ss_dna = ds_dna  # TODO: make sure this is worth testing
-        r_ds_dna = self.test_dna.set_stranded('ds')
-        assert_equal(str(r_ds_dna.reverse_complement()), r_ss_dna.bottom())
+        assert_equal(ds_dna.top(), str(ss_dna))
 
         ds_to_ss_to_ds = self.test_dna.set_stranded('ss').set_stranded('ds')
         assert_equal(self.test_dna, ds_to_ss_to_ds)
@@ -206,10 +201,8 @@ def test_stranded_init():
 def test_stranded_complemented():
     ss_dna = sequence.DNA('atgc', stranded='ss')
     r_ss_dna = ss_dna.reverse_complement()
-    assert_equal(ss_dna._bottom,
-                 sequence.utils.reverse_complement(str(r_ss_dna), 'dna'))
-    assert_equal(str(ss_dna),
-                 sequence.utils.reverse_complement(r_ss_dna._bottom, 'dna'))
+    assert_equal(r_ss_dna.top(), 'gcat')
+    assert_equal(r_ss_dna.bottom(), '----')
 
 
 class TestFeatures(object):

@@ -205,9 +205,9 @@ class DNA(BaseSequence):
             # Find strand that's all gaps (if ss this should be the case)
             reverse_seq = self.reverse_complement()
             if all(char == '-' for char in self._sequence):
-                copy._sequence = reverse_seq._sequence
+                copy._sequence = reverse_seq._bottom
             elif all(char == '-' for char in self._bottom):
-                copy._bottom = reverse_seq._bottom
+                copy._bottom = reverse_seq._sequence
             copy.stranded = 'ds'
         else:
             raise ValueError("'stranded' must be 'ss' or 'ds'.")

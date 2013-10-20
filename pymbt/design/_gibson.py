@@ -27,16 +27,15 @@ def gibson_primers(dna1, dna2, split, overlap_tm=65.0, **kwargs):
 
     '''
     # TODO: if sequence is too short (overlap len = seq len), raise exception
-    dna1_primer = design_primer(dna1.reverse_complement(), **kwargs)
+    dna1_primer = design_primer(dna1.flip(), **kwargs)
     dna2_primer = design_primer(dna2, **kwargs)
     if split == 'left':
-        overhang_f = design_primer(dna1.reverse_complement(), tm=overlap_tm,
-                                   tm_undershoot=0)
-        overhang2 = overhang_f.primer().reverse_complement().flip()
+        overhang_f = design_primer(dna1.flip(), tm=overlap_tm, tm_undershoot=0)
+        overhang2 = overhang_f.primer().reverse_complement()
         overhang1 = None
     elif split == 'right':
         overhang_r = design_primer(dna2, tm=overlap_tm, tm_undershoot=0)
-        overhang1 = overhang_r.primer().reverse_complement().flip()
+        overhang1 = overhang_r.primer().reverse_complement()
         overhang2 = None
     elif split == 'mixed':
         overlap_l = dna1[0:0]

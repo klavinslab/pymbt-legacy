@@ -76,13 +76,11 @@ def _cut(dna, index, restriction_enzyme):
         pass
     elif diff > 0:
         # 3' overhangs
-        left_r = left.reverse_complement()
-        left = five_resect(left_r, diff).reverse_complement()
+        left = five_resect(left.flip(), diff).flip()
         right = five_resect(right, diff)
     else:
         # 5' overhangs
         left = three_resect(left, abs(diff))
-        right_r = right.reverse_complement()
-        right = three_resect(right_r, abs(diff)).reverse_complement()
+        right = three_resect(right.flip(), abs(diff)).flip()
 
     return [left, right]

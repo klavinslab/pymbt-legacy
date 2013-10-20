@@ -15,49 +15,99 @@ def assemble_oligos(dna_list):
     :rtype: pymbt.sequence.DNA
 
     """
+    # FIXME: this protocol currently only supports 5' ends on the assembly
     # Find all matches for every oligo. If more than 2 per side, error.
     # Self-oligo is included in case the 3' end is self-complementary.
-    # 3' end matches (reference is 3' end, query is 5' end of other oligo)
-    match_3 = [match(seq, dna_list, right=True) for i, seq in
+    # 1) Find all unique 3' binders (and non-binders).
+    match_3 = [bind_unique(seq, dna_list, right=True) for i, seq in
                enumerate(dna_list)]
-    # 5' end matches (reference is 5' end, query is 3' end of other oligo)
-    match_5 = [match(seq, dna_list, right=False) for i, seq in
+    # 2) Find all unique 5' binders (and non-binders).
+    match_5 = [bind_unique(seq, dna_list, right=False) for i, seq in
                enumerate(dna_list)]
     # Assemble into 2-tuple
-    zipped = zip(match_3, match_5)
-    return zipped
-    for i, oligo_matches in enumerate(zipped):
-        if not any(oligo_matches):
-            error = "Oligo {} doesn't bind any others.".format(i + 1)
+    zipped = zip(match_5, match_3)
+    #return zipped
+    # 3) If none found, error out with 'oligo n has no binders'
+    for i, oligo_match in enumerate(zipped):
+        if not any(oligo_match):
+            error = "Oligo {} has no binding partners.".format(i + 1)
             raise AssemblyError(error)
-    # Isolate oligos with only one match - there should be exactly 2
-    # < 2 implies missing oligo. >2 implies an extra oligo
-    # Treat first one found (left to right from input list) as 'first' oligo.
-    ends = [i for i, x in enumerate(zipped) if any([y is None for y in x])]
+    # 4) There should be exactly 2 oligos that bind at 3' end but
+    # not 5'.
+    ends = []
+    for i, (five, three) in enumerate(zipped):
+        if five is None and three is not None:
+            ends.append(i)
+    # 5) If more than 2, error with 'too many ends'.
     if len(ends) > 2:
-        raise AssemblyError("More than 2 end oligos found.")
+        raise AssemblyError("Too many (>2) end oligos found.")
+    # 6) If more than 2, error with 'not enough ends'.
     if len(ends) < 2:
-        raise AssemblyError("Fewer than 2 end oligos found.")
-    return ends
-    # Chain first oligo to second oligo, fill in side that won't be used
-    # as overhang.
-    # If a match can't be found
-    # Repeat until assembly is complete.
+        raise AssemblyError("Not enough (<2) end oligos found.")
+    # NOTE:If 1-4 are satisfied, unique linear assembly has been found (proof?)
+    # 8) Start with first end and build iteratively
+    last_index = ends[0]
+    assembly = dna_list[last_index].set_stranded("ds")
+    flip = True
+    # This would be slightly less complicated if the sequences were tied to
+    # their match info in a tuple
+    # Append next region n - 1 times
+    for i in range(len(dna_list) - 1):
+        if flip:
+            # Next oligo needs to be flipped before concatenation
+            # Grab 3' match from last oligo's info
+            current_index, matchlen = zipped[last_index][1]
+            # Get new oligo sequence, make double-stranded for concatenation
+            next_oligo = dna_list[current_index].set_stranded("ds")
+            # Reverse complement for concatenation
+            next_oligo = next_oligo.reverse_complement()
+            # Don't reverse complement the next one
+            flip = False
+        else:
+            # Grab 5' match from last oligo's info
+            current_index, matchlen = zipped[last_index][0]
+            # Get new oligo sequence, make double-stranded for concatenation
+            next_oligo = dna_list[current_index].set_stranded("ds")
+            # Reverse complement the next one
+            flip = True
+        # Trim overlap from new sequence
+        next_oligo = next_oligo[(matchlen - 1):]
+        # Concatenate and update last oligo's information
+        assembly += next_oligo
+        last_index = current_index
+    return assembly
 
 
-def match(reference, query, right=True, start_size=12):
-    """Given reference oligo, find queries that uniquely match its 3' end"""
-    size = start_size
+def bind_unique(reference, query_list, min_overlap=12, right=True):
+    """(5' or 3' region on reference sequence that uniquely matches the reverse
+    complement of the associated (5' or 3') region of one sequence in a list of
+    query sequences.
+
+    :param reference: Reference sequence.
+    :type reference: pymbt.sequence.DNA
+    :param query_list: List of query sequences.
+    :type query_list: pymbt.sequence.DNA list
+    :param min_overlap: Minimum overlap for a match (in bp).
+    :type min_overlap: int
+    :param right: Check right side of sequence (3'). False results in 5' check.
+    :type right: bool
+    :returns: Tuple of the indices of any matches and the size of the match in
+              bp.
+    :rtype: tuple of ints
+    :raises: AssemblyError if more than one match is found.
+
+    """
+    size = min_overlap
     found = []
-    # Reverse complementing here provides massive speedup
-    rev_query = [seq.reverse_complement().flip() for seq in query]
+    # Reverse complementing here provides massive speedup?
+    rev_query = [seq.reverse_complement() for seq in query_list]
     while not found and not size > len(reference):
         for i, seq in enumerate(rev_query):
             if right:
-                if reference[-size:] == seq[:size]:
+                if reference.endswith(seq[:size]):
                     found.append(i)
             else:
-                if reference[:size] == seq[-size:]:
+                if reference.startswith(seq[-size:]):
                     found.append(i)
         size += 1
     if len(found) > 1:
@@ -65,4 +115,4 @@ def match(reference, query, right=True, start_size=12):
     if not found:
         return None
     else:
-        return found
+        return found[0], size
