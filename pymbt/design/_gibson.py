@@ -132,7 +132,7 @@ def gibson_primers(dna1, dna2, overlap="mixed", maxlen=60, overlap_tm=65.0,
     return rev, fwd
 
 
-def gibson(seq_list, circular=True, splits='mixed', overlap_tm=65, **kwargs):
+def gibson(seq_list, circular=True, overlaps='mixed', overlap_tm=65, **kwargs):
     '''Design Gibson primers given a set of sequences
 
     :param seq_list: List of DNA sequences to stitch together
@@ -162,25 +162,26 @@ def gibson(seq_list, circular=True, splits='mixed', overlap_tm=65, **kwargs):
     else:
         n_overlaps = len(seq_list) - 1
 
-    if type(splits) is str:
-        splits = [splits] * n_overlaps
+    if type(overlaps) is str:
+        overlaps = [overlaps] * n_overlaps
     else:
-        if len(splits) != n_overlaps:
-            raise ValueError("Incorrect number of 'splits' entries.")
+        if len(overlaps) != n_overlaps:
+            raise ValueError("Incorrect number of 'overlaps' entries.")
         else:
-            for split in splits:
-                if split not in ['left', 'right', 'mixed']:
-                    raise ValueError("Invalid 'splits' setting.")
+            for overlap in overlaps:
+                if overlap not in ['left', 'right', 'mixed']:
+                    raise ValueError("Invalid 'overlaps' setting.")
 
     # If here, inputs were good
     # Design primers for linear constructs:
     primers_list = []
     for i, (left, right) in enumerate(zip(seq_list[:-1], seq_list[1:])):
-        primers_list.append(gibson_primers(left, right, splits[i],
+        primers_list.append(gibson_primers(left, right, overlaps[i],
                                            overlap_tm=overlap_tm))
     if circular:
         primers_list.append(gibson_primers(seq_list[-1], seq_list[0],
-                                           splits[-1], overlap_tm=overlap_tm))
+                                           overlaps[-1],
+                                           overlap_tm=overlap_tm))
     else:
         primer_f = design_primer(seq_list[0])
         primer_r = design_primer(seq_list[-1].reverse_complement())
