@@ -1,10 +1,20 @@
 '''Gibson design module.'''
 from pymbt import analysis, sequence
 from pymbt.design import design_primer
-# IDEA: Separate design of Gibson overlaps from design of primers
 
 
-def gibson_primers(dna1, dna2, split, overlap_tm=65.0, **kwargs):
+class LengthError(Exception):
+    """If primer would be longer than max length, throw this exception"""
+    pass
+
+
+class TmError(Exception):
+    """If the assembly overlap would fall below the minimum Tm, throw this."""
+    pass
+
+
+def gibson_primers(dna1, dna2, overlap="mixed", maxlen=60, overlap_tm=65.0,
+                   insert=None, **kwargs):
     '''Design Gibson primers given two DNA sequences (connect left to right)
 
     :param dna1: First piece of DNA for which to design primers. Once Gibsoned,
@@ -13,53 +23,113 @@ def gibson_primers(dna1, dna2, split, overlap_tm=65.0, **kwargs):
     :param dna2: First piece of DNA for which to design primers. Once Gibsoned,
                  would be connected at its right side to dna2.
     :type dna2: pymbt.sequence.DNA
-    :param split: Specifies location of overlap. 'left' puts it on the 'dna1'
-                  side (i.e. the primer to amplify dna2). 'right' puts it on
-                  the dna2 side, and 'mixed' does a ~50:50 split
-    :type split: str
+    :param overlap: Specifies location of overlap. 'left' puts it on the 'dna1'
+                    side (i.e. the primer to amplify dna2). 'right' puts it on
+                    the dna2 side, and 'mixed' does a ~50:50 split
+    :type overlap: str
+    :param maxlen: Maximum length of each primer (e.g. 60 base pairs to save
+                   money at IDT).
+    :type maxlen: int
     :param overlap_tm: Minimum Tm of overlap
     :type overlap_tm: float
+    :param insert: A DNA insert to add with primers and use as assembly
+                   homology. This overrides the 'split' argument.
+    :type insert: pymbt.sequence.DNA
     :param kwargs: keyword arguments to pass to design_primer
     :type kwargs: dict
-    :returns: Forward and reverse primers for bridging the two sequences.
+    :returns: Reverse, then forward primer for bridging the two sequences.
+              Note that the forward primer binds dna2, reverse dna1.
     :rtype: A sequence.Primer tuple
     :raises: ValueError if split parameter is an invalid string.
 
     '''
-    # TODO: if sequence is too short (overlap len = seq len), raise exception
-    dna1_primer = design_primer(dna1.flip(), **kwargs)
-    dna2_primer = design_primer(dna2, **kwargs)
-    if split == 'left':
-        overhang_f = design_primer(dna1.flip(), tm=overlap_tm, tm_undershoot=0)
-        overhang2 = overhang_f.primer().reverse_complement()
-        overhang1 = None
-    elif split == 'right':
-        overhang_r = design_primer(dna2, tm=overlap_tm, tm_undershoot=0)
-        overhang1 = overhang_r.primer().reverse_complement()
-        overhang2 = None
-    elif split == 'mixed':
-        overlap_l = dna1[0:0]
-        overlap_r = dna2[0]
-        overlap_melt = analysis.tm(overlap_r)
-        while overlap_melt < overlap_tm:
-            rlen = len(overlap_r)
-            llen = len(overlap_l)
-            if rlen > llen:
-                overlap_l = dna1[-(rlen + 1):]
-            else:
-                overlap_r = dna2[:(llen + 1)]
-            overlap = overlap_l + overlap_r
-            overlap_melt = analysis.tm(overlap)
-        overhang1 = overlap_r.reverse_complement()
-        overhang2 = overlap_l
+    # Annealing sequences
+    # DNA 2 primer is a forward primer
+    fwd_anneal = design_primer(dna2, **kwargs)
+    # DNA 1 primer is a reverse primer
+    rev_anneal = design_primer(dna1.flip(), **kwargs)
+    # Overhangs
+    if insert is None:
+        # No insert, so follow split argument
+        if overlap == 'left':
+            # If splitting left, put overhang on forward primer
+            overlap_revcomp = design_primer(dna1.flip(), tm=overlap_tm,
+                                            tm_undershoot=0)
+            fwd_overhang = overlap_revcomp.primer().reverse_complement()
+            rev_overhang = None
+        elif overlap == 'right':
+            # If splitting right, put overhang on reverse primer
+            overlap = design_primer(dna2, tm=overlap_tm, tm_undershoot=0)
+            fwd_overhang = None
+            rev_overhang = overlap.primer().reverse_complement()
+        elif overlap == 'mixed':
+            # If mixed, grow size of both until overlap Tm is reached
+            overlap_l = dna1[0:0]  # Empty sequence.DNA
+            overlap_r = dna2[0]  # First base
+            overlap_melt = analysis.tm(overlap_r)  # Initial overlap Tm
+            while overlap_melt < overlap_tm:
+                rlen = len(overlap_r)
+                llen = len(overlap_l)
+                if rlen > llen:
+                    # Increase left side of overlap
+                    overlap_l = dna1[-(rlen + 1):]
+                else:
+                    # Increase right side of overlap
+                    overlap_r = dna2[:(llen + 1)]
+                overlap = overlap_l + overlap_r
+                overlap_melt = analysis.tm(overlap)
+            fwd_overhang = overlap_l
+            rev_overhang = overlap_r.reverse_complement()
+        else:
+            raise ValueError('split argument must be left, right, or mixed')
+        # Generate primers using anneal, overhang, and tm data
+        fwd = sequence.Primer(fwd_anneal.primer(), tm=fwd_anneal.tm,
+                              overhang=fwd_overhang)
+        rev = sequence.Primer(rev_anneal.primer(), tm=rev_anneal.tm,
+                              overhang=rev_overhang)
     else:
-        raise ValueError('split argument must be left, right, or mixed')
-    primer1 = sequence.Primer(dna1_primer.anneal, tm=dna1_primer.tm,
-                              overhang=overhang1)
-    primer2 = sequence.Primer(dna2_primer.anneal, tm=dna2_primer.tm,
-                              overhang=overhang2)
+        # There's an insert to use as the overhang
+        overlap = insert
+        fwd_overhang = insert.set_stranded("ss")
+        rev_overhang = insert.reverse_complement().set_stranded("ss")
+        # Generate primers using anneal, overhang, and tm data
+        fwd = sequence.Primer(fwd_anneal.primer(), tm=fwd_anneal.tm,
+                              overhang=fwd_overhang)
+        rev = sequence.Primer(rev_anneal.primer(), tm=rev_anneal.tm,
+                              overhang=rev_overhang)
+        left_trim = 0
+        # If either primer is too long, try trimming the overhang
+        while len(fwd) > maxlen:
+            # Generate new overlap
+            overlap = insert[left_trim:]
+            # Tm must be above overlap_tm
+            if analysis.tm(overlap) < overlap_tm:
+                raise TmError("Right primer is too long with this Tm setting.")
+            # Regenerate forward overhang
+            fwd_overhang = overlap.set_stranded("ss")
+            # Regenerate primer with new overhang
+            fwd = sequence.Primer(fwd_anneal.primer(), tm=fwd_anneal.tm,
+                                  overhang=fwd_overhang)
+            # Increase 'trimming' index
+            left_trim += 1
+        right_trim = 0
+        while len(rev) > maxlen:
+            # Generate new overlap
+            overlap = insert[:len(insert) - right_trim]
+            # Tm must be above overlap_tm
+            if analysis.tm(overlap) < overlap_tm:
+                raise TmError("Left primer is too long with this Tm setting.")
+            # Regenerate reverse overhang
+            rev_overhang = overlap.reverse_complement().set_stranded("ss")
+            rev = sequence.Primer(rev_anneal.primer(), tm=rev_anneal.tm,
+                                  overhang=rev_overhang)
+            # Increase 'trimming' index
+            right_trim += 1
+    # Check primer lengths
+    if any(len(primer) > maxlen for primer in (fwd, rev)):
+        raise LengthError("At least one of the primers is too long")
 
-    return primer1, primer2
+    return rev, fwd
 
 
 def gibson(seq_list, circular=True, splits='mixed', overlap_tm=65, **kwargs):

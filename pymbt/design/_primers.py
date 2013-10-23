@@ -4,7 +4,7 @@ from pymbt import sequence
 import warnings
 
 
-def design_primer(dna, tm=72, min_len=10, tm_undershoot=1, tm_overshoot=3,
+def design_primer(dna, tm=65, min_len=10, tm_undershoot=1, tm_overshoot=3,
                   end_gc=False, tm_parameters='cloning', overhang=None,
                   structure=False):
     '''Design primer to a nearest-neighbor Tm setpoint.
@@ -98,7 +98,7 @@ def design_primer(dna, tm=72, min_len=10, tm_undershoot=1, tm_overshoot=3,
     return output_primer
 
 
-def design_primers(dna, tm=72, min_len=10, tm_undershoot=1, tm_overshoot=3,
+def design_primers(dna, tm=65, min_len=10, tm_undershoot=1, tm_overshoot=3,
                    end_gc=False, tm_parameters='cloning', overhangs=None):
     '''Design primers for PCR amplifying any arbitrary sequence.
 
