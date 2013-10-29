@@ -18,6 +18,8 @@ def pcr(template, primer1, primer2):
              template (implies that input was linear).
 
     '''
+    # FIXME: using the wrong primers/template produces a useless error.
+    # make the error useful!
     # Find match in top or bottom strands for each primer
     p1_matches = template.locate(primer1.anneal)
     p2_matches = template.locate(primer2.anneal)

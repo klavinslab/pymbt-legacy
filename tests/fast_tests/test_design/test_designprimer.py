@@ -48,14 +48,14 @@ def test_design_primer():
     # Should raise ValueError if it's impossible to create an end_gc primer
     end_at_template = sequence.DNA('ATGCGATACGATACGCGATATGATATATatatatat' +
                                    'ATAAaaaaaaaaaattttttttTTTTTTTTTTTTTT' +
-                                   'TTTTTTTTTggggggggggggT')
+                                   'TTTTTTTTTT')
     assert_raises(ValueError, design.design_primer, end_at_template,
-                  end_gc=True)
+                  end_gc=True, tm=72)
     # If there's structure, should issue a warning
     structure_template = sequence.DNA('ATGCGATCGATAGGCGA')
     structure_template += structure_template.reverse_complement()
     with warnings.catch_warnings(True) as w:
-        design.design_primer(structure_template, structure=True)
+        design.design_primer(structure_template, structure=True, tm=72)
         assert len(w) > 0
 
 

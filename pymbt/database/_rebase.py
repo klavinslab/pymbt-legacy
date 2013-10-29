@@ -3,6 +3,7 @@ import shutil
 import tempfile
 import urllib2
 from pymbt import sequence
+from pymbt.constants import fallback_enzymes
 
 
 class Rebase(object):
@@ -14,8 +15,7 @@ class Rebase(object):
     def update(self):
         '''Update definitions.'''
         # Download http://rebase.neb.com/rebase/link_withref to tmp
-        if self._tmpdir is None:
-            self._tmpdir = tempfile.mkdtemp()
+        self._tmpdir = tempfile.mkdtemp()
         try:
             self._rebase_file = self._tmpdir + '/rebase_file'
             print 'Downloading latest enzyme definitions'
@@ -25,12 +25,16 @@ class Rebase(object):
             con = urllib2.urlopen(req)
             with open(self._rebase_file, 'wb') as rebase_file:
                 rebase_file.write(con.read())
+            # Process into self._enzyme_dict
+            self._process_file()
         except urllib2.HTTPError, e:
             print 'HTTP Error: {} {}'.format(e.code, url)
+            print "Falling back on default enzyme list"
+            self._enzyme_dict = fallback_enzymes
         except urllib2.URLError, e:
             print 'URL Error: {} {}'.format(e.reason, url)
-        # Process into dict (self._enzyme_dict)
-        self._process_file()
+            print "Falling back on default enzyme list"
+            self._enzyme_dict = fallback_enzymes
         # Process into RestrictionSite objects? (depends on speed)
         print 'Processing into RestrictionSite instances.'
         self.restriction_sites = {}

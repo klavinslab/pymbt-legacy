@@ -17,8 +17,10 @@ class Gibson(object):
         :raises: ValueError if any input sequences are circular DNA.
 
         '''
-        # TODO: Attempt to preserve features in overlap
+        # FIXME: Preserve features in overlap
         # TODO: set a max length?
+        # TODO: add 'expected' keyword argument somewhere to automate
+        # validation of output
         self._seq_list = []
         # Remove any redundant (identical) sequences
         for seq in seq_list:
