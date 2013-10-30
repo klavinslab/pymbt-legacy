@@ -71,3 +71,62 @@ Designing primers is straightforward - you just call
     
     gggggatcgatatggtgagcaagggcgaggagctgttcac
 
+
+Designing primers and getting a string output is just the first step in
+primer design - we want to know whether the primers actually *work* and
+write them out to a file. The point of programming DNA is that you
+*never* copy and paste!
+
+To simulate a PCR using the rules of molecular biology, use
+``pymbt.reaction.pcr``. The output is a subsequence of the template DNA
+- the features may not match the plasmid exactly (due to being truncated
+by the PCR), but the sequences match. If a primer would bind in multiple
+places (exact matches to the template), the pcr function will fail and
+give a useful message.
+
+You can check for identical sequences using python's built in ==
+operator.
+
+.. code:: python
+
+    from pymbt import reaction
+    amplicon = reaction.pcr(plasmid, forward, reverse)
+    amplicon == eyfp
+
+
+
+.. parsed-literal::
+
+    True
+
+
+
+Now that we have verified that our primers should at least amplify the
+DNA that we want, let's write out our primers to file so they can be
+submitted to an oligo synthesis company.
+
+.. code:: python
+
+    # First we give our primers names (the `.name` attribute is empty by default)
+    forward.name = "EYFP_forward"
+    reverse.name = "EYFP_reverse"
+    # Then we write to file - a csv (comma separated value file)
+    seqio.write_primers([forward, reverse], "./designed_primers.csv", ["Forward EYFP primer", "Reverse EYFP primer"])
+The csv file can then be opened in a spreadsheet application like Excel
+or processed by a downstream program. This is the format of the csv:
+
+.. code:: python
+
+    import csv
+    with open("./designed_primers.csv", "r") as csv_file:
+        reader = csv.reader(csv_file)
+        lines = [line for line in reader]
+    for line in lines:
+        print line
+
+.. parsed-literal::
+
+    ['name', 'sequence', 'notes']
+    ['EYFP_forward', 'atggtgagcaagggcgaggag', 'Forward EYFP primer']
+    ['EYFP_reverse', 'cttgtacagctcgtccatgccga', 'Reverse EYFP primer']
+
