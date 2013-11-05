@@ -1,5 +1,8 @@
 '''Evaluate windows of a sequence for in-context structure.'''
-from matplotlib import pylab
+try:
+    from matplotlib import pylab
+except ImportError:
+    print "Failed to import matplotlib. Plotting structures won't work."
 from pymbt.analysis import nupack_multiprocessing
 
 

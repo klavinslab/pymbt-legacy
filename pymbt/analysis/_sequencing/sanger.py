@@ -1,6 +1,9 @@
 '''Sanger sequencing alignment tools.'''
-from matplotlib import pyplot
-from matplotlib import cm
+try:
+    from matplotlib import pyplot
+    from matplotlib import cm
+except ImportError:
+    print "Failed to import matplotlib. Plotting won't work."
 from pymbt.analysis import needle, needle_multiprocessing
 
 # FIXME: sequencing that goes past 'end' of a circular reference
