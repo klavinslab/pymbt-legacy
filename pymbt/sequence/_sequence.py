@@ -157,7 +157,7 @@ class BaseSequence(object):
         # Input checking
         if n != int(n):
             raise TypeError("Multiplication by non-integer.")
-        return sum(x for x in _decompose(self, n))
+        return sum([x for x in _decompose(self, n)])
 
     def __eq__(self, other):
         '''Define == operator. True if sequences are the same.

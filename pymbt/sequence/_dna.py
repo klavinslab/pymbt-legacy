@@ -50,7 +50,7 @@ class DNA(BaseSequence):
         self.topology = topology
         # Set features
         if features:
-            if all(isinstance(feature, Feature) for feature in features):
+            if all([isinstance(feature, Feature) for feature in features]):
                 self.features = features
             else:
                 raise ValueError("non-Feature input for 'features'.")
@@ -72,7 +72,7 @@ class DNA(BaseSequence):
                 if mismatches:
                     raise ValueError("Bottom strand doesn't match top strand.")
         elif stranded == 'ss':
-            self._bottom = ''.join('-' for x in self._sequence)
+            self._bottom = ''.join(['-' for x in self._sequence])
         elif stranded == 'ds':
             self._bottom = utils.reverse_complement(self._sequence, 'dna')
         # Set id
@@ -117,8 +117,8 @@ class DNA(BaseSequence):
         '''
         copy = self.copy()
         code = dict(COMPLEMENTS['dna'])
-        copy._sequence = ''.join(code[base] for base in copy._sequence)
-        copy._bottom = ''.join(code[base] for base in copy._bottom)
+        copy._sequence = ''.join([code[base] for base in copy._sequence])
+        copy._bottom = ''.join([code[base] for base in copy._bottom])
         # Remove features - they make no sense in complement
         copy.features = []
         return copy
@@ -204,9 +204,9 @@ class DNA(BaseSequence):
         elif stranded == 'ds':
             # Find strand that's all gaps (if ss this should be the case)
             reverse_seq = self.reverse_complement()
-            if all(char == '-' for char in self._sequence):
+            if all([char == '-' for char in self._sequence]):
                 copy._sequence = reverse_seq._bottom
-            elif all(char == '-' for char in self._bottom):
+            elif all([char == '-' for char in self._bottom]):
                 copy._bottom = reverse_seq._sequence
             copy.stranded = 'ds'
         else:
