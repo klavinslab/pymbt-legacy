@@ -29,11 +29,11 @@ def read_dna(path):
     fasta_exts = ['.fasta', '.fa', '.seq']
     abi_exts = ['.abi', '.ab1']
 
-    if any(ext == extension for extension in genbank_exts):
+    if any([ext == extension for extension in genbank_exts]):
         file_format = 'genbank'
-    elif any(ext == extension for extension in fasta_exts):
+    elif any([ext == extension for extension in fasta_exts]):
         file_format = 'fasta'
-    elif any(ext == extension for extension in abi_exts):
+    elif any([ext == extension for extension in abi_exts]):
         file_format = 'abi'
     else:
         raise ValueError('File format not recognized.')

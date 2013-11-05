@@ -26,7 +26,7 @@ class Gibson(object):
         for seq in seq_list:
             if seq not in self._seq_list:
                 self._seq_list.append(seq)
-        if any(seq.topology == 'circular' for seq in self._seq_list):
+        if any([seq.topology == 'circular' for seq in self._seq_list]):
             raise ValueError('Input sequences must be linear, not circular.')
 
     def run_circular(self, homology_min=10, tm_min=65):

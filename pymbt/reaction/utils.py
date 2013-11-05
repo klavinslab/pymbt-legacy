@@ -29,7 +29,7 @@ def convert_sequence(seq, to_material):
         origin = constants.molecular_bio.ALPHABETS['dna'][:-1]
         destination = constants.molecular_bio.ALPHABETS['rna']
         code = dict(zip(origin, destination))
-        converted = ''.join(code.get(str(k), str(k)) for k in seq)
+        converted = ''.join([code.get(str(k), str(k)) for k in seq])
         # Instantiate RNA object
         converted = sequence.RNA(converted)
     elif isinstance(seq, sequence.RNA):
@@ -38,7 +38,7 @@ def convert_sequence(seq, to_material):
             origin = constants.molecular_bio.ALPHABETS['rna']
             destination = constants.molecular_bio.ALPHABETS['dna'][:-1]
             code = dict(zip(origin, destination))
-            converted = ''.join(code.get(str(k), str(k)) for k in seq)
+            converted = ''.join([code.get(str(k), str(k)) for k in seq])
             # Instantiate DNA object
             converted = sequence.DNA(converted)
         elif to_material == 'peptide':

@@ -126,7 +126,7 @@ def gibson_primers(dna1, dna2, overlap="mixed", maxlen=60, overlap_tm=65.0,
             # Increase 'trimming' index
             right_trim += 1
     # Check primer lengths
-    if any(len(primer) > maxlen for primer in (fwd, rev)):
+    if any([len(primer) > maxlen for primer in (fwd, rev)]):
         raise LengthError("At least one of the primers is too long")
 
     return rev, fwd

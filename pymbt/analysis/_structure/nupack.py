@@ -141,6 +141,8 @@ class Nupack(object):
 
         '''
         # If complexes hasn't been run, run it
+        # TODO: save results of complexes, rewrite to file if necessary.
+        # This allows closing tmpdir at every step, makes implementation clean
         if self._complexes_run != (max_complexes, mfe):
             self.complexes(max_complexes=max_complexes, mfe=mfe)
 
