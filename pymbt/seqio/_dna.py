@@ -44,17 +44,7 @@ def read_dna(path):
 
     # Features
     for feature in seq.features:
-        feature_name = feature.qualifiers['label'][0]
-        feature_start = int(feature.location.start)
-        feature_stop = int(feature.location.end)
-        feature_type = _process_feature_type(feature.type)
-        if feature.location.strand == -1:
-            feature_strand = 1
-        else:
-            feature_strand = 0
-        dna.features.append(pymbt.sequence.Feature(feature_name, feature_start,
-                                                   feature_stop, feature_type,
-                                                   strand=feature_strand))
+        dna.features.append(_seqfeature_to_pymbt(feature))
     dna.features = sorted(dna.features, key=lambda feature: feature.start)
     try:
         if seq.annotations['data_file_division'] == 'circular':
@@ -111,13 +101,7 @@ def write_dna(dna, path):
     #     topology
     features = []
     for feature in dna.features:
-        bio_strand = 1 if feature.strand == 1 else -1
-        location = FeatureLocation(ExactPosition(feature.start),
-                                   ExactPosition(feature.stop),
-                                   strand=bio_strand)
-        ftype = _process_feature_type(feature.feature_type, bio_to_pymbt=False)
-        features.append(SeqFeature(location, type=ftype,
-                        qualifiers={'label': [feature.name]}))
+        features.append(_pymbt_to_seqfeature(feature))
     # Biopython doesn't like 'None' here
     bio_id = dna.id if dna.id else ''
     # Maximum length of name is 16
@@ -184,3 +168,88 @@ def _process_feature_type(feature_type, bio_to_pymbt=True):
         except KeyError:
             raise ValueError(err_msg)
     return name
+
+
+def _seqfeature_to_pymbt(feature):
+    """Convert a Biopython SeqFeature to a pymbt sequence.Feature.
+
+    :param feature: Biopython SeqFeature
+    :type feature: Bio.SeqFeature
+
+    """
+    feature_name = feature.qualifiers['label'][0]
+    # Features with gaps are special, require looking at subfeatures
+    # Assumption: subfeatures are never more than one level deep
+    if feature.location_operator == "join":
+        # Feature has gaps. Have to figure out start/stop from subfeatures,
+        # calculate gap indices. A nested feature model may be required
+        # eventually.
+        # Reorder the sub_feature list by start location
+        # Assumption: none of the subfeatures overlap so the last entry in
+        # the reordered list also has the final stop point of the feature.
+        reordered = sorted(feature.sub_features,
+                           key=lambda feature: feature.location.start)
+        starts = [int(sub.location.start) for sub in reordered]
+        stops = [int(sub.location.end) for sub in reordered]
+        feature_start = starts.pop(0)
+        feature_stop = stops.pop(-1)
+        starts = [start - feature_start for start in starts]
+        stops = [stop - feature_start for stop in stops]
+        feature_gaps = list(zip(stops, starts))
+    else:
+        # Feature doesn't have gaps. Ignore subfeatures.
+        feature_start = int(feature.location.start)
+        feature_stop = int(feature.location.end)
+        feature_gaps = []
+    feature_type = _process_feature_type(feature.type)
+    if feature.location.strand == -1:
+        feature_strand = 1
+    else:
+        feature_strand = 0
+    pymbt_feature = pymbt.sequence.Feature(feature_name, feature_start,
+                                           feature_stop, feature_type,
+                                           strand=feature_strand,
+                                           gaps=feature_gaps)
+    return pymbt_feature
+
+
+def _pymbt_to_seqfeature(feature):
+    """Convert a pymbt sequence.Feature to a Biopython SeqFeature.
+
+    :param feature: pymbt Feature.
+    :type feature: pymbt.sequence.Feature
+
+    """
+    bio_strand = 1 if feature.strand == 1 else -1
+    ftype = _process_feature_type(feature.feature_type, bio_to_pymbt=False)
+    subfeatures = []
+    if feature.gaps:
+        # There are gaps. Have to define location_operator and  add subfeatures
+        location_operator = "join"
+        # Feature location means nothing for "join" sequences?
+        # TODO: verify
+        location = FeatureLocation(ExactPosition(0), ExactPosition(1),
+                                   strand=bio_strand)
+        # Reconstruct start/stop indices for each subfeature
+        stops, starts = zip(*feature.gaps)
+        starts = [feature.start] + [start + feature.start for start in starts]
+        stops = [stop + feature.start for stop in stops] + [feature.stop]
+        # Build subfeatures
+        for start, stop in zip(starts, stops):
+            sublocation = FeatureLocation(ExactPosition(start),
+                                          ExactPosition(stop),
+                                          strand=bio_strand)
+            subfeature = SeqFeature(sublocation, type=ftype,
+                                    location_operator=location_operator)
+            subfeatures.append(subfeature)
+    else:
+        # No gaps, feature is simple
+        location_operator = ""
+        location = FeatureLocation(ExactPosition(feature.start),
+                                   ExactPosition(feature.stop),
+                                   strand=bio_strand)
+    seqfeature = SeqFeature(location, type=ftype,
+                            qualifiers={'label': [feature.name]},
+                            location_operator=location_operator,
+                            sub_features=subfeatures)
+    return seqfeature

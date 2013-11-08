@@ -274,11 +274,14 @@ class DNA(BaseSequence):
         """
         return self._bottom
 
-    def extract(self, name):
+    def extract(self, name, pure=False):
         '''Extract a feature from the DNA sequence.
 
         :param name: Name of the feature. Must be unique.
         :type name: str
+        :param pure: Turn any gaps in the feature into Ns and remove all other
+                     features. If False, just extracts start:stop slice.
+        :type pure: bool
         :returns: A subsequence from start to stop of the feature.
         :rtype: pymbt.sequence.DNA
         :raises: ValueError if no feature has `name` or more than one match
@@ -293,7 +296,15 @@ class DNA(BaseSequence):
             msg = 'Feature name was not unique, found more than one.'
             raise ValueError(msg)
         else:
-            return self[found[0].start:found[0].stop]
+            extracted = self[found[0].start:found[0].stop]
+            if pure:
+                # Keep only the feature specified
+                extracted.features = [found[0]]
+                # Turn gaps into Ns
+                for gap in extracted.features[0].gaps:
+                    for i in range(*gap):
+                        extracted[i] = "n"
+            return extracted
 
     def _remove_end_gaps(self):
         """Removes double-stranded gaps from ends of the sequence.
@@ -452,6 +463,46 @@ class DNA(BaseSequence):
         mw_g = counter["g"] * 289.2
         mw_c = counter["c"] * 329.2
         return mw_a + mw_t + mw_g + mw_c
+
+    def annotate_from_other(self, other, wipe=True):
+        """Annotate the sequence using the features of another.
+
+        :param other: Another sequence.
+        :type other: pymbt.sequence.DNA
+        :param wipe: Remove (wipe) the current features first.
+        :type wipe: bool
+
+        """
+        copy = self.copy()
+        if wipe:
+            copy.features = []
+
+        features = [feature.copy() for feature in other.features]
+        sequences = [other[feature.start:feature.stop] for feature in
+                     features]
+        for feature, sequence in zip(features, sequences):
+            if sequence in copy:
+                match_location = copy.locate(sequence)
+                # Which strand is it on?
+                for i, strand in enumerate(match_location):
+                    for match in strand:
+                        new_feature = feature.copy()
+                        length = new_feature.stop - new_feature.start
+                        if i == 0:
+                            # Watson strand
+                            new_feature.start = match
+                            new_feature.stop = new_feature.start + length
+                        else:
+                            # Crick strand
+                            new_feature.stop = len(copy) - match
+                            new_feature.start = new_feature.stop - length
+                            # If feature found on other strand, update
+                            new_feature.strand = abs(new_feature.strand - 1)
+                        # Modulo just in case it spans the origin
+                        new_feature.start = new_feature.start % len(copy)
+                        new_feature.stop = new_feature.stop % len(copy)
+                        copy.features.append(new_feature)
+        return copy
 
     def _features_on_slice(self, key):
         '''Process features when given a slice (__getitem__). Features that
@@ -801,7 +852,7 @@ class Primer(object):
 
 class Feature(object):
     '''Represent A DNA feature - annotate and extract sequence by metadata.'''
-    def __init__(self, name, start, stop, feature_type, strand=0):
+    def __init__(self, name, start, stop, feature_type, strand=0, gaps=[]):
         '''
         :param name: Name of the feature. Used during feature extraction.
         :type name: str
@@ -815,6 +866,8 @@ class Feature(object):
         :type name: str
         :param strand: Watson (0) or Crick (1) strand of the feature.
         :type strand: int
+        :param gaps: Gap locations if the feature has gaps.
+        :type gaps: list of coordinates (2-tuple/list)
         :returns: pymbt.sequence.Feature instance.
         :raises: ValueError if `feature_type` is not in
                  pymbt.constants.genbank.TO_PYMBT.
@@ -825,6 +878,7 @@ class Feature(object):
         self.stop = int(stop)
         self.modified = False
         self.strand = strand
+        self.gaps = gaps
 
         allowed_types = genbank.TO_PYMBT.keys()
 
