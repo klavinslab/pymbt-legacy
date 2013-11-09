@@ -187,16 +187,20 @@ class BaseSequence(object):
         except TypeError:
             return False
 
-    def __contains__(self, query):
+    def __contains__(self, query, any_char):
         '''`x in y`.
 
         :param query: Query (i.e. exact pattern) sequence to find.
         :type query: str
+        :param any_char: Character to use for any match (.*).
+        :type any_char: str
         :returns: Whether the query is found in the current sequence.
         :rtype: bool
 
         '''
-        if str(query) in str(self):
+        query_str = str(query).lower()
+        query_str = re.sub(any_char, ".", query_str)
+        if re.search(query_str, str(self)):
             return True
         else:
             return False

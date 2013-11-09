@@ -690,6 +690,15 @@ class DNA(BaseSequence):
         else:
             return False
 
+    def __contains__(self, query):
+        """Defines `query in sequence` operator.
+
+        :param query: query string or DNA sequence
+        :type query: str or pymbt.sequence.DNA
+
+        """
+        return super(DNA, self).__contains__(query, "n")
+
 
 class RestrictionSite(object):
     '''Recognition site and properties of a restriction endonuclease.'''

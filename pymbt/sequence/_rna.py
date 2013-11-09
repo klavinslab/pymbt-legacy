@@ -39,3 +39,12 @@ class RNA(BaseSequence):
         new_instance._sequence = utils.reverse_complement(self._sequence,
                                                           'rna')
         return new_instance
+
+    def __contains__(self, query):
+        """Defines `query in sequence` operator.
+
+        :param query: query string or DNA sequence
+        :type query: str or pymbt.sequence.DNA
+
+        """
+        return super(RNA, self).__contains__(query, "n")

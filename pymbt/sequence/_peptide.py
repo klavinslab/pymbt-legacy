@@ -27,3 +27,12 @@ class Peptide(BaseSequence):
         '''
         # Significant performance improvements by skipping alphabet check
         return type(self)(self._sequence, run_checks=False)
+
+    def __contains__(self, query):
+        """Defines `query in sequence` operator.
+
+        :param query: query string or DNA sequence
+        :type query: str or pymbt.sequence.DNA
+
+        """
+        return super(Peptide, self).__contains__(query, "x")
