@@ -476,27 +476,45 @@ class DNA(BaseSequence):
         :type shortest: int
 
         """
+        # Generate feature library
+        features = [feature.copy() for feature in other.features]
+        for feature in features:
+            feature.sequence = other[feature.start:feature.stop]
+
+        # Annotate from library
+        return self.annotate_from_library(features, wipe=wipe,
+                                          shortest=shortest)
+
+    def annotate_from_library(self, library, wipe=True, shortest=6):
+        """Annotate the sequence using the features of another. Ignores
+        features shorter than 5 bp.
+
+        :param library: list of features with a .sequence attribute
+        :type library: list of features with a .sequence attribute
+        :param wipe: Remove (wipe) the current features first.
+        :type wipe: bool
+        :param shortest: Features shorters than this will be ignored.
+        :type shortest: int
+
+        """
         copy = self.copy()
         if wipe:
             copy.features = []
 
-        features = [feature.copy() for feature in other.features]
-        sequences = [other[feature.start:feature.stop] for feature in
-                     features]
         # Make sure features are unique and above 'shortest' parameter
         unique_features = []
         unique_sequences = []
-        for feature, sequence in zip(features, sequences):
-            if len(sequence) >= shortest:
-                if sequence not in unique_sequences:
+        for feature in library:
+            if len(feature.sequence) >= shortest:
+                if feature.sequence not in unique_sequences:
                     unique_features.append(feature)
-                    unique_sequences.append(sequence)
+                    unique_sequences.append(feature.sequence)
         # Match features
-        for feature, sequence in zip(unique_features, unique_sequences):
-            if sequence in copy:
-                match_location = copy.locate(sequence)
+        for feature in unique_features:
+            if feature.sequence in copy:
+                match_location = copy.locate(feature.sequence)
                 # Only annotate the top strand if sequence is palindrome
-                if sequence.is_palindrome():
+                if feature.sequence.is_palindrome():
                     match_location[1] = []
                 # Which strand is it on?
                 for i, strand in enumerate(match_location):
