@@ -254,7 +254,7 @@ class DNA(BaseSequence):
             top_starts = [start - r + 1 for start in top_starts]
             bottom_starts = [start - r + 1 for start in bottom_starts]
 
-        return (top_starts, bottom_starts)
+        return [top_starts, bottom_starts]
 
     def top(self):
         """Return the raw string of the Watson (top) strand.
@@ -464,13 +464,16 @@ class DNA(BaseSequence):
         mw_c = counter["c"] * 329.2
         return mw_a + mw_t + mw_g + mw_c
 
-    def annotate_from_other(self, other, wipe=True):
-        """Annotate the sequence using the features of another.
+    def annotate_from_other(self, other, wipe=True, shortest=6):
+        """Annotate the sequence using the features of another. Ignores
+        features shorter than 5 bp.
 
         :param other: Another sequence.
         :type other: pymbt.sequence.DNA
         :param wipe: Remove (wipe) the current features first.
         :type wipe: bool
+        :param shortest: Features shorters than this will be ignored.
+        :type shortest: int
 
         """
         copy = self.copy()
@@ -480,9 +483,21 @@ class DNA(BaseSequence):
         features = [feature.copy() for feature in other.features]
         sequences = [other[feature.start:feature.stop] for feature in
                      features]
+        # Make sure features are unique and above 'shortest' parameter
+        unique_features = []
+        unique_sequences = []
         for feature, sequence in zip(features, sequences):
+            if len(sequence) >= shortest:
+                if sequence not in unique_sequences:
+                    unique_features.append(feature)
+                    unique_sequences.append(sequence)
+        # Match features
+        for feature, sequence in zip(unique_features, unique_sequences):
             if sequence in copy:
                 match_location = copy.locate(sequence)
+                # Only annotate the top strand if sequence is palindrome
+                if sequence.is_palindrome():
+                    match_location[1] = []
                 # Which strand is it on?
                 for i, strand in enumerate(match_location):
                     for match in strand:
