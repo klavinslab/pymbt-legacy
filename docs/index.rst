@@ -13,12 +13,16 @@ Welcome to pymbt's documentation!
 :License: Apache 2.0
 :Version: |release|
 
-Tutorials and Examples:
+**Tutorial:**
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
 
-   examples
+   tutorial/index
+
+**API Documentation:**
+
+.. toctree::
    api
 
 
