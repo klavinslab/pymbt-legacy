@@ -3,13 +3,13 @@ from pymbt.analysis import Nupack
 
 
 def dimers(primer1, primer2, concentrations=[5e-7, 3e-11]):
-    '''Check for probability of primer dimers given primer and template concs.
+    '''Calculate expected fraction of primer dimers.
 
-    :param primer1: Forward primer
+    :param primer1: Forward primer.
     :type primer1: pymbt.sequence.DNA
-    :param primer2: Reverse primer
+    :param primer2: Reverse primer.
     :type primer2: pymbt.sequence.DNA
-    :param template: DNA template
+    :param template: DNA template.
     :type template: pymbt.sequence.DNA
     :param concentrations: list of concentrations for primers and the
                            template. Defaults are those for PCR with 1kb

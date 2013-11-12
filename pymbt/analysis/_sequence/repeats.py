@@ -3,7 +3,7 @@ from collections import Counter
 
 
 def repeats(seq, size):
-    '''Count times that a sequence of a given size is repeated.
+    '''Count times that a sequence of a certain size is repeated.
 
     :param seq: Input sequence.
     :type seq: pymbt.sequence.DNA or pymbt.sequence.RNA

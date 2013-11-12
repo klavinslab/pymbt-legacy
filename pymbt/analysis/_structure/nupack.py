@@ -11,7 +11,7 @@ from pymbt.analysis.utils import sequence_type
 
 
 class Nupack(object):
-    '''Use several NUPACK functions on a set of input sequences.'''
+    '''Run NUPACK functions on sequences.'''
     def __init__(self, seq_list, rna1999=False, temp=50, nupack_home=None):
         '''
         :param seq_list: Input sequence(s).
@@ -74,7 +74,7 @@ class Nupack(object):
         self._complexes_file = None
 
     def complexes(self, max_complexes, mfe=True):
-        '''Find properties of polymer complexes.
+        '''Run `complexes` on set of inptu sequences.
 
         :param max_complexes: Maximum complex size (integer).
         :type max_complexes: int
@@ -128,7 +128,8 @@ class Nupack(object):
         return {'complexes': complexes, 'complex_energy': energies}
 
     def concentrations(self, max_complexes, conc=[0.5e-6], mfe=True):
-        '''Find the predicted concentrations of polymer complexes.
+        '''Run `concentrations` - get expected steady state concentrations
+        of complexes.
 
         :param max_complexes: Maximum complex size.
         :type max_complexes: int
@@ -189,7 +190,7 @@ class Nupack(object):
                 'concentrations': concentrations,
                 'energy': energies}
 
-    def mfe(self, index=0):
+    def mfe(self, index):
         '''Calculate the minimum free energy of a single polymer.
 
         :param index: Index of strand to analyze.
@@ -215,8 +216,9 @@ class Nupack(object):
 
         return mfe
 
-    def pairs(self, index=0):
-        '''Calculate unbound pair probabilities.
+    def pairs(self, index):
+        '''Calculate per-pair probability of being unbound for a single
+        sequence (secondary structure).
 
         :param index: Index of strand to analyze.
         :type index: int
@@ -287,7 +289,7 @@ class Nupack(object):
 
 
 def nupack_multiprocessing(seqs, material, cmd, arguments, report=True):
-    '''Run NUPACK commands with the benefits of multiprocessing.
+    '''Split Nupack commands over processors.
 
     :param inputs: List of sequences, same format as for pymbt.analysis.Nupack.
     :type inpus: list

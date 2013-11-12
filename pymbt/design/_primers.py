@@ -87,7 +87,7 @@ def design_primer(dna, tm=65, min_len=10, tm_undershoot=1, tm_overshoot=3,
         # Check whole primer for high-probability structure, focus in on
         # annealing sequence, report average
         nupack = analysis.Nupack(primer.primer())
-        pairs = nupack.pairs()
+        pairs = nupack.pairs(0)
         anneal_len = len(primer.anneal)
         pairs_mean = sum(pairs[-anneal_len:]) / anneal_len
         if pairs_mean < 0.5:

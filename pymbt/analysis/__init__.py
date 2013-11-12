@@ -1,4 +1,4 @@
-'''Analysis modules for sequences.'''
+'''Analyze sequences.'''
 from pymbt.analysis._sequence.melting_temp import tm
 from pymbt.analysis._sequence.repeats import repeats
 from pymbt.analysis._sequencing.needle import needle

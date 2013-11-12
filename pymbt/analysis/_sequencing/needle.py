@@ -15,7 +15,7 @@ class AlignmentError(Exception):
 
 
 def needle(reference, query, gapopen=10, gapextend=0.5):
-    '''Do Needleman-Wunsch alignment.
+    '''Do Needleman-Wunsch alignment using EMBOSS' needleall.
 
     :param reference: Reference sequence.
     :type reference: pymbt.sequence.DNA

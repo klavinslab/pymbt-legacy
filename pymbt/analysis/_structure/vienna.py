@@ -6,7 +6,7 @@ from shutil import rmtree
 
 
 class Vienna(object):
-    '''Vienna functions.'''
+    '''Run Vienna RNA functions on a sequence.'''
     def __init__(self, seq, temp=50.0):
         '''
         :param seq: DNA or RNA sequence to evaluate.
@@ -21,7 +21,7 @@ class Vienna(object):
         self._tempdir = mkdtemp()
 
     def mfe(self):
-        '''Calculate minimum free energy of sequence.
+        '''Calculate the minimum free energy.
 
         :returns: Minimum Free Energy (mfe).
         :rtype: float
@@ -38,7 +38,8 @@ class Vienna(object):
         return mfe
 
     def pairs(self):
-        '''Calculate internal binding pair probabilities.
+        '''Calculate per-pair probability of being unbound (secondary
+        structure).
 
         :returns: Pair probability for every base in the sequence.
         :rtype: list of floats.
