@@ -1,0 +1,3 @@
+['name', 'sequence', 'notes']
+['EYFP_forward', 'atggtgagcaagggcg', 'Forward EYFP primer']
+['EYFP_reverse', 'cttgtacagctcgtccatgcc', 'Reverse EYFP primer']
