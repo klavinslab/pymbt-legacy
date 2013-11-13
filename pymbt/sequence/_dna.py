@@ -818,7 +818,7 @@ class RestrictionSite(object):
 
 class Primer(object):
     '''A DNA primer - ssDNA with tm, anneal, and optional overhang.'''
-    def __init__(self, anneal, tm, overhang=None, name=None):
+    def __init__(self, anneal, tm, overhang=None, name="", note=""):
         '''
         :param anneal: Annealing sequence
         :type anneal: pymbt.sequence.DNA
@@ -826,9 +826,12 @@ class Primer(object):
         :type overhang: pymbt.sequence.DNA
         :param tm: melting temperature
         :type tm: float
-        :param name: optional name attribute (useful when writing to csv with
-        seqio.write_primers)
+        :param name: Optional name of the primer. Used when writing to csv with
+                     seqio.write_primers.
         :type name: str
+        :param note: Optional description to associate with the primer. Used
+                     when writing to csv with seqio.write_primers.
+        :type note: str
         :returns: pymbt.sequence.Primer instance.
 
         '''
@@ -839,6 +842,7 @@ class Primer(object):
         else:
             self.overhang = DNA('', stranded='ss')
         self.name = name
+        self.note = note
 
     def primer(self):
         '''Produce full (overhang + annealing sequence) primer sequence.
