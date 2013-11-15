@@ -4,5 +4,6 @@
 *.error
 *.log
 *.pyc
+*.so
 venv/
 docs/_build

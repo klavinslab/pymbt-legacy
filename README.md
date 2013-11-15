@@ -8,25 +8,25 @@ PyMBT: Python molecular biology tools.
 
 ```
 numpy
+cython
 biopython
+```
+
+optional (for plotting Sanger sequencing and structural analysis):
+
+```
 matplotlib
 ```
 
 ###system:
 
-for matplotlib
+For matplotlib
 
 ```
 libpng-dev
 libfreetype-dev
 tk-dev
 tcl-dev
-```
-
-for needleman-wunsch alignment
-
-```
-emboss
 ```
 
 for structure analysis

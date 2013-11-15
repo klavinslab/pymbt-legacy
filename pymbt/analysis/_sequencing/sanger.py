@@ -24,6 +24,12 @@ class Sanger(object):
                   provides analysis/visualization methods
 
         '''
+        # Alignment params / thresholds
+        self._gap_open = -25
+        self._gap_extend = 0
+        self._score_threshold = 100
+
+        # Only one input? Put in list so it can be processed the same.
         if type(results) != list:
             results = [results]
         # Sequences and calculations that get reused
@@ -201,18 +207,22 @@ class Sanger(object):
         # Align
         refs = [self._reference.copy() for x in self._processed]
         needle_result = needle_multiprocessing(refs, self._processed,
-                                               gapopen=10,
-                                               gapextend=0.5)
+                                               gap_open=self._gap_open,
+                                               gap_extend=self._gap_extend)
         # Split into alignments and scores
+        # TODO: use zip here to make it simpler
         alignments = [(str(ref), str(res)) for ref, res, score in
                       needle_result]
         scores = [result[2] for result in needle_result]
         # If a result scores too low, try reverse complement
+        # TODO: Find their indices and use multiprocessing
+        # TODO: If score is too low, add warning but don't show in alignment
         for i, score in enumerate(scores):
-            if score < 1300:
+            if score < self._score_threshold:
                 swapped_result = self._processed[i].reverse_complement()
                 new_needle = needle(self._reference, swapped_result,
-                                    gapopen=10, gapextend=0.5)
+                                    gap_open=self._gap_open,
+                                    gap_extend=self._gap_extend)
                 alignments[i] = (str(new_needle[0]), str(new_needle[1]))
                 score = new_needle[2]
         # Trim to reference - if reference is shorter than results

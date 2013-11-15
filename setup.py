@@ -2,6 +2,7 @@ try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
+from Cython.Build import cythonize
 
 config = {
     'description': 'pymbt',
@@ -31,5 +32,6 @@ config = {
     'license': 'GPLv3'
 }
 
-setup(test_suite='nose.collector',
+setup(ext_modules=cythonize("calign"),
+      test_suite='nose.collector',
       **config)
