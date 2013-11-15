@@ -2,7 +2,12 @@ try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
-from Cython.Build import cythonize
+
+try:
+    cython = True
+    from Cython.Build import cythonize
+except ImportError:
+    cython = False
 
 config = {
     'description': 'pymbt',
@@ -32,6 +37,10 @@ config = {
     'license': 'GPLv3'
 }
 
-setup(ext_modules=cythonize("calign"),
-      test_suite='nose.collector',
-      **config)
+if cython:
+    setup(ext_modules=cythonize(["pymbt/analysis/_sequencing/calign.pyx"]),
+          test_suite='nose.collector',
+          **config)
+else:
+    setup(test_suite='nose.collector',
+          **config)

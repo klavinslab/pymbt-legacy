@@ -1,119 +1,195 @@
+"""
+IMPORTANT: Most of the code below comes from the 'align' package written by
+Brent Pedersen and Marcin Cieslik (github.com/brentp/align) under the MIT
+license, HOWEVER it has been modified in pymbt, which falls under the
+Apache 2.0 license. If you want to create a derivative work that cannot be
+relicensed from the Apache 2.0 license, you should grab the code directly
+from brentp's github and not here.
+
+The following license applies to some, but not all of the code below, and is
+listed because the vast majority comes from github.com/brentp/align:
+
+The MIT License (MIT)
+
+Copyright (c) <2010> <Brent Pedersen, Marcin Cieslik>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE."""
+
 import numpy as np
 cimport numpy as np
 from libc.string cimport strlen
-import os.path as op
+import os
 import sys
 
 
-
+# Access to the Python/C API
 cdef extern from "Python.h":
     ctypedef void PyObject
     PyObject *PyString_FromStringAndSize(char *, size_t)
     int _PyString_Resize(PyObject **, size_t)
     char * PyString_AS_STRING(PyObject *)
 
+
+# Declaring numpy data types speeds things up massively
 ctypedef np.int_t DTYPE_INT
 ctypedef np.uint_t DTYPE_UINT
 ctypedef np.float32_t DTYPE_FLOAT
 
+
 cdef inline DTYPE_FLOAT max3(DTYPE_FLOAT a, DTYPE_FLOAT b, DTYPE_FLOAT c):
+    """Find largest of 3 floats. Much faster than using built-in max.
+
+    :param a: First number.
+    :type a: DTYPE_FLOAT
+    :param b: Second number.
+    :type b: DTYPE_FLOAT
+    :param c: Third number.
+    :type c: DTYPE_FLOAT
+
+    """
     if c > b:
         return c if c > a else a
     return b if b > a else a
 
+
 cdef inline DTYPE_FLOAT max2(DTYPE_FLOAT a, DTYPE_FLOAT b):
+    """Find largest of 2 floats. Much faster than using built-in max and max3.
+
+    :param a: First number.
+    :type a: DTYPE_FLOAT
+    :param b: Second number.
+    :type b: DTYPE_FLOAT
+
+    """
     return b if b > a else a
 
-cdef object read_matrix(path, object cache={}):
-    """
-    so here, we read a matrix in the NCBI format and put
-    it into a numpy array. so the score for a 'C' changing
-    to an 'A' is stored in the matrix as:
-        mat[ord('C'), ord('A')] = score
-    as such, it's a direct array lookup from each pair in the alignment
-    to a score. this makes it very fast. the cost is in terms of space.
-    though it's usually less than 100*100.
-    """
-    if path in cache: return cache[path]
 
+cdef object read_matrix(path):
+    """Read in matrix in NCBI format and put into numpy array. Score for e.g.
+    a 'C' changing to an 'A' is stored as matrix[ord('C'), ord('A')]. As such,
+    the score is a direct array lookup from each pair in the alignment, making
+    score calculation very fast.
 
-    cdef np.ndarray[DTYPE_INT, ndim=2] a
-    cdef size_t ai = 0, i
+    :param path: Path to the NCBI format matrix.
+    :type path: str.
+
+    """
+    cdef np.ndarray[DTYPE_INT, ndim=2] matrix
+    cdef size_t i, matrix_row = 0
     cdef int v, mat_size
-    if not op.exists(path):
-        if "/" in path: raise Exception("path for matrix %s doest not exist" \
-                                        % path)
-        mat_path = op.abspath(op.join(op.dirname(__file__), "data"))
-        fh = open(op.join(mat_path, path))
+
+    if not os.path.exists(path):
+        if "/" in path:
+            raise Exception("path for matrix {} doest not exist".format(path))
+        cur_path = os.path.abspath(os.path.join(os.path.dirname(__file__)))
+        fh = open(os.path.join(cur_path, "data", path))
     else:
         fh = open(path)
-
 
     headers = None
     while headers is None:
         line = fh.readline().strip()
-        if line[0] == '#': continue
+        # Ignore comments (#)
+        if line[0] == '#':
+            continue
+        # First that isn't a comment is the header
+        # TODO: Figure out why each char is being converted to unicode (ord())
+        #       It makes the matrix way bigger
+        #       Is it to change lookup from key:value to index?
         headers = [ord(x) for x in line.split(' ') if x]
     mat_size = max(headers) + 1
 
-    a = np.zeros((mat_size, mat_size), dtype=np.int)
+    matrix = np.zeros((mat_size, mat_size), dtype=np.int)
 
+    # TODO: see if readlines + for loop is just as fast (faster?)
     line = fh.readline()
     while line:
         line_vals = [int(x) for x in line[:-1].split(' ')[1:] if x]
         for ohidx, val in zip(headers, line_vals):
-            a[headers[ai], ohidx] = val
-        ai += 1
+            matrix[headers[matrix_row], ohidx] = val
+        matrix_row += 1
         line = fh.readline()
+    fh.close()
 
-    cache[path] = a
-    return a
-
+    return matrix
 
 
 def max_index(array):
+    """Locate the index of the largest value in the array. If there are
+    multiple, finds the earliest one in the row-flattened array.
+
+    :param array: Any array.
+    :type array: numpy.array
+
     """
-    """
-    max_value = array.argmax()
-    idx = np.unravel_index(max_value, array.shape)
-    return idx
+    return np.unravel_index(array.argmax(), array.shape)
+
 
 def aligner(_seqj, _seqi, \
             DTYPE_FLOAT gap_open=-7, DTYPE_FLOAT gap_extend=-7, DTYPE_FLOAT gap_double=-7,\
-            method="global", matrix="BLOSUM62"):
-    """
-    Calculates the alignment of two sequences. The supported "methods" are
-    "global" for a global Needleman-Wunsh algorithm, "local" for a local
-    Smith-Waterman alignment, "global_cfe" for a global alignment with cost-free
-    ends and "glocal" for an alignment which is "global" only with respect to
-    the shorter sequence, this is also known as a "semi-global" alignment."
-    Returns the aligned (sub)sequences as character arrays.
+            method="global", matrix="DNA_simple"):
+    """Calculates the alignment of two sequences. The supported 'methods' are
+    'global' for a global Needleman-Wunsh algorithm, 'local' for a local
+    Smith-Waterman alignment, 'global_cfe' for a global alignment with
+    cost-free ends and 'glocal' for an alignment which is 'global' only with
+    respect to the shorter sequence, this is also known as a 'semi-global'
+    alignment.' Returns the aligned (sub)sequences as character arrays.
 
     Gotoh, O. (1982). J. Mol. Biol. 162, 705-708.
     Needleman, S. & Wunsch, C. (1970). J. Mol. Biol. 48(3), 443-53.
     Smith, T.F. & Waterman M.S. (1981). J. Mol. Biol. 147, 195-197.
 
-    Arguments:
+    :param seqj: First sequence.
+    :type seqj: str
+    :param seqi: Second sequence.
+    :type seqi: str
+    :param method: Type of alignment: 'global', 'global_cfe', 'local', or
+                   'glocal'.
+    :type method: str
+    :param gap_open: The cost of opening a gap (negative number).
+    :type gap_open: float
+    :param gap_extend: The cost of extending an open gap (negative number).
+    :type gap_extend: float
+    :param gap_double: The gap-opening cost if a gap is already open in the
+                       other sequence (negative number).
+    :type gap_double: float
+    :param matrix: A score matrix dictionary name. Only one available now is
+                   "DNA_simple".
+    :type matrix: str
 
-        - seqj (``sequence``) First aligned iterable object of symbols.
-        - seqi (``sequence``) Second aligned iterable object of symbols.
-        - method (``str``) Type of alignment: "global", "global_cfe", "local",
-          "glocal".
-        - gap_open (``float``) The gap-opening cost.
-        - gap_extend (``float``) The cost of extending an open gap.
-        - gap_double (``float``) The gap-opening cost if a gap is already open
-          in the other sequence.
-        - matrix (``dict``) A score matrix dictionary.
     """
     cdef int NONE = 0,  LEFT = 1, UP = 2,  DIAG = 3
     cdef bint flip = 0
-
     cdef char* seqj = _seqj
     cdef char* seqi = _seqi
     cdef size_t align_counter = 0
 
-    cdef int imethod = {"global": 0, "local": 1, "glocal": 2, "global_cfe": 3}[method]
+    cdef int imethod
 
+    if method == "global":
+        imethod = 0
+    elif method == "local":
+        imethod = 1
+    elif method == "glocal":
+        imethod = 2
+    elif method == "global_cfe":
+        imethod = 3
 
     cdef size_t max_j = strlen(seqj)
     cdef size_t max_i = strlen(seqi)
@@ -192,13 +268,13 @@ def aligner(_seqj, _seqi, \
                 pointer[i,j] = DIAG
 
 
-    if method == 'local':
+    if imethod == 0:
         # max anywhere
         i, j = max_index(score)
-    elif method == 'glocal':
+    elif imethod == 2:
         # max in last col
         i, j = (score[:,-1].argmax(), max_j)
-    elif method == 'global_cfe':
+    elif imethod == 3:
         # from i,j to max(max(last row), max(last col)) for free
         row_max, col_idx = score[-1].max(), score[-1].argmax()
         col_max, row_idx = score[:, -1].max(), score[:, -1].argmax()
@@ -243,12 +319,27 @@ def aligner(_seqj, _seqi, \
     else:
         return (<object>aj)[::-1], (<object>ai)[::-1]
 
+
 def score_alignment(a, b, int gap_open, int gap_extend, matrix):
+    """Calculate the alignment score from two aligned sequences.
+
+    :param a: The first aligned sequence.
+    :type a: str
+    :param b: The second aligned sequence.
+    :type b: str
+    :param gap_open: The cost of opening a gap (negative number).
+    :type gap_open: int
+    :param gap_extend: The cost of extending an open gap (negative number).
+    :type gap_extend: int.
+    :param matrix: Scoring matrix. Only option for now is "DNA_simple".
+    :type matrix: str
+
+    """
     cdef char *al = a
     cdef char *bl = b
     cdef size_t l = strlen(al), i
     cdef int score = 0, this_score
-    assert strlen(bl) == l, "alignment lengths must be the same"
+    assert strlen(bl) == l, "Alignment lengths must be the same"
     cdef np.ndarray[DTYPE_INT, ndim=2] mat
     mat = read_matrix(matrix)
 
@@ -259,15 +350,6 @@ def score_alignment(a, b, int gap_open, int gap_extend, matrix):
             score += gap_extend if gap_started else gap_open
             gap_started = 1
         else:
-            this_score = mat[al[i], bl[i]]
-            score += this_score
+            score += mat[al[i], bl[i]]
             gap_started = 0
     return score
-
-
-
-if __name__ == '__main__':
-    # global
-    a, b = aligner('WW','WEW', method= 'global')
-    assert a == 'W-W'
-    assert b == 'WEW'

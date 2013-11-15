@@ -1,7 +1,11 @@
 '''Needleman-Wunsch alignment using emboss needle.'''
 import multiprocessing
 from pymbt import sequence
-from calign import aligner, score_alignment
+try:
+    from calign import aligner, score_alignment
+except ImportError:
+    print "Failed to import cython aligner, so alignments will not work."
+    pass
 
 
 def needle(reference, query, gap_open=-15, gap_extend=0):
