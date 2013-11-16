@@ -1,4 +1,4 @@
-'''Needleman-Wunsch alignment using emboss needle.'''
+'''Needleman-Wunsch alignment functions.'''
 import multiprocessing
 from pymbt import sequence
 try:
@@ -21,7 +21,6 @@ def needle(reference, query, gap_open=-15, gap_extend=0):
     :type gapextend: float
     :returns: (aligned reference, aligned query, score)
     :rtype: tuple of two pymbt.sequence.DNA instances and a float
-    :raises: Exception if EMBOSS can't be found
 
     '''
     # Align using cython Needleman-Wunsch
