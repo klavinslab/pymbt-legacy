@@ -216,7 +216,8 @@ class TestFeatures(object):
         misc_1_feature = sequence.Feature('Misc Feature', 1, 20,
                                           'misc_feature', strand=1)
         coding_feature = sequence.Feature('Coding Feature', 21, 40, 'CDS')
-        primer_feature = sequence.Feature('Primer Feature', 41, 60, 'primer')
+        primer_feature = sequence.Feature('Primer Feature', 41, 60,
+                                          'primer_bind')
         promoter_feature = sequence.Feature('Promoter Feature', 61, 80,
                                             'promoter')
         terminator_feature = sequence.Feature('Terminator Feature', 81, 100,
@@ -262,7 +263,7 @@ class TestFeatures(object):
     def test_getitem(self):
         subsequence = self.dna[30:100]
         remaining_features = [sequence.Feature('Primer Feature', 11, 30,
-                                               'primer'),
+                                               'primer_bind'),
                               sequence.Feature('Promoter Feature', 31, 50,
                                                'promoter'),
                               sequence.Feature('Terminator Feature', 51, 70,
@@ -281,7 +282,8 @@ class TestFeatures(object):
         del copy[3]
 
         coding_feature = sequence.Feature('Coding Feature', 20, 39, 'CDS')
-        primer_feature = sequence.Feature('Primer Feature', 40, 59, 'primer')
+        primer_feature = sequence.Feature('Primer Feature', 40, 59,
+                                          'primer_bind')
         promoter_feature = sequence.Feature('Promoter Feature', 60, 79,
                                             'promoter')
         terminator_feature = sequence.Feature('Terminator Feature', 80, 99,

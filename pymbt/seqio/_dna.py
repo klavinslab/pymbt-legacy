@@ -10,7 +10,11 @@ import pymbt.sequence
 from pymbt.constants import genbank
 
 
-def PrimerAnnotationError(ValueError):
+class PrimerAnnotationError(ValueError):
+    pass
+
+
+class FeatureNameError(ValueError):
     pass
 
 
@@ -26,7 +30,7 @@ def read_dna(path):
     ext = os.path.splitext(path)[1]
 
     genbank_exts = ['.gb', '.ape']
-    fasta_exts = ['.fasta', '.fa', '.seq']
+    fasta_exts = ['.fasta', '.fa', '.fsa', '.seq']
     abi_exts = ['.abi', '.ab1']
 
     if any([ext == extension for extension in genbank_exts]):
@@ -44,7 +48,10 @@ def read_dna(path):
 
     # Features
     for feature in seq.features:
-        dna.features.append(_seqfeature_to_pymbt(feature))
+        try:
+            dna.features.append(_seqfeature_to_pymbt(feature))
+        except FeatureNameError:
+            pass
     dna.features = sorted(dna.features, key=lambda feature: feature.start)
     try:
         if seq.annotations['data_file_division'] == 'circular':
@@ -190,7 +197,13 @@ def _seqfeature_to_pymbt(feature):
     :type feature: Bio.SeqFeature
 
     """
-    feature_name = feature.qualifiers['label'][0]
+    # Some genomic sequences don't have a label attribute
+    # TODO: handle genomic cases differently than others. Some features lack
+    # a label but should still be incorporated somehow.
+    if "label" in feature.qualifiers:
+        feature_name = feature.qualifiers['label'][0]
+    else:
+        raise FeatureNameError("Unrecognized feature name")
     # Features with gaps are special, require looking at subfeatures
     # Assumption: subfeatures are never more than one level deep
     if feature.location_operator == "join":
