@@ -1,10 +1,11 @@
 ~*
 *__pycache__
+*.c
 *.coverage
 *.error
 *.log
 *.pyc
 *.so
 build
-venv/
 docs/_build
+venv/
