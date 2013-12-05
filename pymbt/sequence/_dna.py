@@ -610,7 +610,7 @@ class DNA(BaseSequence):
                     feature.move(-1)
         super(DNA, self).__delitem__(index)
         bottom_list = list(self._bottom[::-1])
-        bottom_list.pop(index)
+        del bottom_list[index]
         self._bottom = ''.join(bottom_list)[::-1]
 
     def __setitem__(self, index, new_value):

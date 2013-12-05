@@ -69,7 +69,7 @@ class BaseSequence(object):
 
         '''
         sequence_list = list(self._sequence)
-        sequence_list.pop(index)
+        del sequence_list[index]
         self._sequence = ''.join(sequence_list)
 
     def __setitem__(self, index, new_value):
