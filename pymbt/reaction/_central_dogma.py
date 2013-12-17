@@ -1,5 +1,5 @@
 '''The central dogma of biology - transcription and translation.'''
-from pymbt import sequence
+import pymbt.sequence
 from pymbt.reaction import utils
 
 
@@ -54,12 +54,12 @@ def coding_sequence(rna):
              first start codon.
 
     """
-    if isinstance(rna, sequence.DNA):
+    if isinstance(rna, pymbt.sequence.DNA):
         rna = transcribe(rna)
     codons_left = len(rna) // 3
-    start_codon = sequence.RNA('aug')
-    stop_codons = [sequence.RNA('uag'), sequence.RNA('uga'),
-                   sequence.RNA('uaa')]
+    start_codon = pymbt.sequence.RNA('aug')
+    stop_codons = [pymbt.sequence.RNA('uag'), pymbt.sequence.RNA('uga'),
+                   pymbt.sequence.RNA('uaa')]
     start = None
     stop = None
     valid = [None, None]

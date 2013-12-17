@@ -1,5 +1,5 @@
 '''Gibson reaction simulation.'''
-from pymbt import analysis
+import pymbt.analysis
 
 
 class AmbiguousGibsonError(ValueError):
@@ -96,11 +96,11 @@ class Gibson(object):
                 if j == 0:
                     seqs = [targets[i][:x] for x in side]
                     report[i][j] = [x for k, x in enumerate(side) if
-                                    analysis.tm(seqs[k]) > tm]
+                                    pymbt.analysis.tm(seqs[k]) > tm]
                 else:
                     seqs = [targets[i][-x:] for x in side]
                     report[i][j] = [x for k, x in enumerate(side) if
-                                    analysis.tm(seqs[k]) > tm]
+                                    pymbt.analysis.tm(seqs[k]) > tm]
 
         # 3. See if there's more than one result. If so, throw exception
         count = len([z for x in report for y in x for z in y])
@@ -138,7 +138,8 @@ class Gibson(object):
         report = homology_report(pattern, pattern)
         report_l = [x for x in report[0] if x != len(pattern)]
         report_l = [x for x in report_l if x > homology]
-        report_l = [x for x in report_l if analysis.tm(pattern[:x + 1]) > tm]
+        report_l = [x for x in report_l if
+                    pymbt.analysis.tm(pattern[:x + 1]) > tm]
         if not report_l:
             raise ValueError('Failed to find compatible Gibson ends.')
         elif len(report_l) > 1:

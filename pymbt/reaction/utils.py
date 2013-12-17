@@ -1,6 +1,6 @@
 '''Utilities for reactions.'''
 from pymbt import constants
-from pymbt import sequence
+import pymbt.sequence
 
 
 def convert_sequence(seq, to_material):
@@ -19,7 +19,7 @@ def convert_sequence(seq, to_material):
     :returns: sequence of type pymbt.sequence.[material type]
 
     '''
-    if isinstance(seq, sequence.DNA) and to_material == 'rna':
+    if isinstance(seq, pymbt.sequence.DNA) and to_material == 'rna':
         # Transcribe
 
         # Can't transcribe a gap
@@ -31,8 +31,8 @@ def convert_sequence(seq, to_material):
         code = dict(zip(origin, destination))
         converted = ''.join([code.get(str(k), str(k)) for k in seq])
         # Instantiate RNA object
-        converted = sequence.RNA(converted)
-    elif isinstance(seq, sequence.RNA):
+        converted = pymbt.sequence.RNA(converted)
+    elif isinstance(seq, pymbt.sequence.RNA):
         if to_material == 'dna':
             # Reverse transcribe
             origin = constants.molecular_bio.ALPHABETS['rna']
@@ -40,7 +40,7 @@ def convert_sequence(seq, to_material):
             code = dict(zip(origin, destination))
             converted = ''.join([code.get(str(k), str(k)) for k in seq])
             # Instantiate DNA object
-            converted = sequence.DNA(converted)
+            converted = pymbt.sequence.DNA(converted)
         elif to_material == 'peptide':
             # Translate
             seq_list = list(str(seq))
@@ -60,7 +60,7 @@ def convert_sequence(seq, to_material):
                 else:
                     break
             converted = ''.join(converted)
-            converted = sequence.Peptide(converted)
+            converted = pymbt.sequence.Peptide(converted)
     else:
         msg1 = 'Conversion from '
         msg2 = '{0} to {1} is not supported.'.format(seq.__class__.__name__,

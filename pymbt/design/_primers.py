@@ -4,9 +4,9 @@ from pymbt import sequence
 import warnings
 
 
-def design_primer(dna, tm=65, min_len=10, tm_undershoot=1, tm_overshoot=3,
-                  end_gc=False, tm_parameters='cloning', overhang=None,
-                  structure=False):
+def primer(dna, tm=65, min_len=10, tm_undershoot=1, tm_overshoot=3,
+           end_gc=False, tm_parameters='cloning', overhang=None,
+           structure=False):
     '''Design primer to a nearest-neighbor Tm setpoint.
 
     :param dna: Sequence for which to design a primer.
@@ -61,7 +61,7 @@ def design_primer(dna, tm=65, min_len=10, tm_undershoot=1, tm_overshoot=3,
                    melt >= tm - tm_undershoot]
     if end_gc:
         primers_tms = [(primer, melt) for primer, melt in primers_tms if
-                       primer.top().endswith(('c', 'g'))]
+                       primer.top().endswith(('C', 'G'))]
     if not primers_tms:
         raise ValueError('No primers could be generated using these settings')
 
@@ -98,8 +98,8 @@ def design_primer(dna, tm=65, min_len=10, tm_undershoot=1, tm_overshoot=3,
     return output_primer
 
 
-def design_primers(dna, tm=65, min_len=10, tm_undershoot=1, tm_overshoot=3,
-                   end_gc=False, tm_parameters='cloning', overhangs=None):
+def primers(dna, tm=65, min_len=10, tm_undershoot=1, tm_overshoot=3,
+            end_gc=False, tm_parameters='cloning', overhangs=None):
     '''Design primers for PCR amplifying any arbitrary sequence.
 
     :param dna: Input sequence.
@@ -118,7 +118,7 @@ def design_primers(dna, tm=65, min_len=10, tm_undershoot=1, tm_overshoot=3,
     :type tm_parameters: string
     :param overhangs: 2-tuple of overhang sequences.
     :type overhangs: tuple
-    :returns: A list primers (the output of design_primer).
+    :returns: A list primers (the output of primer).
     :rtype: list
 
     '''
@@ -127,10 +127,10 @@ def design_primers(dna, tm=65, min_len=10, tm_undershoot=1, tm_overshoot=3,
     templates = [dna, dna.reverse_complement()]
     primer_list = []
     for template, overhang in zip(templates, overhangs):
-        primer_i = design_primer(template, tm=tm, min_len=min_len,
-                                 tm_undershoot=tm_undershoot,
-                                 tm_overshoot=tm_overshoot, end_gc=end_gc,
-                                 tm_parameters=tm_parameters,
-                                 overhang=overhang)
+        primer_i = primer(template, tm=tm, min_len=min_len,
+                          tm_undershoot=tm_undershoot,
+                          tm_overshoot=tm_overshoot, end_gc=end_gc,
+                          tm_parameters=tm_parameters,
+                          overhang=overhang)
         primer_list.append(primer_i)
     return primer_list

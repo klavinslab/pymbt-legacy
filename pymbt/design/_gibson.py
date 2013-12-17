@@ -1,6 +1,6 @@
 '''Gibson design module.'''
 from pymbt import analysis, sequence
-from pymbt.design import design_primer
+from pymbt.design import primer as design_primer
 
 
 class LengthError(Exception):
@@ -35,7 +35,7 @@ def gibson_primers(dna1, dna2, overlap="mixed", maxlen=60, overlap_tm=65.0,
     :param insert: A DNA insert to add with primers and use as assembly
                    homology. This overrides the 'split' argument.
     :type insert: pymbt.sequence.DNA
-    :param kwargs: keyword arguments to pass to design_primer
+    :param kwargs: keyword arguments to pass to design_primer()
     :type kwargs: dict
     :returns: Reverse, then forward primer for bridging the two sequences.
               Note that the forward primer binds dna2, reverse dna1.
@@ -148,7 +148,7 @@ def gibson(seq_list, circular=True, overlaps='mixed', overlap_tm=65, **kwargs):
     :type splits: str or list of str
     :param overlap_tm: Minimum Tm of overlap
     :type overlap_tm: float
-    :param kwargs: keyword arguments to pass to design_primer
+    :param kwargs: keyword arguments to pass to design.primer
     :type kwargs: dict
     :returns: Forward and reverse primers for amplifying every fragment.
     :rtype: a list of sequence.Primer tuples

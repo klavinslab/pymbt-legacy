@@ -31,7 +31,7 @@ class BaseSequence(object):
         :rtype: list of ints
 
         '''
-        pattern = str(pattern).lower()
+        pattern = str(pattern).upper()
         re_pattern = '(?=' + pattern + ')'
         return [index.start() for index in
                 re.finditer(re_pattern, self._sequence)]
@@ -198,7 +198,7 @@ class BaseSequence(object):
         :rtype: bool
 
         '''
-        query_str = str(query).lower()
+        query_str = str(query).upper()
         query_str = re.sub(any_char, ".", query_str)
         if re.search(query_str, str(self)):
             return True

@@ -196,7 +196,7 @@ class Sanger(object):
         :type seq: pymbt.sequence.DNA
 
         '''
-        largest = max([x for x in seq.top().split('n')], key=len)
+        largest = max([x for x in seq.top().split('N')], key=len)
         seq_start = seq.top().index(largest)
         seq_stop = seq_start + len(largest)
         processed = seq[seq_start:seq_stop]

@@ -11,24 +11,23 @@ from pymbt import sequence
 def test_convert_sequence():
     '''Tests DNA translation function.'''
 
-    seq = 'atggtgagcaagggcgaggagctgttcaccggggtggtgcccatcctggtcgagctggacggc' + \
-          'gacgtaaacggccacaagttcagcgtgtccggcgagggcgagggcgatgccacctacggcaag' + \
-          'ctgaccctgaagttcatctgcaccaccggcaagctgcccgtgccctggcccaccctcgtgacc' + \
-          'accttcggctacggcctgcagtgcttcgcccgctaccccgaccacatgaagcagcacgacttc' + \
-          'ttcaagtccgccatgcccgaaggctacgtccaggagcgcaccatcttcttcaaggacgacggc' + \
-          'aactacaagacccgcgccgaggtgaagttcgagggcgacaccctggtgaaccgcatcgagctg' + \
-          'aagggcatcgacttcaaggaggacggcaacatcctggggcacaagctggagtacaactacaac' + \
-          'agccacaacgtctatatcatggccgacaagcagaagaacggcatcaaggtgaacttcaagatc' + \
-          'cgccacaacatcgaggacggcagcgtgcagctcgccgaccactaccagcagaacacccccatc' + \
-          'ggcgacggccccgtgctgctgcccgacaaccactacctgagctaccagtccgccctgagcaaa' + \
-          'gaccccaacgagaagcgcgatcacatggtcctgctggagttcgtgaccgccgccgggatcact' + \
-          'ctcggcatggacgagctgtacaagtaa'
+    seq = 'ATGGTGAGCAAGGGCGAGGAGCTGTTCACCGGGGTGGTGCCCATCCTGGTCGAGCTGGACGGC' + \
+          'GACGTAAACGGCCACAAGTTCAGCGTGTCCGGCGAGGGCGAGGGCGATGCCACCTACGGCAAG' + \
+          'CTGACCCTGAAGTTCATCTGCACCACCGGCAAGCTGCCCGTGCCCTGGCCCACCCTCGTGACC' + \
+          'ACCTTCGGCTACGGCCTGCAGTGCTTCGCCCGCTACCCCGACCACATGAAGCAGCACGACTTC' + \
+          'TTCAAGTCCGCCATGCCCGAAGGCTACGTCCAGGAGCGCACCATCTTCTTCAAGGACGACGGC' + \
+          'AACTACAAGACCCGCGCCGAGGTGAAGTTCGAGGGCGACACCCTGGTGAACCGCATCGAGCTG' + \
+          'AAGGGCATCGACTTCAAGGAGGACGGCAACATCCTGGGGCACAAGCTGGAGTACAACTACAAC' + \
+          'AGCCACAACGTCTATATCATGGCCGACAAGCAGAAGAACGGCATCAAGGTGAACTTCAAGATC' + \
+          'CGCCACAACATCGAGGACGGCAGCGTGCAGCTCGCCGACCACTACCAGCAGAACACCCCCATC' + \
+          'GGCGACGGCCCCGTGCTGCTGCCCGACAACCACTACCTGAGCTACCAGTCCGCCCTGAGCAAA' + \
+          'GACCCCAACGAGAAGCGCGATCACATGGTCCTGCTGGAGTTCGTGACCGCCGCCGGGATCACT' + \
+          'CTCGGCATGGACGAGCTGTACAAGTAA'
     dna = sequence.DNA(seq)
     prot = 'MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLV' + \
            'TTFGYGLQCFARYPDHMKQHDFFKSAMPEGYVQERTIFFKDDGNYKTRAEVKFEGDTLVNRI' + \
            'ELKGIDFKEDGNILGHKLEYNYNSHNVYIMADKQKNGIKVNFKIRHNIEDGSVQLADHYQQN' + \
            'TPIGDGPVLLPDNHYLSYQSALSKDPNEKRDHMVLLEFVTAAGITLGMDELYK'
-    prot = prot.lower()
     rna = reaction.utils.convert_sequence(dna, 'rna')
     r_trans = reaction.utils.convert_sequence(rna, 'dna')
     trans = reaction.utils.convert_sequence(rna, 'peptide')
@@ -44,7 +43,7 @@ def test_convert_sequence():
     nostop_dna = sequence.DNA('atgaaaaaaaaaaaa')
     nostop_rna = reaction.utils.convert_sequence(nostop_dna, 'rna')
     nostop_peptide = reaction.utils.convert_sequence(nostop_rna, 'peptide')
-    assert_equal(str(nostop_rna), 'augaaaaaaaaaaaa')
-    assert_equal(str(nostop_peptide), 'mkkkk')
+    assert_equal(str(nostop_rna), 'AUGAAAAAAAAAAAA')
+    assert_equal(str(nostop_peptide), 'MKKKK')
 
     assert_raises(ValueError, reaction.utils.convert_sequence, 'duck', 'rna')

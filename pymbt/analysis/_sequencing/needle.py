@@ -24,8 +24,8 @@ def needle(reference, query, gap_open=-15, gap_extend=0):
 
     '''
     # Align using cython Needleman-Wunsch
-    aligned_ref, aligned_res = aligner(str(reference).upper(),
-                                       str(query).upper(),
+    aligned_ref, aligned_res = aligner(str(reference),
+                                       str(query),
                                        gap_open=gap_open,
                                        gap_extend=gap_extend,
                                        method="global_cfe",

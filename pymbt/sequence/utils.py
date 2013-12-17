@@ -56,13 +56,13 @@ def process_seq(seq, material):
     :type seq: str
     :param material: DNA, RNA, or peptide
     :type: str
-    :returns: Lowercase version of `seq` with the alphabet checked by
+    :returns: Uppercase version of `seq` with the alphabet checked by
               check_alphabet().
     :rtype: str
 
     '''
     check_alphabet(seq, material)
-    seq = seq.lower()
+    seq = seq.upper()
     return seq
 
 

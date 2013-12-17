@@ -1,4 +1,5 @@
 '''RNA module.'''
+import pymbt.reaction
 from pymbt.sequence._sequence import BaseSequence
 from pymbt.sequence import utils
 
@@ -39,6 +40,24 @@ class RNA(BaseSequence):
         new_instance._sequence = utils.reverse_complement(self._sequence,
                                                           'rna')
         return new_instance
+
+    def reverse_transcribe(self):
+        '''Reverse transcribe to DNA.
+
+        :returns: The reverse transcribed (DNA) version of the current RNA.
+        :rtype: pymbt.sequence.DNA
+
+        '''
+        return pymbt.reaction.reverse_transcribe(self)
+
+    def translate(self):
+        '''Translate sequence into a peptide.
+
+        :returns: A translated peptide from the current sequence.
+        :rtype: pymbt.sequence.Peptide
+
+        '''
+        return pymbt.reaction.translate(self)
 
     def __contains__(self, query):
         """Defines `query in sequence` operator.

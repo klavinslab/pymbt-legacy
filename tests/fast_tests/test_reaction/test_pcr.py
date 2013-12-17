@@ -9,7 +9,7 @@ def test_basic():
     to_amplify = 'atgtctaaaggtgaagaattattcactggtgttgtcccaatgctgctggtattacc' + \
                  'catggtattgatgaattgtacaaatag'
     template = sequence.DNA(to_amplify)
-    forward, reverse = design.design_primers(template)
+    forward, reverse = design.primers(template)
 
     amplicon = reaction.pcr(template, forward, reverse)
     assert_equal(amplicon, template)
@@ -20,8 +20,8 @@ def test_over_origin():
     template = seqio.read_dna(os.path.join(current_path,
                                            "pMODKan-HO-pACT1GEV.ape"))
     assert_true(template.topology == "circular")
-    primer1 = design.design_primer(template[-200:])
-    primer2 = design.design_primer(template.reverse_complement()[-200:])
+    primer1 = design.primer(template[-200:])
+    primer2 = design.primer(template.reverse_complement()[-200:])
     over_origin = reaction.pcr(template, primer1, primer2)
     expected = template[-200:] + template[0:200]
     assert_equal(str(over_origin), str(expected))

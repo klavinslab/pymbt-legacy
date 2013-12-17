@@ -9,9 +9,9 @@ from pymbt import sequence
 
 
 def test_find_repeats():
-    reference_seq = sequence.DNA('atgatgccccgatagtagtagtag')
-    reference_result = [('atg', 2), ('gat', 2), ('tag', 4), ('gta', 3),
-                        ('agt', 3), ('ccc', 2)]
+    input_sequence = sequence.DNA('atgatgccccgatagtagtagtag')
+    expected = [('ATG', 2), ('GTA', 3), ('GAT', 2), ('AGT', 3), ('CCC', 2),
+                ('TAG', 4)]
 
-    output_result = analysis.repeats(reference_seq, 3)
-    assert_equal(output_result, reference_result)
+    output = analysis.repeats(input_sequence, 3)
+    assert_equal(output, expected)
