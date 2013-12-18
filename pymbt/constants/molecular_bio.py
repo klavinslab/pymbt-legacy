@@ -245,17 +245,3 @@ CODONS = {'AAA': 'K',
           'UUC': 'F',
           'UUG': 'L',
           'UUU': 'F'}
-
-neb_1kb_ladder = {"1": {"mass": 42, "bp": 10002},
-                  "2": {"mass": 42, "bp": 8001},
-                  "3": {"mass": 50, "bp": 6001},
-                  "4": {"mass": 42, "bp": 5001},
-                  "5": {"mass": 33, "bp": 4001},
-                  "6": {"mass": 125, "bp": 3001},
-                  "7": {"mass": 48, "bp": 2000},
-                  "8": {"mass": 36, "bp": 1500},
-                  "9": {"mass": 42, "bp": 1000},
-                  # NEB docs are unclear about the 10a/10b meaning.
-                  # Let's just ignore it for now and stick with 500 bp example
-                  #"10a": {"mass": 42, "bp": 517},
-                  "10b": {"mass": 42, "bp": 500}}
