@@ -84,5 +84,6 @@ class Gel(object):
                 sub1.broken_barh([(i + 0.25, 0.5)],
                                  (band.length, 60), alpha=alpha,
                                  facecolors=color, edgecolors='none')
-                sub1.set_xlim([0, len(self.columns)])
-        pyplot.show(block=True)
+        pyplot.show()
+        #pyplot.show(block=True)
+        sub1.set_xlim([0, len(self.columns)])
