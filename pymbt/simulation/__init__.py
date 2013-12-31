@@ -1,1 +1,1 @@
-from pymbt.simulation import gel
+from . import gel

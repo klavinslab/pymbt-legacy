@@ -1,1 +1,1 @@
-from pymbt.database._rebase import Rebase
+from ._rebase import Rebase
