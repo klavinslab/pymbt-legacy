@@ -6,7 +6,7 @@ def repeats(seq, size):
     '''Count times that a sequence of a certain size is repeated.
 
     :param seq: Input sequence.
-    :type seq: pymbt.sequence.DNA or pymbt.sequence.RNA
+    :type seq: pymbt.DNA or pymbt.RNA
     :param size: Size of the repeat to count.
     :type size: int
     :returns: Occurrences of repeats and how many

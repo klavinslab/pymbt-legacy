@@ -66,7 +66,7 @@ class Gel(object):
         if add_ladder:
             column_list.insert(0, ladder)
 
-    def render(self):
+    def plot(self):
         '''Render gel to plot.'''
         fig = pyplot.figure(figsize=(12, 9), dpi=90)
         sub1 = fig.add_subplot(111)
@@ -84,6 +84,5 @@ class Gel(object):
                 sub1.broken_barh([(i + 0.25, 0.5)],
                                  (band.length, 60), alpha=alpha,
                                  facecolors=color, edgecolors='none')
-        pyplot.show()
-        #pyplot.show(block=True)
         sub1.set_xlim([0, len(self.columns)])
+        pyplot.show()

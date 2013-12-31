@@ -38,9 +38,10 @@ class DNA(BaseSequence):
         :type id: str
         :param name: Optional name field for your DNA sequence.
         :type name: str
-        :returns: pymbt.sequence.DNA instance.
+        :returns: pymbt.DNA instance.
+        :rtype: pymbt.DNA
         :raises: ValueError if an element of `features` isn't of type
-                 pymbt.sequence.Feature.
+                 pymbt.Feature.
                  ValueError if top and bottom strands have different lengths.
                  ValueError if top and bottom strands are not complementary.
 
@@ -138,7 +139,7 @@ class DNA(BaseSequence):
         features shorter than 5 bp.
 
         :param other: Another sequence.
-        :type other: pymbt.sequence.DNA
+        :type other: pymbt.DNA
         :param wipe: Remove (wipe) the current features first.
         :type wipe: bool
         :param shortest: Features shorters than this will be ignored.
@@ -192,7 +193,7 @@ class DNA(BaseSequence):
         '''Create a copy of the current instance.
 
         :returns: A safely-editable copy of the current sequence.
-        :rtype: pymbt.sequence.DNA
+        :rtype: pymbt.DNA
 
         '''
         # Significant performance improvements by skipping alphabet check
@@ -206,7 +207,7 @@ class DNA(BaseSequence):
         '''Complement the bases of the sequence.
 
         :returns: A base-complemented instance of the current sequence.
-        :rtype: pymbt.sequence.DNA
+        :rtype: pymbt.DNA
 
         '''
         copy = self.copy()
@@ -221,7 +222,7 @@ class DNA(BaseSequence):
         '''Circularize linear DNA.
 
         :returns: A circularized version of the current sequence.
-        :rtype: pymbt.sequence.DNA
+        :rtype: pymbt.DNA
 
         '''
         # FIXME: this should fail for some cases of overhangs.
@@ -233,7 +234,7 @@ class DNA(BaseSequence):
         """Report whether parent sequence ends with a query sequence.
 
         :param seq: Query sequence.
-        :type seq: str or pymbt.sequence.DNA
+        :type seq: str or pymbt.DNA
         :returns: Boolean of whether the top strand ends with the query.
         :rtype: bool
 
@@ -252,7 +253,7 @@ class DNA(BaseSequence):
                      features. If False, just extracts start:stop slice.
         :type pure: bool
         :returns: A subsequence from start to stop of the feature.
-        :rtype: pymbt.sequence.DNA
+        :rtype: pymbt.DNA
         :raises: ValueError if no feature has `name` or more than one match
                  `name`.
 
@@ -279,7 +280,7 @@ class DNA(BaseSequence):
         '''Flip the DNA - swap the top and bottom strands.
 
         :returns: Flipped DNA (bottom strand is now top strand, etc.).
-        :rtype: pymbt.sequence.DNA
+        :rtype: pymbt.DNA
 
         '''
         copy = self.copy()
@@ -301,7 +302,7 @@ class DNA(BaseSequence):
         :param index: index at which to linearize.
         :type index: int
         :returns: A linearized version of the current sequence.
-        :rtype: pymbt.sequence.DNA
+        :rtype: pymbt.DNA
         :raises: ValueError if the input is linear DNA.
 
         '''
@@ -374,7 +375,7 @@ class DNA(BaseSequence):
         :param index: DNA position at which to re-zero the DNA.
         :type index: int
         :returns: The current sequence reoriented at `index`.
-        :rtype: pymbt.sequence.DNA
+        :rtype: pymbt.DNA
         :raises: ValueError if applied to linear sequence or `index` is
                  negative.
 
@@ -393,7 +394,7 @@ class DNA(BaseSequence):
         :type featurename: str
         :returns: The current sequence reoriented at the start index of a
                   unique feature matching `featurename`.
-        :rtype: pymbt.sequence.DNA
+        :rtype: pymbt.DNA
         :raises: ValueError if there is no feature of `featurename` or
                  more than one feature matches `featurename`.
 
@@ -415,7 +416,7 @@ class DNA(BaseSequence):
         '''Reverse the sequence.
 
         :returns: A reversed instance of the current sequence.
-        :rtype: pymbt.sequence.DNA
+        :rtype: pymbt.DNA
 
         '''
         copy = self.copy()
@@ -429,7 +430,7 @@ class DNA(BaseSequence):
         '''Reverse complement the DNA.
 
         :returns: A reverse-complemented instance of the current sequence.
-        :rtype: pymbt.sequence.DNA
+        :rtype: pymbt.DNA
 
         '''
         copy = self.copy()
@@ -462,7 +463,7 @@ class DNA(BaseSequence):
         :param stranded: 'ss' or 'ds' (DNA).
         :type stranded: str
         :returns: The current sequence, converted to ssDNA or dsDNA.
-        :rtype: pymbt.sequence.DNA
+        :rtype: pymbt.DNA
         :raises: ValueError if `stranded` is not \"ss\" or \"ds\".
 
         '''
@@ -491,7 +492,7 @@ class DNA(BaseSequence):
         """Report whether parent sequence starts with a query sequence.
 
         :param seq: Query sequence.
-        :type seq: str or pymbt.sequence.DNA
+        :type seq: str or pymbt.DNA
         :returns: Boolean of whether the top strand starts with the query.
         :rtype: bool
 
@@ -514,7 +515,7 @@ class DNA(BaseSequence):
         '''Transcribe into RNA.
 
         :returns: An RNA sequence transcribed from the current DNA sequence.
-        :rtype: pymbt.sequence.RNA
+        :rtype: pymbt.RNA
 
         '''
         return pymbt.reaction.transcribe(self)
@@ -561,7 +562,7 @@ class DNA(BaseSequence):
 
         :returns: The current sequence wiht terminal double-strand gaps ('-')
                   removed.
-        :rtype: pymbt.sequence.DNA
+        :rtype: pymbt.DNA
 
         """
         # TODO: move this to _resect module
@@ -590,7 +591,7 @@ class DNA(BaseSequence):
         :param other: instance to be added to.
         :type other: compatible sequence object (currently only DNA).
         :returns: Concatenated DNA sequence.
-        :rtype: pymbt.sequence.DNA
+        :rtype: pymbt.DNA
         :raises: Exception if either sequence is circular.
                  Exception if concatenating a sequence with overhangs would
                  create a discontinuity.
@@ -636,7 +637,7 @@ class DNA(BaseSequence):
         """Defines `query in sequence` operator.
 
         :param query: query string or DNA sequence
-        :type query: str or pymbt.sequence.DNA
+        :type query: str or pymbt.DNA
 
         """
         return super(DNA, self).__contains__(query, "n")
@@ -647,7 +648,7 @@ class DNA(BaseSequence):
         :param index: index to delete
         :type index: int
         :returns: The current sequence with the base at `index` removed.
-        :rtype: pymbt.sequence.DNA
+        :rtype: pymbt.DNA
 
         '''
         if self.features:
@@ -667,7 +668,7 @@ class DNA(BaseSequence):
         :param key: int or slice object for subsetting.
         :type key: int or slice object
         :returns: A subsequence matching the slice (`key`).
-        :rtype: pymbt.sequence.DNA
+        :rtype: pymbt.DNA
 
         '''
         copy = super(DNA, self).__getitem__(key)
@@ -718,10 +719,10 @@ class DNA(BaseSequence):
         :param index: The index at which the sequence will be modified.
         :type index: int
         :param new_value: The new value at that index
-        :type new_value: str or pymbt.sequence.DNA
+        :type new_value: str or pymbt.DNA
         :returns: The current sequence with the sequence at `index` replaced
                   with `new_value`.
-        :rtype: pymbt.sequence.DNA
+        :rtype: pymbt.DNA
         :raises: ValueError if `new_value` is '-'.
 
         '''
@@ -748,14 +749,14 @@ class RestrictionSite(object):
     def __init__(self, recognition_site, cut_site, name=None):
         '''
         :param recognition_site: Input sequence.
-        :type recognition_site: pymbt.sequence.DNA
+        :type recognition_site: pymbt.DNA
         :param cut_site: 0-indexed indices where DNA is nicked (top, then
                          bottom strand). For an n-sized recognition site, there
                          are n + 1 positions at which to cut.
         :type cut_site: 2-tuple.
         :param name: Identifier of this restriction site
         :type name: str
-        :returns: instance of pymbt.sequence.RestrictionSite
+        :returns: instance of pymbt.RestrictionSite
 
         '''
         self.recognition_site = recognition_site  # require DNA object
@@ -790,7 +791,7 @@ class RestrictionSite(object):
         '''Return copy of the restriction site.
 
         :returns: A safely editable copy of the current restriction site.
-        :rtype: pymbt.sequence.RestrictionSite
+        :rtype: pymbt.RestrictionSite
 
         '''
         return RestrictionSite(self.recognition_site, self.cut_site,
@@ -831,9 +832,9 @@ class Primer(object):
     def __init__(self, anneal, tm, overhang=None, name="", note=""):
         '''
         :param anneal: Annealing sequence
-        :type anneal: pymbt.sequence.DNA
+        :type anneal: pymbt.DNA
         :param overhang: Overhang sequence
-        :type overhang: pymbt.sequence.DNA
+        :type overhang: pymbt.DNA
         :param tm: melting temperature
         :type tm: float
         :param name: Optional name of the primer. Used when writing to csv with
@@ -842,7 +843,7 @@ class Primer(object):
         :param note: Optional description to associate with the primer. Used
                      when writing to csv with seqio.write_primers.
         :type note: str
-        :returns: pymbt.sequence.Primer instance.
+        :returns: pymbt.Primer instance.
 
         '''
         self.tm = tm
@@ -858,7 +859,7 @@ class Primer(object):
         '''Produce full (overhang + annealing sequence) primer sequence.
 
         :returns: The DNA sequence of the primer.
-        :rtype: pymbt.sequence.DNA
+        :rtype: pymbt.DNA
 
         '''
         return self.overhang + self.anneal
@@ -924,7 +925,7 @@ class Feature(object):
         :type strand: int
         :param gaps: Gap locations if the feature has gaps.
         :type gaps: list of coordinates (2-tuple/list)
-        :returns: pymbt.sequence.Feature instance.
+        :returns: pymbt.Feature instance.
         :raises: ValueError if `feature_type` is not in
                  pymbt.constants.genbank.TO_PYMBT.
 
@@ -959,7 +960,7 @@ class Feature(object):
         '''Return a copy of the Feature.
 
         :returns: A safely editable copy of the current feature.
-        :rtype: pymbt.sequence.Feature
+        :rtype: pymbt.Feature
 
         '''
         return Feature(self.name, self.start, self.stop, self.feature_type,

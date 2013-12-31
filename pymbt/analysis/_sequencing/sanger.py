@@ -20,7 +20,7 @@ class Sanger(object):
         :type reference: :class:`pymbt.DNA`
         :param results: Sequencing result string. A list of DNA objects is also
                         valid.
-        :type results: list of pymbt.sequence.DNA sequences
+        :type results: list of pymbt.DNA sequences
         :returns: instance of pymbt.analysis.Sanger (contains alignment and
                   provides analysis/visualization methods
 
@@ -194,7 +194,7 @@ class Sanger(object):
         '''Find largest non-N segment.
 
         :param seq: Sequence that contains Ns to remove
-        :type seq: pymbt.sequence.DNA
+        :type seq: pymbt.DNA
 
         '''
         seq_str = str(seq)

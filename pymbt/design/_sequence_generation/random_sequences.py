@@ -10,7 +10,7 @@ def random_dna(n):
     :param length: Output sequence length.
     :type length: int
     :returns: Random DNA sequence of length n.
-    :rtype: pymbt.sequence.DNA
+    :rtype: pymbt.DNA
 
     '''
     return pymbt.DNA("".join([random.choice("ATGC") for i in range(n)]))
@@ -21,7 +21,7 @@ def random_codons(peptide, frequency_cutoff=0.0, weighted=False, table=None):
 
     :param peptide: Peptide sequence for which to generate randomized
                     codons.
-    :type peptide: pymbt.sequence.Peptide
+    :type peptide: pymbt.Peptide
     :param frequency_cutoff: Relative codon usage cutoff - codons that
                              are rarer will not be used. Frequency is
                              relative to average over all codons for a
@@ -38,7 +38,7 @@ def random_codons(peptide, frequency_cutoff=0.0, weighted=False, table=None):
     :type table: dict
     :returns: Randomized sequence of codons (DNA) that code for the input
               peptide.
-    :rtype: pymbt.sequence.DNA
+    :rtype: pymbt.DNA
     :raises: ValueError if frequency_cutoff is set so high that there are no
              codons available for an amino acid in the input peptide.
 

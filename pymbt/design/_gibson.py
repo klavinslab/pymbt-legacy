@@ -18,10 +18,10 @@ def gibson_primers(dna1, dna2, overlap="mixed", maxlen=60, overlap_tm=65.0,
 
     :param dna1: First piece of DNA for which to design primers. Once Gibsoned,
                  would be connected at its right side to dna2.
-    :type dna1: pymbt.sequence.DNA
+    :type dna1: pymbt.DNA
     :param dna2: First piece of DNA for which to design primers. Once Gibsoned,
                  would be connected at its right side to dna2.
-    :type dna2: pymbt.sequence.DNA
+    :type dna2: pymbt.DNA
     :param overlap: Specifies location of overlap. 'left' puts it on the 'dna1'
                     side (i.e. the primer to amplify dna2). 'right' puts it on
                     the dna2 side, and 'mixed' does a ~50:50 split
@@ -33,7 +33,7 @@ def gibson_primers(dna1, dna2, overlap="mixed", maxlen=60, overlap_tm=65.0,
     :type overlap_tm: float
     :param insert: A DNA insert to add with primers and use as assembly
                    homology. This overrides the 'split' argument.
-    :type insert: pymbt.sequence.DNA
+    :type insert: pymbt.DNA
     :param kwargs: keyword arguments to pass to design_primer()
     :type kwargs: dict
     :returns: Reverse, then forward primer for bridging the two sequences.
@@ -135,7 +135,7 @@ def gibson(seq_list, circular=True, overlaps='mixed', overlap_tm=65, **kwargs):
     '''Design Gibson primers given a set of sequences
 
     :param seq_list: List of DNA sequences to stitch together
-    :type seq_list: list containing pymbt.sequence.DNA
+    :type seq_list: list containing pymbt.DNA
     :param circular: If true, designs primers for making a circular construct.
                      If false, designs primers for a linear construct.
     :type circular: bool

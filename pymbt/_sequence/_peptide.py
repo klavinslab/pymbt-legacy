@@ -12,7 +12,7 @@ class Peptide(BaseSequence):
                            alphabet check
                            case
         :type run_checks: bool
-        :returns: pymbt.sequence.Peptide instance.
+        :returns: pymbt.Peptide instance.
 
         '''
         super(Peptide, self).__init__(peptide, 'peptide',
@@ -22,7 +22,7 @@ class Peptide(BaseSequence):
         '''Create a copy of the current instance.
 
         :returns: A safely editable copy of the current sequence.
-        :rtype: pymbt.sequence.Peptide
+        :rtype: pymbt.Peptide
 
         '''
         # Significant performance improvements by skipping alphabet check
@@ -32,7 +32,7 @@ class Peptide(BaseSequence):
         """Defines `query in sequence` operator.
 
         :param query: query string or DNA sequence
-        :type query: str or pymbt.sequence.DNA
+        :type query: str or pymbt.DNA
 
         """
         return super(Peptide, self).__contains__(query, "x")

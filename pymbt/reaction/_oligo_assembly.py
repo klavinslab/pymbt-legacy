@@ -12,16 +12,16 @@ class AssemblyError(Exception):
 def assemble_oligos(dna_list, reference=None):
     """Given a list of DNA sequences, assemble into a single construct.
     :param dna_list: List of DNA sequences - they must be single-stranded.
-    :type dna_list: pymbt.sequence.DNA list
+    :type dna_list: pymbt.DNA list
     :param reference: Expected sequence - once assembly completed, this will
                       be used to reorient the DNA (assembly could potentially
                       occur from either side of a linear DNA construct if
                       oligos are in a random order). If this fails, an
                       AssemblyError is raised.
-    :type reference: pymbt.sequence.DNA
+    :type reference: pymbt.DNA
     :raises: AssemblyError if it can't assemble for any reason.
     :returns: A single assembled DNA sequence
-    :rtype: pymbt.sequence.DNA
+    :rtype: pymbt.DNA
 
     """
     # FIXME: this protocol currently only supports 5' ends on the assembly
@@ -99,9 +99,9 @@ def bind_unique(reference, query_list, min_overlap=12, right=True):
     query sequences.
 
     :param reference: Reference sequence.
-    :type reference: pymbt.sequence.DNA
+    :type reference: pymbt.DNA
     :param query_list: List of query sequences.
-    :type query_list: pymbt.sequence.DNA list
+    :type query_list: pymbt.DNA list
     :param min_overlap: Minimum overlap for a match (in bp).
     :type min_overlap: int
     :param right: Check right side of sequence (3'). False results in 5' check.

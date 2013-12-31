@@ -12,15 +12,15 @@ def needle(reference, query, gap_open=-15, gap_extend=0):
     '''Do a Needleman-Wunsch alignment.
 
     :param reference: Reference sequence.
-    :type reference: pymbt.sequence.DNA
+    :type reference: pymbt.DNA
     :param query: Sequence to align against the reference.
-    :type query: pymbt.sequence.DNA
+    :type query: pymbt.DNA
     :param gapopen: Penalty for opening a gap.
     :type gapopen: float
     :param gapextend: Penalty for extending a gap.
     :type gapextend: float
     :returns: (aligned reference, aligned query, score)
-    :rtype: tuple of two pymbt.sequence.DNA instances and a float
+    :rtype: tuple of two pymbt.DNA instances and a float
 
     '''
     # Align using cython Needleman-Wunsch
@@ -50,9 +50,9 @@ def needle_multi(references, queries, gap_open=-15, gap_extend=0):
     needle but sequence inputs are lists.
 
     :param references: References sequence.
-    :type references: pymbt.sequence.DNA list
+    :type references: pymbt.DNA list
     :param queries: Sequences to align against the reference.
-    :type queries: pymbt.sequence.DNA list
+    :type queries: pymbt.DNA list
     :param gap_open: Penalty for opening a gap.
     :type gap_open: float
     :param gap_extend: Penalty for extending a gap.

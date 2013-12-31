@@ -14,7 +14,7 @@ class RNA(BaseSequence):
                            alphabet check
                            case
         :type run_checks: bool
-        :returns: pymbt.sequence.RNA instance.
+        :returns: pymbt.RNA instance.
 
         '''
         super(RNA, self).__init__(rna, 'rna', run_checks=run_checks)
@@ -23,7 +23,7 @@ class RNA(BaseSequence):
         '''Create a copy of the current instance.
 
         :returns: A safely-editable copy of the current sequence.
-        :rtype: pymbt.sequence.RNA
+        :rtype: pymbt.RNA
 
         '''
         # Significant performance improvements by skipping alphabet check
@@ -33,7 +33,7 @@ class RNA(BaseSequence):
         '''Reverse complement sequence.
 
         :returns: The reverse-complement of the current sequence.
-        :rtype: pymbt.sequence.RNA
+        :rtype: pymbt.RNA
 
         '''
         new_instance = self.copy()
@@ -45,7 +45,7 @@ class RNA(BaseSequence):
         '''Reverse transcribe to DNA.
 
         :returns: The reverse transcribed (DNA) version of the current RNA.
-        :rtype: pymbt.sequence.DNA
+        :rtype: pymbt.DNA
 
         '''
         return pymbt.reaction.reverse_transcribe(self)
@@ -54,7 +54,7 @@ class RNA(BaseSequence):
         '''Translate sequence into a peptide.
 
         :returns: A translated peptide from the current sequence.
-        :rtype: pymbt.sequence.Peptide
+        :rtype: pymbt.Peptide
 
         '''
         return pymbt.reaction.translate(self)
@@ -63,7 +63,7 @@ class RNA(BaseSequence):
         """Defines `query in sequence` operator.
 
         :param query: query string or DNA sequence
-        :type query: str or pymbt.sequence.DNA
+        :type query: str or pymbt.DNA
 
         """
         return super(RNA, self).__contains__(query, "n")

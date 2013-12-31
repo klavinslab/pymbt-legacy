@@ -10,7 +10,7 @@ class Vienna(object):
     def __init__(self, seq, temp=50.0):
         '''
         :param seq: DNA or RNA sequence to evaluate.
-        :type seq: pymbt.sequence.DNA or pymbt.sequence.RNA
+        :type seq: pymbt.DNA or pymbt.RNA
         :param temp: Temperature at which to run calculations.
         :type temp: float
         :returns: pymbt.analysis.Vienna instance.

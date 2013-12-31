@@ -69,7 +69,7 @@ def palindrome(seq):
     '''Test whether a sequence is palindrome.
 
     :param seq: Sequence to analyze (DNA or RNA).
-    :type seq: pymbt.sequence.DNA or pymbt.sequence.RNA
+    :type seq: pymbt.DNA or pymbt.RNA
     :returns: Whether a sequence is a palindrome.
     :rtype: bool
 

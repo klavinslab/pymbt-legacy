@@ -5,13 +5,13 @@ def pcr(template, primer1, primer2):
     '''Simulate a PCR (no support for ambiguous PCRs).
 
     :param template: DNA template from which to PCR.
-    :type template: pymbt.sequence.DNA
+    :type template: pymbt.DNA
     :param primer1: First PCR primer.
-    :type primer1: pymbt.sequence.Primer
+    :type primer1: pymbt.Primer
     :param primer2: First PCR primer.
-    :type primer2: pymbt.sequence.Primer
+    :type primer2: pymbt.Primer
     :returns: A dsDNA Amplicon.
-    :rtype: pymbt.sequence.DNA
+    :rtype: pymbt.DNA
     :raises: Exception if a primer binds more than once on the template.
              Exception if primers bind in overlapping sequence of the template.
              Exception if the PCR would work on a circular version of the

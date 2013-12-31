@@ -5,11 +5,11 @@ def five_resect(dna, n_bases):
     """Remove bases from 5' end of top strand.
 
     :param dna: Sequence to resect.
-    :type dna: pymbt.sequence.DNA
+    :type dna: pymbt.DNA
     :param n_bases: Number of bases cut back.
     :type n_bases: int
     :returns: DNA sequence resected at the 5' end by n_bases.
-    :rtype: pymbt.sequence.DNA
+    :rtype: pymbt.DNA
 
     """
     new_instance = dna.copy()
@@ -26,11 +26,11 @@ def three_resect(dna, n_bases):
     '''Remove bases from 3' end of top strand.
 
     :param dna: Sequence to resect.
-    :type dna: pymbt.sequence.DNA
+    :type dna: pymbt.DNA
     :param n_bases: Number of bases cut back.
     :type n_bases: int
     :returns: DNA sequence resected at the 3' end by n_bases.
-    :rtype: pymbt.sequence.DNA
+    :rtype: pymbt.DNA
 
     '''
     new_instance = dna.copy()

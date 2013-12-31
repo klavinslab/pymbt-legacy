@@ -6,11 +6,11 @@ def dimers(primer1, primer2, concentrations=[5e-7, 3e-11]):
     '''Calculate expected fraction of primer dimers.
 
     :param primer1: Forward primer.
-    :type primer1: pymbt.sequence.DNA
+    :type primer1: pymbt.DNA
     :param primer2: Reverse primer.
-    :type primer2: pymbt.sequence.DNA
+    :type primer2: pymbt.DNA
     :param template: DNA template.
-    :type template: pymbt.sequence.DNA
+    :type template: pymbt.DNA
     :param concentrations: list of concentrations for primers and the
                            template. Defaults are those for PCR with 1kb
                            template.

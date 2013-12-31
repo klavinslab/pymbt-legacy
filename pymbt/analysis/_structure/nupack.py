@@ -12,10 +12,10 @@ from pymbt.analysis.utils import sequence_type
 
 class Nupack(object):
     '''Run NUPACK functions on sequences.'''
-    def __init__(self, seq_list, rna1999=False, temp=50, nupack_home=None):
+    def __init__(self, seq_list, temp=50, nupack_home=None, rna1999=False):
         '''
         :param seq_list: Input sequence(s).
-        :type seq_list: pymbt.sequence.DNA, pymbt.sequence.RNA, or list of
+        :type seq_list: pymbt.DNA, pymbt.RNA, or list of
                         either.
         :param rna1999: Use RNA 1999 settings.
         :type rna1999: bool
@@ -29,7 +29,7 @@ class Nupack(object):
                  and nupack_home is undefined.
                  ValueError if sequences are not all the same type (e.g. don't
                  mix RNA and DNA).
-                 Exception if using rna1999 with a Tm other than 37°C.
+                 Exception if using rna1999 with a Tm other than 37C.
 
         '''
         # Set up nupack environment variable
@@ -74,7 +74,7 @@ class Nupack(object):
         self._complexes_file = None
 
     def complexes(self, max_complexes, mfe=True):
-        '''Run `complexes` on set of inptu sequences.
+        '''Run `complexes` on set of input sequences.
 
         :param max_complexes: Maximum complex size (integer).
         :type max_complexes: int

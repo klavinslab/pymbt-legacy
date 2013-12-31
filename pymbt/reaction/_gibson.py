@@ -12,7 +12,7 @@ class Gibson(object):
     def __init__(self, seq_list):
         '''
         :param seq_list: list of DNA sequences to Gibson
-        :type seq_list: list of pymbt.sequence.DNA
+        :type seq_list: list of pymbt.DNA
         :returns: pymbt.reaction.Gibson instance.
         :raises: ValueError if any input sequences are circular DNA.
 
@@ -35,7 +35,7 @@ class Gibson(object):
         :param homology_min: minimum bp of homology allowed
         :type homology_min: int
         :returns: Gibson-assembled (circular) DNA.
-        :rtype: pymbt.sequence.DNA
+        :rtype: pymbt.DNA
 
         '''
         return self._run(linear=False, homology=homology_min, tm=tm_min)
@@ -46,7 +46,7 @@ class Gibson(object):
         :param homology_min: minimum bp of homology allowed
         :type homology_min: int
         :returns: Gibson-assembled (linear) DNA.
-        :rtype: pymbt.sequence.DNA
+        :rtype: pymbt.DNA
 
         '''
         return self._run(linear=True, homology=homology_min, tm=tm_min)
@@ -60,7 +60,7 @@ class Gibson(object):
         :param homology_min: minimum bp of homology allowed
         :type homology_min: int
         :returns: Gibson-assembled DNA.
-        :rtype: pymbt.sequence.DNA
+        :rtype: pymbt.DNA
 
         '''
         # Copy input list
@@ -152,9 +152,9 @@ def homology_report(seq1, seq2):
     '''Given two sequence inputs, find 3\' revcomp identities.
 
     :param seq1: Sequence to test 3\' end of Watson strand of
-    :type seq1: pymbt.sequence.DNA
+    :type seq1: pymbt.DNA
     :param seq2: Sequence to test both strands of, 3\' end
-    :type seq1: pymbt.sequence.DNA
+    :type seq1: pymbt.DNA
     :returns: List of left and right identities.
     :rtype: list of ints
 

@@ -6,11 +6,11 @@ def digest(dna, restriction_enzyme):
     '''Restriction endonuclease reaction.
 
     :param dna: DNA template to digest.
-    :type dna: pymbt.sequence.DNA
+    :type dna: pymbt.DNA
     :param restriction_site: Restriction site to use.
     :type restriction_site: RestrictionSite
     :returns: list of digested DNA fragments.
-    :rtype: pymbt.sequence.DNA list
+    :rtype: pymbt.DNA list
 
     '''
     pattern = restriction_enzyme.recognition_site
@@ -46,11 +46,11 @@ def _cut(dna, index, restriction_enzyme):
     '''Cuts template once at the specified index.
 
     :param dna: DNA to cut
-    :type dna: pymbt.sequence.DNA
+    :type dna: pymbt.DNA
     :param index: index at which to cut
     :type index: int
     :param restriction_enzyme: Enzyme with which to cut
-    :type restriction_enzyme: pymbt.sequence.RestrictionSite
+    :type restriction_enzyme: pymbt.RestrictionSite
     :returns: 2-element list of digested sequence, including any overhangs.
     :rtype: list
 

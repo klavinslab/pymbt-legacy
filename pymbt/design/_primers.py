@@ -9,7 +9,7 @@ def primer(dna, tm=65, min_len=10, tm_undershoot=1, tm_overshoot=3,
     '''Design primer to a nearest-neighbor Tm setpoint.
 
     :param dna: Sequence for which to design a primer.
-    :type dna: pymbt.sequence.DNA
+    :type dna: pymbt.DNA
     :param tm: Ideal primer Tm in degrees C.
     :type tm: float
     :param min_len: Minimum primer length.
@@ -28,7 +28,7 @@ def primer(dna, tm=65, min_len=10, tm_undershoot=1, tm_overshoot=3,
                       structure.
     :type structure: bool
     :returns: A primer.
-    :rtype: pymbt.sequence.Primer
+    :rtype: pymbt.Primer
     :raises: ValueError if the input sequence is lower than the Tm settings
              allow.
              ValueError if a primer ending with G or C can't be found given
@@ -102,7 +102,7 @@ def primers(dna, tm=65, min_len=10, tm_undershoot=1, tm_overshoot=3,
     '''Design primers for PCR amplifying any arbitrary sequence.
 
     :param dna: Input sequence.
-    :type dna: pymbt.sequence.DNA
+    :type dna: pymbt.DNA
     :param tm: Ideal primer Tm in degrees C.
     :type tm: float
     :param min_len: Minimum primer length.

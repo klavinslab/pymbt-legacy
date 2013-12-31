@@ -24,7 +24,7 @@ def read_dna(path):
     :param path: Full path to input file.
     :type path: str
     :returns: DNA sequence.
-    :rtype: pymbt.sequence.DNA
+    :rtype: pymbt.DNA
 
     '''
     ext = os.path.splitext(path)[1]
@@ -70,7 +70,7 @@ def read_sequencing(directory):
     :param directory: Path to directory containing sequencing files.
     :type directory: str
     :returns: A list of DNA sequences.
-    :rtype: pymbt.sequence.DNA list
+    :rtype: pymbt.DNA list
 
     '''
     dirfiles = os.listdir(directory)
@@ -87,7 +87,7 @@ def write_dna(dna, path):
     '''Write DNA to a file (genbank or fasta).
 
     :param dna: DNA sequence to write to file
-    :type dna: pymbt.sequence.DNA
+    :type dna: pymbt.DNA
     :param path: file path to write. Has to be genbank or fasta file.
     :type path: str
 
@@ -128,7 +128,7 @@ def write_primers(primer_list, path, names=None, notes=None):
     default there are no notes, which is an optional parameter.
 
     :param primer_list: A list of primers.
-    :type primer_list: pymbt.sequence.Primer list
+    :type primer_list: pymbt.Primer list
     :param path: A path to the csv you want to write.
     :type path: str
     :param names: A list of strings to name each oligo. Must be the same length
@@ -191,7 +191,7 @@ def _process_feature_type(feature_type, bio_to_pymbt=True):
 
 
 def _seqfeature_to_pymbt(feature):
-    """Convert a Biopython SeqFeature to a pymbt sequence.Feature.
+    """Convert a Biopython SeqFeature to a pymbt.Feature.
 
     :param feature: Biopython SeqFeature
     :type feature: Bio.SeqFeature
@@ -240,10 +240,10 @@ def _seqfeature_to_pymbt(feature):
 
 
 def _pymbt_to_seqfeature(feature):
-    """Convert a pymbt sequence.Feature to a Biopython SeqFeature.
+    """Convert a pymbt.Feature to a Biopython SeqFeature.
 
     :param feature: pymbt Feature.
-    :type feature: pymbt.sequence.Feature
+    :type feature: pymbt.Feature
 
     """
     bio_strand = 1 if feature.strand == 1 else -1

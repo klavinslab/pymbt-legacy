@@ -23,7 +23,7 @@ def tm(seq, dna_conc=50, salt_conc=50, parameters='cloning'):
     '''Calculate nearest-neighbor melting temperature (Tm).
 
     :param seq: Sequence for which to calculate the tm.
-    :type seq: pymbt.sequence.DNA
+    :type seq: pymbt.DNA
     :param dna_conc: DNA concentration in nM.
     :type dna_conc: float
     :param salt_conc: Salt concentration in mM.

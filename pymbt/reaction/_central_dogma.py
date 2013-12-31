@@ -7,9 +7,9 @@ def transcribe(dna):
     '''Transcribe DNA to RNA (no post-transcriptional processing).
 
     :param seq: Sequence to transcribe (DNA).
-    :type seq: pymbt.sequence.DNA
+    :type seq: pymbt.DNA
     :returns: Transcribed sequence - an RNA sequence.
-    :rtype: pymbt.sequence.RNA
+    :rtype: pymbt.RNA
 
     '''
     return utils.convert_sequence(dna, 'rna')
@@ -19,9 +19,9 @@ def translate(rna):
     '''Translate RNA to peptide.
 
     :param rna: Sequence to translate (RNA).
-    :type rna: pymbt.sequence.RNA
+    :type rna: pymbt.RNA
     :returns: Translated sequence - a peptide.
-    :rtype: pymbt.sequence.Peptide
+    :rtype: pymbt.Peptide
 
     '''
     return utils.convert_sequence(rna, 'peptide')
@@ -31,9 +31,9 @@ def reverse_transcribe(rna):
     '''Reverse transcribe RNA to DNA.
 
     :param rna: Sequence to reverse transcribe (RNA).
-    :type rna: pymbt.sequence.RNA
+    :type rna: pymbt.RNA
     :returns: Reverse-transcribed sequence - a DNA sequence.
-    :rtype: pymbt.sequence.DNA
+    :rtype: pymbt.DNA
 
     '''
     return utils.convert_sequence(rna, 'dna')
@@ -43,12 +43,12 @@ def coding_sequence(rna):
     """Extract coding sequence from an RNA template.
 
     :param seq: Sequence from which to extract a coding sequence.
-    :type seq: pymbt.sequence.RNA
+    :type seq: pymbt.RNA
     :param material: Type of sequence ('dna' or 'rna')
     :type material: str
     :returns: The first coding sequence (start codon -> stop codon) matched
               from 5' to 3'.
-    :rtype: pymbt.sequence.RNA
+    :rtype: pymbt.RNA
     :raises: ValueError if rna argument has no start codon.
              ValueError if rna argument has no stop codon in-frame with the
              first start codon.

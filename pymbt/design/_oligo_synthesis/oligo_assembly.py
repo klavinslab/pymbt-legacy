@@ -10,7 +10,7 @@ class OligoAssembly(object):
                  min_exception=False):
         '''
         :param dna: Sequence to split into overlapping oligos.
-        :type dna: pymbt.sequence.DNA
+        :type dna: pymbt.DNA
         :param primers: Design cloning primers that bind the termini of the
                         input sequence.
         :type primers: bool
@@ -216,7 +216,7 @@ def _grow_overlaps(dna, melting_temp, require_even, length_max, overlap_min,
     '''Grows equidistant overlaps until they meet specified constraints.
 
     :param dna: Input sequence.
-    :type dna: pymbt.sequence.DNA
+    :type dna: pymbt.DNA
     :param melting_temp: Ideal Tm of the overlaps, in degrees C.
     :type melting_temp: float
     :param require_even: Require that the number of oligonucleotides is even.
@@ -350,13 +350,13 @@ def _recalculate_overlaps(dna, overlaps, oligo_indices):
     '''Recalculate overlap sequences based on the current overlap indices.
 
     :param dna: Sequence being split into oligos.
-    :type dna: pymbt.sequence.DNA
+    :type dna: pymbt.DNA
     :param overlaps: Current overlaps - a list of DNA sequences.
-    :type overlaps: pymbt.sequence.DNA list
+    :type overlaps: pymbt.DNA list
     :param oligo_indices: List of oligo indices (starts and stops).
     :type oligo_indices: list
     :returns: Overlap sequences.
-    :rtype: pymbt.sequence.DNA list
+    :rtype: pymbt.DNA list
 
     '''
     for i, overlap in enumerate(overlaps):
@@ -372,7 +372,7 @@ def _expand_overlap(dna, oligo_indices, index, oligos, length_max):
     '''Given an overlap to increase, increases smaller oligo.
 
     :param dna: Sequence being split into oligos.
-    :type dna: pymbt.sequence.DNA
+    :type dna: pymbt.DNA
     :param oligo_indices: index of oligo starts and stops
     :type oligo_indices: list
     :param index: index of the oligo

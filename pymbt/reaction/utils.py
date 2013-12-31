@@ -12,7 +12,7 @@ def convert_sequence(seq, to_material):
         Translation (seq is RNA, to_material is 'peptide')
 
     :param seq: DNA or RNA sequence.
-    :type seq: pymbt.sequence.DNA or pymbt.sequence.RNA
+    :type seq: pymbt.DNA or pymbt.RNA
     :param to_material: material to which to convert ('rna', 'dna', or
                         'peptide').
     :type to_material: str

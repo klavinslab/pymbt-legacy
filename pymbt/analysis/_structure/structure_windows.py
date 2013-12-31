@@ -11,7 +11,7 @@ class StructureWindows(object):
     def __init__(self, dna):
         '''
         :param dna: DNA sequence to analyze.
-        :type dna: pymbt.sequence.DNA
+        :type dna: pymbt.DNA
 
         '''
         self.template = dna
@@ -55,7 +55,7 @@ def _context_walk(dna, window_size, context_len, step):
     '''Generate context-dependent 'non-boundedness' scores for a DNA sequence.
 
     :param dna: Sequence to score.
-    :type dna: pymbt.sequence.DNA
+    :type dna: pymbt.DNA
     :param window_size: Window size in base pairs.
     :type window_size: int
     :param context_len: The number of bases of context to use when analyzing
