@@ -1,6 +1,6 @@
-DNA: atgc
+DNA: ATGC
 Palindrome?: False
 
-RNA: augc
+RNA: AUGC
 
-Peptide: mlnp
+Peptide: MLNP

@@ -6,21 +6,21 @@ Sequences
 ``sequence.DNA``
 ----------------
 
-``sequence.DNA`` is the core data structure of ``pymbt``. If you are
+``pymbt.DNA`` is the core data structure of ``pymbt``. If you are
 already familiar with core python data structures, it mostly acts like a
 container similar to lists or strings, but also provides further
 object-oriented methods for DNA-specific tasks, like reverse
 complementation. Most design functions in ``pymbt`` return a
-``sequence.DNA`` object or something that contains a ``sequence.DNA``
-object (like ``sequence.Primer``). In addition, there are related
-``sequence.RNA`` and ``sequence.Peptide`` objects for representing RNA
-and peptide sequences and methods for converting between them.
+``pymbt.DNA`` object or something that contains a ``pymbt.DNA`` object
+(like ``pymbt.Primer``). In addition, there are related ``pymbt.RNA``
+and ``pymbt.Peptide`` objects for representing RNA and peptide sequences
+and methods for converting between them.
 
-To get started with ``sequence.DNA``, import the ``sequence`` module:
+To get started with ``pymbt.DNA``, import ``pymbt``:
 
 .. code:: python
 
-    from pymbt import sequence
+    import pymbt as pbt
 Your first sequence
 ~~~~~~~~~~~~~~~~~~~
 
@@ -30,7 +30,7 @@ string of DNA characters.
 
 .. code:: python
 
-    example_dna = sequence.DNA('atgagtaaaggagaagaacttttcactgga')
+    example_dna = pbt.DNA('atgagtaaaggagaagaacttttcactgga')
     example_dna
 
 
@@ -118,13 +118,13 @@ Subsets can be grabbed using standard slices:
 .. code:: python
 
     # Is the sequence 'AT' in our sequence? How about 'AC'?
-    print "'AT' is in our sequence: {}.".format("at" in example_dna)
-    print "'AC' is in our sequence: {}.".format("ac" in example_dna)
+    print "'AT' is in our sequence: {}.".format("AT" in example_dna)
+    print "'ATT' is in our sequence: {}.".format("ATT" in example_dna)
 
 .. parsed-literal::
 
     'AT' is in our sequence: True.
-    'AC' is in our sequence: False.
+    'ATT' is in our sequence: False.
 
 
 Several other common special methods and operators are defined for
@@ -149,8 +149,8 @@ is a single call:
 .. parsed-literal::
 
     linear dsDNA:
-    gcatgcat
-    cgtacgta
+    TCCAGTGAAAAGTTCTTCTCCTTTACTCAT
+    AGGTCACTTTTCAAGAAGAGGAAATGAGTA
 
 
 
@@ -186,9 +186,9 @@ piece of data sequentially):
 
 .. parsed-literal::
 
-    ['atgcatgc', 'aagcatgc', 'atacatgc', 'atgaatgc', 'atgcatgc', 'atgcaagc', 'atgcatac', 'atgcatga']
+    ['ATGAGTAAAGGAGAAGAACTTTTCACTGGA', 'AAGAGTAAAGGAGAAGAACTTTTCACTGGA', 'ATAAGTAAAGGAGAAGAACTTTTCACTGGA', 'ATGAGTAAAGGAGAAGAACTTTTCACTGGA', 'ATGAATAAAGGAGAAGAACTTTTCACTGGA', 'ATGAGAAAAGGAGAAGAACTTTTCACTGGA', 'ATGAGTAAAGGAGAAGAACTTTTCACTGGA', 'ATGAGTAAAGGAGAAGAACTTTTCACTGGA', 'ATGAGTAAAGGAGAAGAACTTTTCACTGGA', 'ATGAGTAAAAGAGAAGAACTTTTCACTGGA', 'ATGAGTAAAGAAGAAGAACTTTTCACTGGA', 'ATGAGTAAAGGAGAAGAACTTTTCACTGGA', 'ATGAGTAAAGGAAAAGAACTTTTCACTGGA', 'ATGAGTAAAGGAGAAGAACTTTTCACTGGA', 'ATGAGTAAAGGAGAAGAACTTTTCACTGGA', 'ATGAGTAAAGGAGAAAAACTTTTCACTGGA', 'ATGAGTAAAGGAGAAGAACTTTTCACTGGA', 'ATGAGTAAAGGAGAAGAACTTTTCACTGGA', 'ATGAGTAAAGGAGAAGAAATTTTCACTGGA', 'ATGAGTAAAGGAGAAGAACATTTCACTGGA', 'ATGAGTAAAGGAGAAGAACTATTCACTGGA', 'ATGAGTAAAGGAGAAGAACTTATCACTGGA', 'ATGAGTAAAGGAGAAGAACTTTACACTGGA', 'ATGAGTAAAGGAGAAGAACTTTTAACTGGA', 'ATGAGTAAAGGAGAAGAACTTTTCACTGGA', 'ATGAGTAAAGGAGAAGAACTTTTCAATGGA', 'ATGAGTAAAGGAGAAGAACTTTTCACAGGA', 'ATGAGTAAAGGAGAAGAACTTTTCACTAGA', 'ATGAGTAAAGGAGAAGAACTTTTCACTGAA', 'ATGAGTAAAGGAGAAGAACTTTTCACTGGA']
     
-    ['aaaaaaaa', 'aaaaaaaa', 'aaaaaaaa', 'aaaaaaaa', 'aaaaaaaa', 'aaaaaaaa', 'aaaaaaaa', 'aaaaaaaa']
+    ['AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA']
 
 
 An important fact about ``sequence.DNA`` methods and slicing is that
@@ -206,9 +206,9 @@ want to save your chance you need to assign a variable:
 
 .. parsed-literal::
 
-    atgcatgc
+    ATGAGTAAAGGAGAAGAACTTTTCACTGGA
     
-    gcatgcat
+    TCCAGTGAAAAGTTCTTCTCCTTTACTCAT
 
 
 You can also access important attributes of a ``sequence.DNA`` object
@@ -223,7 +223,7 @@ or information about a sequence.
 
 .. parsed-literal::
 
-    'atgcatgc'
+    'ATGAGTAAAGGAGAAGAACTTTTCACTGGA'
 
 
 
@@ -235,7 +235,7 @@ or information about a sequence.
 
 .. parsed-literal::
 
-    'gcatgcat'
+    'TCCAGTGAAAAGTTCTTCTCCTTTACTCAT'
 
 
 
@@ -263,8 +263,8 @@ or information about a sequence.
 .. parsed-literal::
 
     linear ssDNA:
-    atgcatgc
-    --------
+    ATGAGTAAAGGAGAAGAACTTTTCACTGGA
+    ------------------------------
 
 
 
@@ -293,8 +293,8 @@ or information about a sequence.
 .. parsed-literal::
 
     circular dsDNA:
-    atgcatgc
-    tacgtacg
+    ATGAGTAAAGGAGAAGAACTTTTCACTGGA
+    TACTCATTTCCTCTTCTTGAAAAGTGACCT
 
 
 
@@ -310,9 +310,9 @@ or information about a sequence.
 
 .. parsed-literal::
 
-    atgcatgc
+    ATGAGTAAAGGAGAAGAACTTTTCACTGGA
     
-    gcatgcat
+    GAGTAAAGGAGAAGAACTTTTCACTGGAAT
 
 
 .. code:: python
@@ -326,8 +326,8 @@ or information about a sequence.
 .. parsed-literal::
 
     linear dsDNA:
-    gcatgcat
-    cgtacgta
+    TCCAGTGAAAAGTTCTTCTCCTTTACTCAT
+    AGGTCACTTTTCAAGAAGAGGAAATGAGTA
 
 
 

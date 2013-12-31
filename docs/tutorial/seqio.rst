@@ -12,7 +12,10 @@ transactivator from McIsaac et al. 2011:
 
 .. code:: python
 
-    pKL278 = seqio.read_dna('../files_for_tutorial/maps/pMODKan-HO-pACT1GEV.ape')
+    import pymbt as pbt
+.. code:: python
+
+    pKL278 = pbt.seqio.read_dna('./files_for_tutorial/maps/pMODKan-HO-pACT1GEV.ape')
 Sequences have ``.name`` and ``.id`` attributes that are empty string by
 default. By convention, you should fill them with appropriate strings
 for your use case - the name is a human-readable name while id should be
@@ -42,8 +45,8 @@ general idea of which sequence you're manipulating
 .. parsed-literal::
 
     circular dsDNA:
-    tcgcgcgtttcggtgatgacggtgaaaacctctgacacat ... ttaacctataaaaataggcgtatcacgaggccctttcgtc
-    agcgcgcaaagccactactgccacttttggagactgtgta ... aattggatatttttatccgcatagtgctccgggaaagcag
+    TCGCGCGTTTCGGTGATGACGGTGAAAACCTCTGACACAT ... TTAACCTATAAAAATAGGCGTATCACGAGGCCCTTTCGTC
+    AGCGCGCAAAGCCACTACTGCCACTTTTGGAGACTGTGTA ... AATTGGATATTTTTATCCGCATAGTGCTCCGGGAAAGCAG
 
 
 
@@ -113,8 +116,8 @@ sequence:
 .. parsed-literal::
 
     linear dsDNA:
-    ttaccaatgcttaatcagtgaggcacctatctcagcgatc ... aaaagggaataagggcgacacggaaatgttgaatactcat
-    aatggttacgaattagtcactccgtggatagagtcgctag ... ttttcccttattcccgctgtgcctttacaacttatgagta
+    TTACCAATGCTTAATCAGTGAGGCACCTATCTCAGCGATC ... AAAAGGGAATAAGGGCGACACGGAAATGTTGAATACTCAT
+    AATGGTTACGAATTAGTCACTCCGTGGATAGAGTCGCTAG ... TTTTCCCTTATTCCCGCTGTGCCTTTACAACTTATGAGTA
 
 
 
@@ -152,3 +155,7 @@ The ``.ape()`` method will launch ApE with your sequence if it is found
 in your PATH environment variable. This enables some convenient analyses
 that are faster with a GUI like simulating a digest or viewing the
 general layout of annotations.
+
+.. code:: python
+
+    

@@ -7,7 +7,7 @@ Tutorial
     :maxdepth: 1
 
     introduction/index
-    sequences.rst
+    sequences
     seqio
     design/index
     analysis/index

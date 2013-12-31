@@ -16,7 +16,7 @@ First, we'll need to analyze our sequencing using the Sanger class
 
 .. code:: python
 
-    from pymbt import analysis, seqio
+    import pymbt as pbt
 Then use seqio to read in our sequences. The Sanger class expects two
 inputs: a reference, or expected, sequence (``sequence.DNA`` object) and
 a list of the results (``list`` of ``sequence.DNA`` objects). Any way
@@ -37,15 +37,15 @@ objects.
 
 .. code:: python
 
-    reference = seqio.read_dna('../files_for_tutorial/maps/pMODKan-HO-pACT1GEV.ape')
-    results = seqio.read_sequencing('../files_for_tutorial/sequencing_files/')
+    reference = pbt.seqio.read_dna('../files_for_tutorial/maps/pMODKan-HO-pACT1GEV.ape')
+    results = pbt.seqio.read_sequencing('../files_for_tutorial/sequencing_files/')
 To compare the results to our expected sequence, we use the ``Sanger``
 class, which does a Needleman-Wunsch alignment and scores any
 discrepancies.
 
 .. code:: python
 
-    alignment = analysis.Sanger(reference, results)
+    alignment = pbt.analysis.Sanger(reference, results)
 
 .. parsed-literal::
 
@@ -74,43 +74,43 @@ of any mismatches, insertions, or deletions.
     Summary: 
     --------
     
-      Mismatches: 0
+      Mismatches: 3
       Insertions: 1
-      Deletions: 3
+      Deletions: 0
+    
+    ## Mismatches
+      pMODKan-HO-pACT1GEV_C3-T7-EEV_D11.ab1
+    
+        Positions 4687 to 4689:
+        AGTCCAAAGGACAATTTTACG
+        ||||||||||   ||||||||
+        ----------CACATTTTACG
+                  ***        
+    
+      pMODKan-HO-pACT1GEV_C3-M13R_E11.ab1
+    
+        Positions 5550 to 5551:
+        TTAGCTTTGTTCACTCGTGCC
+        ||||||||||  |||||||||
+        TTAGCTTTGTCA---------
+                  **         
+    
+      pMODKan-HO-pACT1GEV_C3-676_H11.ab1
+    
+        Positions 5120 to 5121:
+        GCACCGTCTTTGAATTATGAG
+        ||||||||||  |||||||||
+        GCACCGTCTTGA---------
+                  **         
     
     ## Insertions
       pMODKan-HO-pACT1GEV_C3-771_C12.ab1
     
         Positions 7805 to 8008:
-        gccctttcgt------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        GCCCTTTCGT------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         ||||||||||                                                                                                                                                                                                            
-        gccctttcgttcgcgcgtttcggtgatgacggtgaaaacctctgacacatgcagctcccggagacggtcacagcttgtctgtaagcggatgccgggagcagacaagcccgtcagggcgcgtcagcgggtgttggcgggtgtcggggctggcttaactatgcggcgtttaaacttagcagatgcgcgcacctgcgttgttaccacaactcttatg
+        GCCCTTTCGTTCGCGCGTTTCGGTGATGACGGTGAAAACCTCTGACACATGCAGCTCCCGGAGACGGTCACAGCTTGTCTGTAAGCGGATGCCGGGAGCAGACAAGCCCGTCAGGGCGCGTCAGCGGGTGTTGGCGGGTGTCGGGGCTGGCTTAACTATGCGGCGTTTAAACTTAGCAGATGCGCGCACCTGCGTTGTTACCACAACTCTTATG
                   ************************************************************************************************************************************************************************************************************
-    
-    ## Deletions
-      pMODKan-HO-pACT1GEV_C3-T7-EEV_D11.ab1
-    
-        Position 4689:
-        tccaaaggcaaattttacgtt
-        |||||||||| ||||||||||
-        --------ca-attttacgtt
-                  *          
-    
-      pMODKan-HO-pACT1GEV_C3-M13R_E11.ab1
-    
-        Position 5548:
-        ttttagcttttttcactcgtg
-        |||||||||| ||||||||||
-        ttttagcttt-ttca------
-                  *          
-    
-      pMODKan-HO-pACT1GEV_C3-676_H11.ab1
-    
-        Position 5117:
-        atggcaccgtttttgaattat
-        |||||||||| ||||||||||
-        atggcaccgt-tttga-----
-                  *          
     
 
 

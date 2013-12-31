@@ -20,13 +20,13 @@ For this tutorial, let's design primers that will amplify the gene EYFP.
 
 .. code:: python
 
-    from pymbt import design, seqio, sequence
+    import pymbt as pbt
 First we read in a plasmid from Havens et al. 2012 and isolate the EYFP
 sequence.
 
 .. code:: python
 
-    plasmid = seqio.read_dna("../files_for_tutorial/maps/pGP4G-EYFP.ape")
+    plasmid = pbt.seqio.read_dna("../files_for_tutorial/maps/pGP4G-EYFP.ape")
     eyfp = plasmid.extract("EYFP")
     print len(eyfp)
     eyfp
@@ -41,8 +41,8 @@ sequence.
 .. parsed-literal::
 
     linear dsDNA:
-    atggtgagcaagggcgaggagctgttcaccggggtggtgc ... cgccgccgggatcactctcggcatggacgagctgtacaag
-    taccactcgttcccgctcctcgacaagtggccccaccacg ... gcggcggccctagtgagagccgtacctgctcgacatgttc
+    ATGGTGAGCAAGGGCGAGGAGCTGTTCACCGGGGTGGTGC ... CGCCGCCGGGATCACTCTCGGCATGGACGAGCTGTACAAG
+    TACCACTCGTTCCCGCTCCTCGACAAGTGGCCCCACCACG ... GCGGCGGCCCTAGTGAGAGCCGTACCTGCTCGACATGTTC
 
 
 
@@ -52,24 +52,24 @@ Designing primers is straightforward - you just call
 .. code:: python
 
     # Forward and reverse, one at a time using design_primer()
-    forward = design.design_primer(eyfp)
-    reverse = design.design_primer(eyfp.reverse_complement())
+    forward = pbt.design.primer(eyfp)
+    reverse = pbt.design.primer(eyfp.reverse_complement())
     # Both at once using design_primers()
-    forward, reverse = design.design_primers(eyfp)
+    forward, reverse = pbt.design.primers(eyfp)
     # design_primer has many options, including adding overhangs
-    custom_forward = design.design_primer(eyfp, tm=65, min_len=12, 
-                                          tm_undershoot=1, tm_overshoot=1, 
-                                          end_gc=True, tm_parameters="santalucia98", 
-                                          overhang=sequence.DNA("GGGGGATCGAT"))
+    custom_forward = pbt.design.primer(eyfp, tm=65, min_len=12, 
+                                       tm_undershoot=1, tm_overshoot=1, 
+                                       end_gc=True, tm_parameters="santalucia98", 
+                                       overhang=pbt.DNA("GGGGGATCGAT"))
     print forward
     print
     print custom_forward
 
 .. parsed-literal::
 
-    atggtgagcaagggcg
+    ATGGTGAGCAAGGGCG
     
-    gggggatcgatatggtgagcaagggcgaggagctgttcac
+    GGGGGATCGATATGGTGAGCAAGGGCGAGGAGCTGTTCAC
 
 
 Designing primers and getting a string output is just the first step in
@@ -89,8 +89,7 @@ operator.
 
 .. code:: python
 
-    from pymbt import reaction
-    amplicon = reaction.pcr(plasmid, forward, reverse)
+    amplicon = pbt.reaction.pcr(plasmid, forward, reverse)
     amplicon == eyfp
 
 
@@ -111,7 +110,7 @@ submitted to an oligo synthesis company.
     forward.name = "EYFP_forward"
     reverse.name = "EYFP_reverse"
     # Then we write to file - a csv (comma separated value file)
-    seqio.write_primers([forward, reverse], "./designed_primers.csv", ["Forward EYFP primer", "Reverse EYFP primer"])
+    pbt.seqio.write_primers([forward, reverse], "./designed_primers.csv", ["Forward EYFP primer", "Reverse EYFP primer"])
 The csv file can then be opened in a spreadsheet application like Excel
 or processed by a downstream program. This is the format of the csv:
 
@@ -127,6 +126,10 @@ or processed by a downstream program. This is the format of the csv:
 .. parsed-literal::
 
     ['name', 'sequence', 'notes']
-    ['EYFP_forward', 'atggtgagcaagggcg', 'Forward EYFP primer']
-    ['EYFP_reverse', 'cttgtacagctcgtccatgcc', 'Reverse EYFP primer']
+    ['Forward EYFP primer', 'ATGGTGAGCAAGGGCG', '']
+    ['Reverse EYFP primer', 'CTTGTACAGCTCGTCCATGCC', '']
 
+
+.. code:: python
+
+    

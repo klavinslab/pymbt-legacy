@@ -22,56 +22,65 @@ lower\_case with underscores.
 
 .. code:: python
 
-    import pymbt  # alternative you can import each module by itself e.g. from pymbt import design
-    dir(pymbt)  # dir lists everything in a module/object. Ignore the double underscore items.
+    import pymbt as pbt  # alternative you can import each module by itself e.g. from pymbt import design
+    dir(pbt)  # dir lists everything in a module/object. Ignore the double underscore items.
 
 
 
 .. parsed-literal::
 
-    ['__builtins__',
+    ['DNA',
+     'Feature',
+     'Peptide',
+     'Primer',
+     'RNA',
+     'RestrictionSite',
+     '__builtins__',
      '__doc__',
      '__file__',
      '__name__',
      '__package__',
      '__path__',
+     '_sequence',
      'analysis',
      'constants',
      'database',
      'design',
+     'matplotlib',
      'reaction',
      'seqio',
-     'sequence']
+     'simulation']
 
 
 
-sequence
-~~~~~~~~
+Top-level
+~~~~~~~~~
 
-The sequence module contains the core data structures used in pymbt -
-DNA, RNA, and Peptide.
+In addition to the core modules, the top-level pymbt module provides the
+core data structures used in pymbt - DNA, RNA, and Peptide (as well as
+specialized classes like Primer).
 
 .. code:: python
 
-    dna = pymbt.sequence.DNA("ATGC")
+    dna = pbt.DNA("ATGC")
     print "DNA: {}".format(dna)
     # You can also run methods on the object - in this case, check if the DNA is palindromic
     print "Palindrome?: {}".format(dna.is_palindrome())
     print
-    rna = pymbt.sequence.RNA("AUGC")
+    rna = pbt.RNA("AUGC")
     print "RNA: {}".format(rna)
     print
-    pep = pymbt.sequence.Peptide("mlnp")
+    pep = pbt.Peptide("mlnp")
     print "Peptide: {}".format(pep)
 
 .. parsed-literal::
 
-    DNA: atgc
+    DNA: ATGC
     Palindrome?: False
     
-    RNA: augc
+    RNA: AUGC
     
-    Peptide: mlnp
+    Peptide: MLNP
 
 
 As you can see above, to make DNA, RNA, or Peptide objects you just
@@ -96,7 +105,7 @@ sequencing analysis).
 .. code:: python
 
     # Example: finding the Tm of ATGCATGCATGCATGC according to the SantaLucia98 method.
-    pymbt.analysis.tm(dna * 4, parameters="santalucia98")
+    pbt.analysis.tm(dna * 4, parameters="santalucia98")
 
 
 
