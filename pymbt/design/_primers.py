@@ -1,6 +1,5 @@
 '''Primer design tools.'''
-from pymbt import analysis
-from pymbt import sequence
+import pymbt
 import warnings
 
 
@@ -37,7 +36,7 @@ def primer(dna, tm=65, min_len=10, tm_undershoot=1, tm_overshoot=3,
 
     '''
     # Check Tm of input sequence to see if it's already too low
-    seq_tm = analysis.tm(dna, parameters=tm_parameters)
+    seq_tm = pymbt.analysis.tm(dna, parameters=tm_parameters)
     if seq_tm < (tm - tm_undershoot):
         msg = 'Input sequence Tm is lower than primer Tm setting'
         raise ValueError(msg)
@@ -52,7 +51,7 @@ def primer(dna, tm=65, min_len=10, tm_undershoot=1, tm_overshoot=3,
     bases = min_len
     while last_tm <= tm + tm_overshoot and bases != len(dna):
         next_primer = dna[0:bases]
-        last_tm = analysis.tm(next_primer, parameters=tm_parameters)
+        last_tm = pymbt.analysis.tm(next_primer, parameters=tm_parameters)
         primers_tms.append((next_primer, last_tm))
         bases += 1
 
@@ -75,7 +74,7 @@ def primer(dna, tm=65, min_len=10, tm_undershoot=1, tm_overshoot=3,
     if overhang:
         overhang = overhang.set_stranded('ss')
 
-    output_primer = sequence.Primer(best_primer, best_tm, overhang=overhang)
+    output_primer = pymbt.Primer(best_primer, best_tm, overhang=overhang)
 
     def _structure(primer):
         '''Check annealing sequence for structure.
@@ -86,7 +85,7 @@ def primer(dna, tm=65, min_len=10, tm_undershoot=1, tm_overshoot=3,
         '''
         # Check whole primer for high-probability structure, focus in on
         # annealing sequence, report average
-        nupack = analysis.Nupack(primer.primer())
+        nupack = pymbt.analysis.Nupack(primer.primer())
         pairs = nupack.pairs(0)
         anneal_len = len(primer.anneal)
         pairs_mean = sum(pairs[-anneal_len:]) / anneal_len

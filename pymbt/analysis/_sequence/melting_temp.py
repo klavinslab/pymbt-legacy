@@ -1,7 +1,7 @@
 # -*- coding: utf-8
 '''Calculate the thermodynamic melting temperatures of nucleotide sequences.'''
 from math import log, log10
-from pymbt.analysis._sequence import tm_params
+from . import tm_params
 
 # TODO: Owczarzy et al 2004 has better salt correction
 # TODO: Remove sugimoto? It's missing important details (like salt correction)

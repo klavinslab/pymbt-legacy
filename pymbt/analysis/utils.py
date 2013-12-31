@@ -1,5 +1,5 @@
 '''Utils for analysis module.'''
-from pymbt import sequence
+import pymbt
 
 
 def sequence_type(seq):
@@ -12,11 +12,11 @@ def sequence_type(seq):
     :raises: ValueError
 
     '''
-    if isinstance(seq, sequence.DNA):
+    if isinstance(seq, pymbt.DNA):
         material = 'dna'
-    elif isinstance(seq, sequence.RNA):
+    elif isinstance(seq, pymbt.RNA):
         material = 'rna'
-    elif isinstance(seq, sequence.Peptide):
+    elif isinstance(seq, pymbt.Peptide):
         material = 'peptide'
     else:
         raise ValueError("Input was not a recognized pymbt.sequence object.")

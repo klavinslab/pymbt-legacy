@@ -4,8 +4,7 @@ Tests for the Tm analysis class.
 '''
 
 from nose.tools import assert_equal
-from pymbt import analysis
-from pymbt import sequence
+from pymbt import analysis, DNA
 
 
 def test_finnzymes():
@@ -14,5 +13,5 @@ def test_finnzymes():
 
     '''
 
-    melt = analysis.tm(sequence.DNA('ATGCGATAGCGATAGC'), parameters='cloning')
+    melt = analysis.tm(DNA('ATGCGATAGCGATAGC'), parameters='cloning')
     assert_equal(melt, 55.2370030020752)

@@ -10,5 +10,10 @@ from . import database
 from . import design
 from . import reaction
 from . import seqio
-from . import sequence
 from . import simulation
+from ._sequence._dna import DNA
+from ._sequence._rna import RNA
+from ._sequence._peptide import Peptide
+from ._sequence._dna import Primer
+from ._sequence._dna import RestrictionSite
+from ._sequence._dna import Feature

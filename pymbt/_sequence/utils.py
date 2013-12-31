@@ -1,7 +1,6 @@
 '''Helper functions for manipulating DNA, RNA, and peptide sequences.'''
 import re
-from pymbt.constants.molecular_bio import ALPHABETS
-from pymbt.constants.molecular_bio import COMPLEMENTS
+from pymbt.constants.molecular_bio import ALPHABETS, COMPLEMENTS
 
 
 def reverse_complement(seq, material):

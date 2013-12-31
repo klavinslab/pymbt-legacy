@@ -4,7 +4,7 @@ Tests utils submodule of sequence module.
 '''
 
 from nose.tools import assert_equal, assert_raises
-from pymbt.sequence import utils
+from pymbt._sequence import utils
 
 
 def test_reverse_complement():

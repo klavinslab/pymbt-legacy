@@ -6,8 +6,8 @@ from Bio.Alphabet.IUPAC import ambiguous_dna
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.SeqFeature import SeqFeature, FeatureLocation, ExactPosition
-import pymbt.sequence
-from pymbt.constants import genbank
+import pymbt
+import pymbt.constants.genbank
 
 
 class PrimerAnnotationError(ValueError):
@@ -43,7 +43,7 @@ def read_dna(path):
         raise ValueError('File format not recognized.')
 
     seq = SeqIO.read(path, file_format)
-    dna = pymbt.sequence.DNA(seq.seq.tostring())
+    dna = pymbt.DNA(seq.seq.tostring())
     dna.name = seq.name
 
     # Features
@@ -179,12 +179,12 @@ def _process_feature_type(feature_type, bio_to_pymbt=True):
     err_msg = 'Unrecognized feature type: {}'.format(feature_type)
     if bio_to_pymbt:
         try:
-            name = genbank.TO_PYMBT[feature_type]
+            name = pymbt.constants.genbank.TO_PYMBT[feature_type]
         except KeyError:
             raise ValueError(err_msg)
     else:
         try:
-            name = genbank.TO_BIO[feature_type]
+            name = pymbt.constants.genbank.TO_BIO[feature_type]
         except KeyError:
             raise ValueError(err_msg)
     return name
@@ -232,10 +232,10 @@ def _seqfeature_to_pymbt(feature):
         feature_strand = 1
     else:
         feature_strand = 0
-    pymbt_feature = pymbt.sequence.Feature(feature_name, feature_start,
-                                           feature_stop, feature_type,
-                                           strand=feature_strand,
-                                           gaps=feature_gaps)
+    pymbt_feature = pymbt.Feature(feature_name, feature_start,
+                                  feature_stop, feature_type,
+                                  strand=feature_strand,
+                                  gaps=feature_gaps)
     return pymbt_feature
 
 

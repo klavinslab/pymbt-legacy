@@ -4,21 +4,25 @@ Tests for Needleman-Wunsch function 'needle'
 '''
 
 from nose.tools import assert_equal
-from pymbt.analysis._sequencing.needle import needle
-from pymbt.sequence import DNA
+from pymbt import analysis, DNA
 
 
 def test_needle():
-    ref_seq = DNA('ATGCGATACGATA')
-    res_seqs = [DNA('GATCGATATCGATAT'), DNA('GATACGATATGACGATA'),
-                DNA('TAATTACGGAT')]
-    expected_alignments = [(DNA('-ATGCGATA-CGATA-'), DNA('GAT-CGATATCGATAT')),
-                           (DNA('-ATGCGAT---ACGATA'),
-                            DNA('GATACGATATGACGATA')),
-                           (DNA('--ATGCGATAC-GATA'), DNA('TAAT----TACGGAT-'))]
-    expected_scores = [40.0, 45.0, 18.5]
+    ref_seq = DNA("ATGCGATACGATA")
 
-    for i, seq in enumerate(res_seqs):
-        ref, res, score = needle(ref_seq, seq, gapopen=10, gapextend=0.5)
-        assert_equal((ref, res), expected_alignments[i])
-        assert_equal(score, expected_scores[i])
+    res_seq0 = DNA("ATGCGATA---TA")  # Gapped
+    res_seq1 = DNA("ATGCGATAATGCGATA")  # Insertion
+    res_seq2 = DNA("ATGCGATATA")  # Deletion
+    res_seq3 = DNA("ATGCGATAAGATA")  # Mismatch
+    results = [res_seq0, res_seq1, res_seq2, res_seq3]
+
+    exp_seq0 = (DNA("ATGCGATACGATA"), DNA("ATGCGATA---TA"), 9)
+    exp_seq1 = (DNA("ATGCGATA---CGATA"), DNA("ATGCGATAATGCGATA"), 12)
+    exp_seq2 = (DNA("ATGCGATACGATA"), DNA("ATGCGATA---TA"), 9)
+    exp_seq3 = (DNA("ATGCGATACGATA"), DNA("ATGCGATAAGATA"), 11)
+
+    expected = [exp_seq0, exp_seq1, exp_seq2, exp_seq3]
+
+    for seq, exp in zip(results, expected):
+        aligned = analysis.needle(ref_seq, seq, gap_open=-1, gap_extend=0)
+        assert_equal(aligned, exp)

@@ -1,5 +1,5 @@
 '''Restriction endonuclease reactions.'''
-from pymbt.reaction import five_resect, three_resect
+import pymbt.reaction
 
 
 def digest(dna, restriction_enzyme):
@@ -76,11 +76,11 @@ def _cut(dna, index, restriction_enzyme):
         pass
     elif diff > 0:
         # 3' overhangs
-        left = five_resect(left.flip(), diff).flip()
-        right = five_resect(right, diff)
+        left = pymbt.reaction.five_resect(left.flip(), diff).flip()
+        right = pymbt.reaction.five_resect(right, diff)
     else:
         # 5' overhangs
-        left = three_resect(left, abs(diff))
-        right = three_resect(right.flip(), abs(diff)).flip()
+        left = pymbt.reaction.three_resect(left, abs(diff))
+        right = pymbt.reaction.three_resect(right.flip(), abs(diff)).flip()
 
     return [left, right]

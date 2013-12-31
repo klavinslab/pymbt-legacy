@@ -4,8 +4,7 @@ Tests utils submodule of reaction module.
 '''
 
 from nose.tools import assert_equal, assert_raises
-from pymbt import reaction
-from pymbt import sequence
+from pymbt import reaction, DNA
 
 
 def test_convert_sequence():
@@ -23,7 +22,7 @@ def test_convert_sequence():
           'GGCGACGGCCCCGTGCTGCTGCCCGACAACCACTACCTGAGCTACCAGTCCGCCCTGAGCAAA' + \
           'GACCCCAACGAGAAGCGCGATCACATGGTCCTGCTGGAGTTCGTGACCGCCGCCGGGATCACT' + \
           'CTCGGCATGGACGAGCTGTACAAGTAA'
-    dna = sequence.DNA(seq)
+    dna = DNA(seq)
     prot = 'MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLV' + \
            'TTFGYGLQCFARYPDHMKQHDFFKSAMPEGYVQERTIFFKDDGNYKTRAEVKFEGDTLVNRI' + \
            'ELKGIDFKEDGNILGHKLEYNYNSHNVYIMADKQKNGIKVNFKIRHNIEDGSVQLADHYQQN' + \
@@ -37,10 +36,10 @@ def test_convert_sequence():
 
     # Gapped sequence shouldfail
     assert_raises(ValueError, reaction.utils.convert_sequence,
-                  sequence.DNA('atg-'), 'rna')
+                  DNA('atg-'), 'rna')
 
     # Sequence without stop codon should still work
-    nostop_dna = sequence.DNA('atgaaaaaaaaaaaa')
+    nostop_dna = DNA('atgaaaaaaaaaaaa')
     nostop_rna = reaction.utils.convert_sequence(nostop_dna, 'rna')
     nostop_peptide = reaction.utils.convert_sequence(nostop_rna, 'peptide')
     assert_equal(str(nostop_rna), 'AUGAAAAAAAAAAAA')

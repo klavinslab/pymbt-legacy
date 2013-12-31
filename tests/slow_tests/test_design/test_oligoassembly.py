@@ -4,8 +4,7 @@ Tests for the OligoAssembly design class.
 '''
 
 from nose.tools import assert_equal, assert_raises, assert_true
-from pymbt import design
-from pymbt import sequence
+from pymbt import design, DNA
 
 
 def test_oligo_assembly():
@@ -26,7 +25,7 @@ def test_oligo_assembly():
           'gatggccctgtccttttaccagacaaccattacctgtccacacaatctgccctttcgaaagat' + \
           'cccaacgaaaagagagaccacatggtccttcttgagtttgtaacagctgctgggattacacat' + \
           'ggcatggatgaactatacaaaaggcctgctgcaaacgacgaaaactacgctttagtagcttaa'
-    dna_seq = sequence.DNA(seq)
+    dna_seq = DNA(seq)
 
     # Test to make sure oligo_number parameter is working
     reference_oligos = ['atgcgtaaaggagaagaacttttcactggagttgtcccaattcttgttg' +
@@ -87,7 +86,7 @@ def test_overlapping_overlaps():
 
     '''
 
-    test_seq = sequence.DNA('ATCAATACTTATTACGATATATATAT' * 34)
+    test_seq = DNA('ATCAATACTTATTACGATATATATAT' * 34)
     oligo_n_assembly = design.OligoAssembly(test_seq,
                                             tm=65,
                                             length_range=(80, 150),

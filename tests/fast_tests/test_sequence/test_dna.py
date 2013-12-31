@@ -1,14 +1,14 @@
 '''Tests for the DNA sequence class.'''
-from pymbt import sequence
-from pymbt import reaction
+from pymbt import reaction, DNA, Feature, RestrictionSite
+from pymbt._sequence import utils
 from nose.tools import assert_equal, assert_false, assert_true, assert_raises
 from nose.tools import assert_not_equal
 
 
 class TestDNA(object):
-    '''Testing class for sequence.DNA'''
+    '''Testing class for DNA'''
     def __init__(self):
-        self.test_dna = sequence.DNA('atgc')
+        self.test_dna = DNA('atgc')
 
     def test_reverse_complement(self):
         assert_equal(str(self.test_dna.reverse_complement()), 'GCAT')
@@ -54,9 +54,9 @@ class TestDNA(object):
         assert_equal(self.test_dna, self.test_dna.copy())
 
     def test_palindrome(self):
-        palindromic_seq_even = sequence.DNA('ATGCGCAT')
-        nonpalindromic_seq_even = sequence.DNA('ATGCGCAA')
-        almost_palindrome_odd = sequence.DNA('ATGCCAT')
+        palindromic_seq_even = DNA('ATGCGCAT')
+        nonpalindromic_seq_even = DNA('ATGCGCAA')
+        almost_palindrome_odd = DNA('ATGCCAT')
         assert_true(palindromic_seq_even.is_palindrome())
         assert_false(nonpalindromic_seq_even.is_palindrome())
         assert_false(almost_palindrome_odd.is_palindrome())
@@ -159,10 +159,10 @@ class TestDNA(object):
         # assert_raises(Exception, mul_incompatible, incompatible_seq)
 
     def test_eq(self):
-        assert_true(self.test_dna == sequence.DNA('atgc'))
+        assert_true(self.test_dna == DNA('atgc'))
 
     def test_ne(self):
-        assert_true(self.test_dna != sequence.DNA('aagc'))
+        assert_true(self.test_dna != DNA('aagc'))
 
     def test_contains(self):
         assert_true('a' in self.test_dna)
@@ -179,27 +179,26 @@ class TestDNA(object):
 
 def test_bad_bottom_init():
     def init_dna(top, bottom):
-        sequence.DNA(top, bottom=bottom)
+        DNA(top, bottom=bottom)
 
-    assert_raises(ValueError, sequence.DNA, 'atgc', bottom='at')
-    assert_raises(ValueError, sequence.DNA, 'atgc', bottom='gggg')
+    assert_raises(ValueError, DNA, 'atgc', bottom='at')
+    assert_raises(ValueError, DNA, 'atgc', bottom='gggg')
     try:
-        sequence.DNA('atgc', bottom='gcat')
+        DNA('atgc', bottom='gcat')
     except:
         assert False
 
 
 def test_stranded_init():
-    ss_dna = sequence.DNA('atgc', stranded='ss')
+    ss_dna = DNA('atgc', stranded='ss')
     assert_true(all([base == '-' for base in ss_dna._bottom]))
 
-    ds_dna = sequence.DNA('atgc')
-    assert_equal(str(ds_dna), sequence.utils.reverse_complement(ds_dna._bottom,
-                                                                'dna'))
+    ds_dna = DNA('atgc')
+    assert_equal(str(ds_dna), utils.reverse_complement(ds_dna._bottom, 'dna'))
 
 
 def test_stranded_complemented():
-    ss_dna = sequence.DNA('atgc', stranded='ss')
+    ss_dna = DNA('atgc', stranded='ss')
     r_ss_dna = ss_dna.reverse_complement()
     assert_equal(r_ss_dna.top(), 'GCAT')
     assert_equal(r_ss_dna.bottom(), '----')
@@ -208,41 +207,37 @@ def test_stranded_complemented():
 class TestFeatures(object):
     '''Test features model using DNA object.'''
     def __init__(self):
-        self.dna = sequence.DNA('ATGC') * 50
+        self.dna = DNA('ATGC') * 50
         self.apply_features()
 
     def apply_features(self):
-        misc_feature = sequence.Feature('Misc Feature', 1, 20, 'misc_feature')
-        misc_1_feature = sequence.Feature('Misc Feature', 1, 20,
-                                          'misc_feature', strand=1)
-        coding_feature = sequence.Feature('Coding Feature', 21, 40, 'CDS')
-        primer_feature = sequence.Feature('Primer Feature', 41, 60,
-                                          'primer_bind')
-        promoter_feature = sequence.Feature('Promoter Feature', 61, 80,
-                                            'promoter')
-        terminator_feature = sequence.Feature('Terminator Feature', 81, 100,
-                                              'terminator')
-        rbs_feature = sequence.Feature('RBS Feature', 101, 120, 'RBS')
-        origin_feature = sequence.Feature('Origin Feature', 121, 140,
-                                          'rep_origin')
-        utr3_feature = sequence.Feature("3'UTR Feature", 141, 160, "3'UTR")
-        origin_feature2 = sequence.Feature('Origin Feature', 161, 180,
-                                           'rep_origin')
+        misc_feature = Feature('Misc Feature', 1, 20, 'misc_feature')
+        misc_1_feature = Feature('Misc Feature', 1, 20, 'misc_feature',
+                                 strand=1)
+        coding_feature = Feature('Coding Feature', 21, 40, 'CDS')
+        primer_feature = Feature('Primer Feature', 41, 60, 'primer_bind')
+        promoter_feature = Feature('Promoter Feature', 61, 80, 'promoter')
+        terminator_feature = Feature('Terminator Feature', 81, 100,
+                                     'terminator')
+        rbs_feature = Feature('RBS Feature', 101, 120, 'RBS')
+        origin_feature = Feature('Origin Feature', 121, 140, 'rep_origin')
+        utr3_feature = Feature("3'UTR Feature", 141, 160, "3'UTR")
+        origin_feature2 = Feature('Origin Feature', 161, 180, 'rep_origin')
 
         input_features = [misc_feature, misc_1_feature, coding_feature,
                           primer_feature, promoter_feature, terminator_feature,
                           rbs_feature, origin_feature, utr3_feature,
                           origin_feature2]
-        self.dna = sequence.DNA(str(self.dna), features=input_features)
+        self.dna = DNA(str(self.dna), features=input_features)
 
     def test_good_features(self):
         for feature in self.dna.features:
             assert_true(feature.copy() in self.dna.features)
 
     def test_bad_feature(self):
-        assert_raises(ValueError, sequence.DNA, 'atgc', features='duck')
-        assert_raises(ValueError, sequence.DNA, 'atgc', features=['duck'])
-        assert_raises(ValueError, sequence.Feature, 'yEVenus', 0, 717, 'duck')
+        assert_raises(ValueError, DNA, 'atgc', features='duck')
+        assert_raises(ValueError, DNA, 'atgc', features=['duck'])
+        assert_raises(ValueError, Feature, 'yEVenus', 0, 717, 'duck')
 
     def test_rev_comp(self):
         rev = self.dna.reverse_complement()
@@ -252,7 +247,7 @@ class TestFeatures(object):
             assert_equal(len(self.dna) - feature.stop, rev_feature.start)
 
     def test_extract(self):
-        test_utr3_feature = sequence.Feature('3\'UTR Feature', 0, 19, '3\'UTR')
+        test_utr3_feature = Feature('3\'UTR Feature', 0, 19, '3\'UTR')
         extracted = self.dna.extract('3\'UTR Feature')
         assert_equal(test_utr3_feature, extracted.features[0])
         assert_equal(str(extracted), 'TGCATGCATGCATGCATGC')
@@ -262,38 +257,30 @@ class TestFeatures(object):
 
     def test_getitem(self):
         subsequence = self.dna[30:100]
-        remaining_features = [sequence.Feature('Primer Feature', 11, 30,
-                                               'primer_bind'),
-                              sequence.Feature('Promoter Feature', 31, 50,
-                                               'promoter'),
-                              sequence.Feature('Terminator Feature', 51, 70,
-                                               'terminator')]
+        remaining_features = [Feature('Primer Feature', 11, 30, 'primer_bind'),
+                              Feature('Promoter Feature', 31, 50, 'promoter'),
+                              Feature('Terminator Feature', 51, 70,
+                                      'terminator')]
 
         assert_equal(subsequence.features, remaining_features)
         assert_false(self.dna[10].features)
-        new_seq = sequence.DNA('ATGC',
-                               features=[sequence.Feature('A', 0, 0,
-                                                          'misc_feature')])
+        new_seq = DNA('ATGC', features=[Feature('A', 0, 0, 'misc_feature')])
         assert_equal(new_seq[0].features[0],
-                     sequence.Feature('A', 0, 0, 'misc_feature'))
+                     Feature('A', 0, 0, 'misc_feature'))
 
     def test_delitem(self):
         copy = self.dna.copy()
         del copy[3]
 
-        coding_feature = sequence.Feature('Coding Feature', 20, 39, 'CDS')
-        primer_feature = sequence.Feature('Primer Feature', 40, 59,
-                                          'primer_bind')
-        promoter_feature = sequence.Feature('Promoter Feature', 60, 79,
-                                            'promoter')
-        terminator_feature = sequence.Feature('Terminator Feature', 80, 99,
-                                              'terminator')
-        rbs_feature = sequence.Feature('RBS Feature', 100, 119, 'RBS')
-        origin_feature = sequence.Feature('Origin Feature', 120, 139,
-                                          'rep_origin')
-        utr3_feature = sequence.Feature('3\'UTR Feature', 140, 159, '3\'UTR')
-        origin_feature2 = sequence.Feature('Origin Feature', 160, 179,
-                                           'rep_origin')
+        coding_feature = Feature('Coding Feature', 20, 39, 'CDS')
+        primer_feature = Feature('Primer Feature', 40, 59, 'primer_bind')
+        promoter_feature = Feature('Promoter Feature', 60, 79, 'promoter')
+        terminator_feature = Feature('Terminator Feature', 80, 99,
+                                     'terminator')
+        rbs_feature = Feature('RBS Feature', 100, 119, 'RBS')
+        origin_feature = Feature('Origin Feature', 120, 139, 'rep_origin')
+        utr3_feature = Feature('3\'UTR Feature', 140, 159, '3\'UTR')
+        origin_feature2 = Feature('Origin Feature', 160, 179, 'rep_origin')
         input_features_ref = [coding_feature, primer_feature,
                               promoter_feature, terminator_feature,
                               rbs_feature, origin_feature, utr3_feature,
@@ -309,10 +296,8 @@ class TestFeatures(object):
 class TestRestrictionSite(object):
     '''Test RestrictionSite class.'''
     def __init__(self):
-        self.ecorv = sequence.RestrictionSite(sequence.DNA('GATATC'), (3, 3),
-                                              name='EcoRV')
-        self.foki = sequence.RestrictionSite(sequence.DNA('GGATG'), (14, 18),
-                                             name='FokI')
+        self.ecorv = RestrictionSite(DNA('GATATC'), (3, 3), name='EcoRV')
+        self.foki = RestrictionSite(DNA('GGATG'), (14, 18), name='FokI')
 
     def test_cuts_outside(self):
         '''Test cuts_outside method.'''

@@ -4,8 +4,7 @@ Tests for the OligoAssembly design class.
 '''
 
 from nose.tools import assert_equal
-from pymbt import design
-from pymbt import sequence
+from pymbt import design, DNA
 
 
 def test_oligo_assembly():
@@ -55,7 +54,7 @@ def test_oligo_assembly():
           'gatggccctgtccttttaccagacaaccattacctgtccacacaatctgccctttcgaaagat' + \
           'cccaacgaaaagagagaccacatggtccttcttgagtttgtaacagctgctgggattacacat' + \
           'ggcatggatgaactatacaaaaggcctgctgcaaacgacgaaaactacgctttagtagcttaa'
-    dna_seq = sequence.DNA(seq)
+    dna_seq = DNA(seq)
     assembly = design.OligoAssembly(dna_seq,
                                     tm=72,
                                     length_range=(120, 120),
@@ -71,7 +70,7 @@ def test_oligo_assembly():
     assert_equal(assembly.overlap_tms, reference_tms)
 
     # Test too short of oligo input
-    too_short = sequence.DNA(seq[0:100])
+    too_short = DNA(seq[0:100])
     too_short_assembly = design.OligoAssembly(too_short,
                                               tm=72,
                                               length_range=(120, 120),

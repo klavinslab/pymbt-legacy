@@ -3,7 +3,7 @@ Tests for the RNA sequence class.
 
 '''
 
-from pymbt import sequence
+from pymbt import RNA
 from nose.tools import assert_equal, assert_false, assert_true, assert_raises
 
 
@@ -14,7 +14,7 @@ class TestRNA(object):
     '''
 
     def __init__(self):
-        self.test_rna = sequence.RNA('augc')
+        self.test_rna = RNA('augc')
 
     def test_reverse_complement(self):
         assert_equal(str(self.test_rna.reverse_complement()), 'GCAU')
@@ -94,10 +94,10 @@ class TestRNA(object):
         assert_raises(TypeError, mul_float, self.test_rna)
 
     def test_eq(self):
-        assert_true(self.test_rna == sequence.RNA('augc'))
+        assert_true(self.test_rna == RNA('augc'))
 
     def test_ne(self):
-        assert_true(self.test_rna != sequence.RNA('aagc'))
+        assert_true(self.test_rna != RNA('aagc'))
 
     def test_contains(self):
         assert_true('a' in self.test_rna)

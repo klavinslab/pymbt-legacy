@@ -1,7 +1,7 @@
 '''Generate a random DNA sequence.'''
 import random
-from pymbt import constants
-from pymbt import sequence
+import pymbt
+from pymbt.constants.molecular_bio import CODON_FREQ_BY_AA
 
 
 def random_dna(n):
@@ -13,7 +13,7 @@ def random_dna(n):
     :rtype: pymbt.sequence.DNA
 
     '''
-    return sequence.DNA("".join([random.choice("ATGC") for i in range(n)]))
+    return pymbt.DNA("".join([random.choice("ATGC") for i in range(n)]))
 
 
 def random_codons(peptide, frequency_cutoff=0.0, weighted=False, table=None):
@@ -44,7 +44,7 @@ def random_codons(peptide, frequency_cutoff=0.0, weighted=False, table=None):
 
     '''
     if table is None:
-        table = constants.molecular_bio.CODON_FREQ_BY_AA['sc']
+        table = CODON_FREQ_BY_AA['sc']
     # Process codon table using frequency_cutoff
     new_table = _cutoff(table, frequency_cutoff)
     # Select codons randomly or using weighted distribution
@@ -67,7 +67,7 @@ def random_codons(peptide, frequency_cutoff=0.0, weighted=False, table=None):
         else:
             selection = random.choice(codons.keys())
         rna += selection
-    return sequence.RNA(rna)
+    return pymbt.RNA(rna)
 
 
 def _cutoff(table, frequency_cutoff):

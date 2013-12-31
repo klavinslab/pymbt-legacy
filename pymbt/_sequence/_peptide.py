@@ -1,5 +1,5 @@
 '''Peptide module.'''
-from pymbt.sequence._sequence import BaseSequence
+from ._sequence import BaseSequence
 
 
 class Peptide(BaseSequence):

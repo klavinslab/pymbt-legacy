@@ -3,7 +3,7 @@ Tests for the Peptide sequence class.
 
 '''
 
-from pymbt import sequence
+from pymbt import Peptide
 from nose.tools import assert_equal, assert_false, assert_true, assert_raises
 
 
@@ -14,7 +14,7 @@ class TestPeptide(object):
     '''
 
     def __init__(self):
-        self.test_peptide = sequence.Peptide('mkgp')
+        self.test_peptide = Peptide('mkgp')
 
     def test_locate(self):
         assert_equal(self.test_peptide.locate('mk'), [0])
@@ -93,10 +93,10 @@ class TestPeptide(object):
         assert_raises(TypeError, mul_float, self.test_peptide)
 
     def test_eq(self):
-        assert_true(self.test_peptide == sequence.Peptide('mkgp'))
+        assert_true(self.test_peptide == Peptide('mkgp'))
 
     def test_ne(self):
-        assert_true(self.test_peptide != sequence.Peptide('mkqp'))
+        assert_true(self.test_peptide != Peptide('mkqp'))
 
     def test_contains(self):
         assert_true('m' in self.test_peptide)

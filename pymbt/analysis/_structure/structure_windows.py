@@ -3,7 +3,7 @@ try:
     from matplotlib import pylab
 except ImportError:
     print "Failed to import matplotlib. Plotting structures won't work."
-from pymbt.analysis import nupack_multiprocessing
+import pymbt.analysis
 
 
 class StructureWindows(object):
@@ -79,7 +79,7 @@ def _context_walk(dna, window_size, context_len, step):
 
     # Combine and calculate nupack pair probabilities
     seqs = l_seqs + r_seqs
-    pairs_run = nupack_multiprocessing(seqs, 'dna', 'pairs', {'index': 0})
+    pairs_run = pymbt.analysis.nupack_multi(seqs, 'dna', 'pairs', {'index': 0})
     # Focus on pair probabilities that matter - those in the window
     pairs = [run[-window_size:] for run in pairs_run]
     # Score by average pair probability

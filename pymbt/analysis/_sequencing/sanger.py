@@ -1,11 +1,11 @@
 '''Sanger sequencing alignment tools.'''
+import pymbt.analysis
 try:
     from matplotlib import pyplot
     from matplotlib import cm
 except ImportError:
     # Warning message is handled during library import
     pass
-from pymbt.analysis import needle, needle_multiprocessing
 
 # FIXME: sequencing that goes past 'end' of a circular reference
 # is reported as an insertion
@@ -17,7 +17,7 @@ class Sanger(object):
     def __init__(self, reference, results):
         '''
         :param reference: Reference sequence.
-        :type reference: pymbt.sequence.DNA
+        :type reference: :class:`pymbt.DNA`
         :param results: Sequencing result string. A list of DNA objects is also
                         valid.
         :type results: list of pymbt.sequence.DNA sequences
@@ -197,8 +197,9 @@ class Sanger(object):
         :type seq: pymbt.sequence.DNA
 
         '''
-        largest = max([x for x in seq.top().split('N')], key=len)
-        seq_start = seq.top().index(largest)
+        seq_str = str(seq)
+        largest = max([x for x in seq_str.split('N')], key=len)
+        seq_start = seq_str.index(largest)
         seq_stop = seq_start + len(largest)
         processed = seq[seq_start:seq_stop]
         return processed
@@ -207,23 +208,24 @@ class Sanger(object):
         '''Align sequences using needle.'''
         # Align
         refs = [self._reference.copy() for x in self._processed]
-        needle_result = needle_multiprocessing(refs, self._processed,
-                                               gap_open=self._gap_open,
-                                               gap_extend=self._gap_extend)
+        needle = pymbt.analysis.needle_multi(refs, self._processed,
+                                             gap_open=self._gap_open,
+                                             gap_extend=self._gap_extend)
         # Split into alignments and scores
         # TODO: use zip here to make it simpler
         alignments = [(str(ref), str(res)) for ref, res, score in
-                      needle_result]
-        scores = [result[2] for result in needle_result]
+                      needle]
+        scores = [result[2] for result in needle]
         # If a result scores too low, try reverse complement
         # TODO: Find their indices and use multiprocessing
         # TODO: If score is too low, add warning but don't show in alignment
         for i, score in enumerate(scores):
             if score < self._score_threshold:
                 swapped_result = self._processed[i].reverse_complement()
-                new_needle = needle(self._reference, swapped_result,
-                                    gap_open=self._gap_open,
-                                    gap_extend=self._gap_extend)
+                new_needle = pymbt.analysis.needle(self._reference,
+                                                   swapped_result,
+                                                   gap_open=self._gap_open,
+                                                   gap_extend=self._gap_extend)
                 alignments[i] = (str(new_needle[0]), str(new_needle[1]))
                 score = new_needle[2]
         # Trim to reference - if reference is shorter than results

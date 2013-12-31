@@ -1,6 +1,6 @@
 '''Needleman-Wunsch alignment functions.'''
 import multiprocessing
-from pymbt import sequence
+import pymbt
 try:
     from calign import aligner, score_alignment
 except ImportError:
@@ -35,7 +35,7 @@ def needle(reference, query, gap_open=-15, gap_extend=0):
     score = score_alignment(aligned_ref, aligned_res, gap_open, gap_extend,
                             "DNA_simple")
 
-    return sequence.DNA(aligned_ref), sequence.DNA(aligned_res), score
+    return pymbt.DNA(aligned_ref), pymbt.DNA(aligned_res), score
 
 
 def run_needle(args):
@@ -45,7 +45,7 @@ def run_needle(args):
     return needle(*args)
 
 
-def needle_multiprocessing(references, queries, gap_open=-15, gap_extend=0):
+def needle_multi(references, queries, gap_open=-15, gap_extend=0):
     """Batch process of sequencing split over several cores. Acts just like
     needle but sequence inputs are lists.
 

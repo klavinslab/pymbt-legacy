@@ -1,6 +1,6 @@
 '''Base sequence classes.'''
 import re
-from pymbt.sequence import utils
+from . import utils
 
 
 class BaseSequence(object):

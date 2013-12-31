@@ -1,9 +1,6 @@
 '''Generate overlapping oligo sequences to assemble a larger DNA sequence.'''
 import csv
-from pymbt import analysis
-from pymbt import seqio
-from pymbt import sequence
-from pymbt.design import primers
+import pymbt
 
 
 class OligoAssembly(object):
@@ -77,7 +74,7 @@ class OligoAssembly(object):
             # If sequence can be built with just two oligos, do that
             oligos = [self.template, self.template.reverse_complement()]
             overlaps = [self.template]
-            overlap_tms = [analysis.tm(self.template)]
+            overlap_tms = [pymbt.analysis.tm(self.template)]
             assembly_dict = {'oligos': oligos, 'overlaps': overlaps,
                              'overlap_tms': overlap_tms}
 
@@ -155,7 +152,7 @@ class OligoAssembly(object):
         :rtype: list
 
         '''
-        self.primers = primers(self.template, tm=tm)
+        self.primers = pymbt.design.primers(self.template, tm=tm)
         return self.primers
 
     def write(self, path):
@@ -199,10 +196,10 @@ class OligoAssembly(object):
             name = 'overlap {}'.format(i + 1)
             feature_type = 'misc'
             strand = 0
-            features.append(sequence.Feature(name, start, stop, feature_type,
-                                             strand=strand))
-        seq_map = sequence.DNA(self.template, features=features)
-        seqio.write_dna(seq_map, path)
+            features.append(pymbt.Feature(name, start, stop, feature_type,
+                                          strand=strand))
+        seq_map = pymbt.DNA(self.template, features=features)
+        pymbt.seqio.write_dna(seq_map, path)
 
     def __repr__(self):
         '''Representation of an OligoAssembly object.'''
@@ -276,7 +273,7 @@ def _grow_overlaps(dna, melting_temp, require_even, length_max, overlap_min,
         # Fencepost for while loop
         # Initial overlaps (1 base) and their tms
         overlaps = [dna[start:end] for start, end in zip(starts, ends)]
-        overlap_tms = [analysis.tm(overlap) for overlap in overlaps]
+        overlap_tms = [pymbt.analysis.tm(overlap) for overlap in overlaps]
         index = overlap_tms.index(min(overlap_tms))
         # Initial oligos - includes the 1 base overlaps.
         # All the oligos are in the same direction - reverse
@@ -294,7 +291,7 @@ def _grow_overlaps(dna, melting_temp, require_even, length_max, overlap_min,
             # Recalculate overlaps and their Tms
             overlaps = _recalculate_overlaps(dna, overlaps, oligo_indices)
             # Tm calculation is bottleneck - only recalculate changed overlap
-            overlap_tms[index] = analysis.tm(overlaps[index])
+            overlap_tms[index] = pymbt.analysis.tm(overlaps[index])
             # Find lowest-Tm overlap and its index.
             index = overlap_tms.index(min(overlap_tms))
             # Move overlap at that index
@@ -332,7 +329,7 @@ def _grow_overlaps(dna, melting_temp, require_even, length_max, overlap_min,
                     len_met = all([len(x) >= overlap_min for x in overlaps])
 
                 # Recalculate tms to reflect any changes (some are redundant)
-                overlap_tms[index] = analysis.tm(overlaps[index])
+                overlap_tms[index] = pymbt.analysis.tm(overlaps[index])
 
                 # Outcome could be that len_met happened *or* maxed out
                 # length of one of the oligos. If len_met happened, should be

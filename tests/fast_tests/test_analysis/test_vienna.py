@@ -1,13 +1,13 @@
 '''Tests for Vienna RNA module.'''
 from nose.tools import assert_equal
-from pymbt import analysis, sequence
+from pymbt import analysis, DNA
 
 
 class TestVienna(object):
     '''Tests for Vienna class.'''
     def __init__(self):
         # M13R primer sequence
-        self.dna = sequence.DNA('agcggataacaatttcacacaggaaacagctatgaccatg')
+        self.dna = DNA('agcggataacaatttcacacaggaaacagctatgaccatg')
         self.vienna = analysis.Vienna(self.dna)
 
     def test_mfe(self):

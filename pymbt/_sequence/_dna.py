@@ -2,15 +2,15 @@
 import collections
 import os
 import re
-from pymbt.constants import genbank
-from pymbt.constants.molecular_bio import COMPLEMENTS
-from pymbt.sequence import utils
-from pymbt.sequence._sequence import BaseSequence
-import pymbt.seqio
-import pymbt.reaction
-import tempfile
 import shutil
 import subprocess
+import tempfile
+import pymbt.reaction
+import pymbt.seqio
+from . import utils
+from ._sequence import BaseSequence
+from pymbt.constants.genbank import TO_PYMBT
+from pymbt.constants.molecular_bio import COMPLEMENTS
 
 
 class DNA(BaseSequence):
@@ -936,7 +936,7 @@ class Feature(object):
         self.strand = strand
         self.gaps = gaps
 
-        allowed_types = genbank.TO_PYMBT.keys()
+        allowed_types = TO_PYMBT.keys()
 
         if feature_type in allowed_types:
             self.feature_type = feature_type

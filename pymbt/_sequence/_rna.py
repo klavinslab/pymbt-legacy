@@ -1,7 +1,7 @@
 '''RNA module.'''
 import pymbt.reaction
-from pymbt.sequence._sequence import BaseSequence
-from pymbt.sequence import utils
+from ._sequence import BaseSequence
+from . import utils
 
 
 class RNA(BaseSequence):

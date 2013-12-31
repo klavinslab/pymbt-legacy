@@ -288,7 +288,7 @@ class Nupack(object):
         process.wait()
 
 
-def nupack_multiprocessing(seqs, material, cmd, arguments, report=True):
+def nupack_multi(seqs, material, cmd, arguments, report=True):
     '''Split Nupack commands over processors.
 
     :param inputs: List of sequences, same format as for pymbt.analysis.Nupack.

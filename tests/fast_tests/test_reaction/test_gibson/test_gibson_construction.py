@@ -1,6 +1,6 @@
 import os
 from nose.tools import assert_equal, assert_raises
-from pymbt import seqio, reaction
+from pymbt import reaction, seqio
 
 
 def test_construction():

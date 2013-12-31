@@ -1,6 +1,6 @@
 '''Utilities for reactions.'''
-from pymbt import constants
-import pymbt.sequence
+import pymbt
+from pymbt.constants.molecular_bio import ALPHABETS, CODONS
 
 
 def convert_sequence(seq, to_material):
@@ -19,28 +19,28 @@ def convert_sequence(seq, to_material):
     :returns: sequence of type pymbt.sequence.[material type]
 
     '''
-    if isinstance(seq, pymbt.sequence.DNA) and to_material == 'rna':
+    if isinstance(seq, pymbt.DNA) and to_material == 'rna':
         # Transcribe
 
         # Can't transcribe a gap
         if '-' in seq:
             raise ValueError('Cannot transcribe gapped DNA')
         # Convert DNA chars to RNA chars
-        origin = constants.molecular_bio.ALPHABETS['dna'][:-1]
-        destination = constants.molecular_bio.ALPHABETS['rna']
+        origin = ALPHABETS['dna'][:-1]
+        destination = ALPHABETS['rna']
         code = dict(zip(origin, destination))
         converted = ''.join([code.get(str(k), str(k)) for k in seq])
         # Instantiate RNA object
-        converted = pymbt.sequence.RNA(converted)
-    elif isinstance(seq, pymbt.sequence.RNA):
+        converted = pymbt.RNA(converted)
+    elif isinstance(seq, pymbt.RNA):
         if to_material == 'dna':
             # Reverse transcribe
-            origin = constants.molecular_bio.ALPHABETS['rna']
-            destination = constants.molecular_bio.ALPHABETS['dna'][:-1]
+            origin = ALPHABETS['rna']
+            destination = ALPHABETS['dna'][:-1]
             code = dict(zip(origin, destination))
             converted = ''.join([code.get(str(k), str(k)) for k in seq])
             # Instantiate DNA object
-            converted = pymbt.sequence.DNA(converted)
+            converted = pymbt.DNA(converted)
         elif to_material == 'peptide':
             # Translate
             seq_list = list(str(seq))
@@ -52,7 +52,7 @@ def convert_sequence(seq, to_material):
                     base_2 = seq_list.pop(0)
                     base_3 = seq_list.pop(0)
                     codon = ''.join(base_1 + base_2 + base_3).upper()
-                    amino_acid = constants.molecular_bio.CODONS[codon]
+                    amino_acid = CODONS[codon]
                     # Stop when stop codon is found
                     if amino_acid == '*':
                         break
@@ -60,7 +60,7 @@ def convert_sequence(seq, to_material):
                 else:
                     break
             converted = ''.join(converted)
-            converted = pymbt.sequence.Peptide(converted)
+            converted = pymbt.Peptide(converted)
     else:
         msg1 = 'Conversion from '
         msg2 = '{0} to {1} is not supported.'.format(seq.__class__.__name__,

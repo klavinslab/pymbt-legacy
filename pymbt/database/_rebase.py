@@ -2,8 +2,7 @@
 import shutil
 import tempfile
 import urllib2
-from pymbt import sequence
-from pymbt.constants import fallback_enzymes
+import pymbt
 
 
 class Rebase(object):
@@ -30,11 +29,11 @@ class Rebase(object):
         except urllib2.HTTPError, e:
             print 'HTTP Error: {} {}'.format(e.code, url)
             print "Falling back on default enzyme list"
-            self._enzyme_dict = fallback_enzymes
+            self._enzyme_dict = pymbt.constants.fallback_enzymes
         except urllib2.URLError, e:
             print 'URL Error: {} {}'.format(e.reason, url)
             print "Falling back on default enzyme list"
-            self._enzyme_dict = fallback_enzymes
+            self._enzyme_dict = pymbt.constants.fallback_enzymes
         # Process into RestrictionSite objects? (depends on speed)
         print 'Processing into RestrictionSite instances.'
         self.restriction_sites = {}
@@ -42,13 +41,12 @@ class Rebase(object):
         for key, (site, cuts) in self._enzyme_dict.iteritems():
             # Make a site
             try:
-                r = sequence.RestrictionSite(sequence.DNA(site), cuts,
-                                             name=key)
+                r = pymbt.RestrictionSite(pymbt.DNA(site), cuts, name=key)
                 # Add it to dict with name as key
                 self.restriction_sites[key] = r
             except ValueError:
                 # Encountered ambiguous sequence, have to ignore it until
-                # sequence.DNA can handle ambiguous DNA
+                # pymbt.DNA can handle ambiguous DNA
                 pass
 
     def get(self, name):

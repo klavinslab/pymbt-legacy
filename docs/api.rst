@@ -6,52 +6,61 @@ Source documentation:
 ****************************
 
 .. automodule:: pymbt
+   :members:
+   :imported-members:
 
 
 :mod:`pymbt.analysis` -- Sequence analysis
 ------------------------------------------
 
 .. automodule:: pymbt.analysis
-   :members: dimers, needle, Nupack, nupack_multiprocessing, repeats, Sanger, StructureWindows, tm, Vienna
+   :members:
+   :imported-members:
 
 
 :mod:`pymbt.constants` -- Data and constants
 --------------------------------------------
 
 .. automodule:: pymbt.constants
-   :members: molecular_bio, genbank
+   :members:
+   :imported-members:
 
 
 :mod:`pymbt.database` -- Scientific database access
 ---------------------------------------------------
 
 .. automodule:: pymbt.database
-   :members: Rebase
+   :members:
+   :imported-members:
 
 
 :mod:`pymbt.design` -- Design sequences, primers, etc
 ------------------------------------------------------
 
 .. automodule:: pymbt.design
-   :members: design_primer, design_primers, gibson, gibson_primers, OligoAssembly, random_codons, random_dna
+   :members:
+   :imported-members:
 
 
 :mod:`pymbt.reaction` -- Cloning and molecular genetics reactions
 -----------------------------------------------------------------
 
 .. automodule:: pymbt.reaction
-   :members: coding_sequence, digest, five_resect, Gibson, pcr, reverse_transcribe, three_resect, transcribe, translate
+   :members:
+   :imported-members:
 
 
 :mod:`pymbt.seqio` -- Read and write sequences
 ----------------------------------------------
 
 .. automodule:: pymbt.seqio
-   :members: read_dna, read_sequencing, write_dna
+   :members:
+   :imported-members:
 
 
-:mod:`pymbt.sequence` -- DNA, RNA, and Peptide sequences
---------------------------------------------------------
-
-.. automodule:: pymbt.sequence
-   :members: DNA, Feature, Peptide, Primer, RestrictionSite, RNA
+.. :mod:`pymbt.sequence` -- DNA, RNA, and Peptide sequences
+.. --------------------------------------------------------
+..
+.. .. automodule:: pymbt.sequence
+..    :members:
+..    :imported-members:

@@ -1,17 +1,17 @@
 '''Test dimers submodule of analysis module.'''
-from pymbt import analysis, sequence
+from pymbt import analysis, DNA, Primer
 from nose.tools import assert_equal
 
 
 def test_dimers():
     '''Test dimers function.'''
-    anneal_f = sequence.DNA('gatcgatcgatacgatcgatatgcgat', stranded='ss')
+    anneal_f = DNA('gatcgatcgatacgatcgatatgcgat', stranded='ss')
     tm_f = 71.86183729637946
-    primer_f = sequence.Primer(anneal_f, tm_f)
+    primer_f = Primer(anneal_f, tm_f)
 
-    anneal_r = sequence.DNA('atatcgatcatatcgcatatcgatcgtatcgat', stranded='ss')
+    anneal_r = DNA('atatcgatcatatcgcatatcgatcgtatcgat', stranded='ss')
     tm_r = 72.14300162714233
-    primer_r = sequence.Primer(anneal_r, tm_r)
+    primer_r = Primer(anneal_r, tm_r)
 
     dimer_output = analysis.dimers(primer_f, primer_r)
 

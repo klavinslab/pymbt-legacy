@@ -4,8 +4,7 @@ Tests for pymbt Nupack analysis class.
 '''
 
 from nose.tools import assert_equal
-from pymbt import analysis
-from pymbt import sequence
+from pymbt import analysis, DNA
 
 
 def test_nupack():
@@ -13,8 +12,8 @@ def test_nupack():
     Test all functional NUPACK command methods for two arbitary sequences.
 
     '''
-    seq1 = sequence.DNA('ATGCGCATGGGAAATAGC')
-    seq2 = sequence.DNA('ATGCATGCATGCATGC')
+    seq1 = DNA('ATGCGCATGGGAAATAGC')
+    seq2 = DNA('ATGCATGCATGCATGC')
     np_instance = analysis.Nupack([seq1, seq2])
     complexes = np_instance.complexes(2)
     concentrations = np_instance.concentrations(2)

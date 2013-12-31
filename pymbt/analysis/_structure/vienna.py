@@ -51,7 +51,7 @@ class Vienna(object):
         process.communicate(input=self._seq)[0]
         with open('{}/dot.ps'.format(self._tempdir), 'r') as dot:
             text = dot.read()
-            text = text[text.find('%data'):]
+            text = text[text.index('%data'):]
         split = text.split('\n')
         data = [x for x in split if x.endswith('ubox')]
         data = [x.rstrip(' ubox') for x in data]

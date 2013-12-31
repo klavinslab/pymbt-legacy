@@ -4,8 +4,7 @@ Tests StructureWindows analysis class.
 '''
 
 from nose.tools import assert_equal
-from pymbt import analysis
-from pymbt import sequence
+from pymbt import analysis, DNA
 
 
 def test_structure_windows():
@@ -23,7 +22,7 @@ def test_structure_windows():
           'ggcgacggccccgtgctgctgcccgacaaccactacctgagctaccagtccgccctgagcaaa' + \
           'gaccccaacgagaagcgcgatcacatggtcctgctggagttcgtgaccgccgccgggatcact' + \
           'ctcggcatggacgagctgtacaagtaa'
-    dna_seq = sequence.DNA(seq)
+    dna_seq = DNA(seq)
     walker = analysis.StructureWindows(dna_seq)
     walker.windows(window_size=60, context_len=90, step=10)
     assert_equal(walker.scores,

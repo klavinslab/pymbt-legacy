@@ -4,28 +4,27 @@ Tests for central dogma submodule of reaction module.
 '''
 
 from nose.tools import assert_equal, assert_raises
-from pymbt import sequence
-from pymbt import reaction
+from pymbt import reaction, DNA, Peptide, RNA
 
 
 def test_transcription():
-    test_dna = sequence.DNA('ATGATGGGCAGTGTCGAATTAAATCTGCGTGAGACAGAATTGTGTT' +
-                            'TGGGACTACCAGGCGGTGATACAGTTGCACCAGTAACAGGAAACAA' +
-                            'AAGAGGATTCTCTGAAACAGTAGATTTGAAACTTAATTTGAACAAT' +
-                            'GAGCCAGCCAACAAGGAAGGTTCCACCACTCATGACGTCGTCACAT' +
-                            'TTGATAGTAAAGAAAAGAGTGCGTGTCCAAAAGATCCAGCTAAGCC' +
-                            'ACCTGCCAAGGCTCAAGTCGTCGGATGGCCACCTGTGAGATCTTAT' +
-                            'AGAAAGAACGTAATGGTTTCTTGTCAGAAGTCCAGTGGTGGTCCTG' +
-                            'AAGCAGCGGCTtgaaaa')
-    reference_rna = sequence.RNA('AUGAUGGGCAGUGUCGAAUUAAAUCUGCGUGAGACAGAAUU' +
-                                 'GUGUUUGGGACUACCAGGCGGUGAUACAGUUGCACCAGUAA' +
-                                 'CAGGAAACAAAAGAGGAUUCUCUGAAACAGUAGAUUUGAAA' +
-                                 'CUUAAUUUGAACAAUGAGCCAGCCAACAAGGAAGGUUCCAC' +
-                                 'CACUCAUGACGUCGUCACAUUUGAUAGUAAAGAAAAGAGUG' +
-                                 'CGUGUCCAAAAGAUCCAGCUAAGCCACCUGCCAAGGCUCAA' +
-                                 'GUCGUCGGAUGGCCACCUGUGAGAUCUUAUAGAAAGAACGU' +
-                                 'AAUGGUUUCUUGUCAGAAGUCCAGUGGUGGUCCUGAAGCAG' +
-                                 'CGGCUugaaaa')
+    test_dna = DNA('ATGATGGGCAGTGTCGAATTAAATCTGCGTGAGACAGAATTGTGTT' +
+                   'TGGGACTACCAGGCGGTGATACAGTTGCACCAGTAACAGGAAACAA' +
+                   'AAGAGGATTCTCTGAAACAGTAGATTTGAAACTTAATTTGAACAAT' +
+                   'GAGCCAGCCAACAAGGAAGGTTCCACCACTCATGACGTCGTCACAT' +
+                   'TTGATAGTAAAGAAAAGAGTGCGTGTCCAAAAGATCCAGCTAAGCC' +
+                   'ACCTGCCAAGGCTCAAGTCGTCGGATGGCCACCTGTGAGATCTTAT' +
+                   'AGAAAGAACGTAATGGTTTCTTGTCAGAAGTCCAGTGGTGGTCCTG' +
+                   'AAGCAGCGGCTtgaaaa')
+    reference_rna = RNA('AUGAUGGGCAGUGUCGAAUUAAAUCUGCGUGAGACAGAAUU' +
+                        'GUGUUUGGGACUACCAGGCGGUGAUACAGUUGCACCAGUAA' +
+                        'CAGGAAACAAAAGAGGAUUCUCUGAAACAGUAGAUUUGAAA' +
+                        'CUUAAUUUGAACAAUGAGCCAGCCAACAAGGAAGGUUCCAC' +
+                        'CACUCAUGACGUCGUCACAUUUGAUAGUAAAGAAAAGAGUG' +
+                        'CGUGUCCAAAAGAUCCAGCUAAGCCACCUGCCAAGGCUCAA' +
+                        'GUCGUCGGAUGGCCACCUGUGAGAUCUUAUAGAAAGAACGU' +
+                        'AAUGGUUUCUUGUCAGAAGUCCAGUGGUGGUCCUGAAGCAG' +
+                        'CGGCUugaaaa')
     # Basic transcription should work
     transcription_output = reaction.transcribe(test_dna)
     assert_equal(transcription_output, reference_rna)
@@ -36,25 +35,25 @@ def test_transcription():
 
     # Should fail is sequence lacks start codon or stop codon
     assert_raises(ValueError, reaction.coding_sequence,
-                  reaction.transcribe(sequence.DNA('aaatag')))
+                  reaction.transcribe(DNA('aaatag')))
     assert_raises(ValueError, reaction.coding_sequence,
-                  reaction.transcribe(sequence.DNA('atgaaa')))
+                  reaction.transcribe(DNA('atgaaa')))
 
 
 def test_translation():
-    test_rna = sequence.RNA('AUGAUGGGCAGUGUCGAAUUAAAUCUGCGUGAGACAGAAUU' +
-                            'GUGUUUGGGACUACCAGGCGGUGAUACAGUUGCACCAGUAA' +
-                            'CAGGAAACAAAAGAGGAUUCUCUGAAACAGUAGAUUUGAAA' +
-                            'CUUAAUUUGAACAAUGAGCCAGCCAACAAGGAAGGUUCCAC' +
-                            'CACUCAUGACGUCGUCACAUUUGAUAGUAAAGAAAAGAGUG' +
-                            'CGUGUCCAAAAGAUCCAGCUAAGCCACCUGCCAAGGCUCAA' +
-                            'GUCGUCGGAUGGCCACCUGUGAGAUCUUAUAGAAAGAACGU' +
-                            'AAUGGUUUCUUGUCAGAAGUCCAGUGGUGGUCCUGAAGCAG' +
-                            'CGGCUugaaaa')
-    reference_peptide = sequence.Peptide('MMGSVELNLRETELCLGLPGGDTVAPVTGNK' +
-                                         'RGFSETVDLKLNLNNEPANKEGSTTHDVVTF' +
-                                         'DSKEKSACPKDPAKPPAKAQVVGWPPVRSYR' +
-                                         'KNVMVSCQKSSGGPEAAA')
+    test_rna = RNA('AUGAUGGGCAGUGUCGAAUUAAAUCUGCGUGAGACAGAAUU' +
+                   'GUGUUUGGGACUACCAGGCGGUGAUACAGUUGCACCAGUAA' +
+                   'CAGGAAACAAAAGAGGAUUCUCUGAAACAGUAGAUUUGAAA' +
+                   'CUUAAUUUGAACAAUGAGCCAGCCAACAAGGAAGGUUCCAC' +
+                   'CACUCAUGACGUCGUCACAUUUGAUAGUAAAGAAAAGAGUG' +
+                   'CGUGUCCAAAAGAUCCAGCUAAGCCACCUGCCAAGGCUCAA' +
+                   'GUCGUCGGAUGGCCACCUGUGAGAUCUUAUAGAAAGAACGU' +
+                   'AAUGGUUUCUUGUCAGAAGUCCAGUGGUGGUCCUGAAGCAG' +
+                   'CGGCUugaaaa')
+    reference_peptide = Peptide('MMGSVELNLRETELCLGLPGGDTVAPVTGNK' +
+                                'RGFSETVDLKLNLNNEPANKEGSTTHDVVTF' +
+                                'DSKEKSACPKDPAKPPAKAQVVGWPPVRSYR' +
+                                'KNVMVSCQKSSGGPEAAA')
     # Basic transcription should work
     translation_output = reaction.translate(test_rna)
     assert_equal(translation_output, reference_peptide)
@@ -66,23 +65,23 @@ def test_translation():
 
 
 def test_reverse_transcription():
-    test_rna = sequence.RNA('AUGAUGGGCAGUGUCGAAUUAAAUCUGCGUGAGACAGAAUU' +
-                            'GUGUUUGGGACUACCAGGCGGUGAUACAGUUGCACCAGUAA' +
-                            'CAGGAAACAAAAGAGGAUUCUCUGAAACAGUAGAUUUGAAA' +
-                            'CUUAAUUUGAACAAUGAGCCAGCCAACAAGGAAGGUUCCAC' +
-                            'CACUCAUGACGUCGUCACAUUUGAUAGUAAAGAAAAGAGUG' +
-                            'CGUGUCCAAAAGAUCCAGCUAAGCCACCUGCCAAGGCUCAA' +
-                            'GUCGUCGGAUGGCCACCUGUGAGAUCUUAUAGAAAGAACGU' +
-                            'AAUGGUUUCUUGUCAGAAGUCCAGUGGUGGUCCUGAAGCAG' +
-                            'CGGCUugaaaa')
-    ref_dna = sequence.DNA('ATGATGGGCAGTGTCGAATTAAATCTGCGTGAGACAGAATTGTGTT' +
-                           'TGGGACTACCAGGCGGTGATACAGTTGCACCAGTAACAGGAAACAA' +
-                           'AAGAGGATTCTCTGAAACAGTAGATTTGAAACTTAATTTGAACAAT' +
-                           'GAGCCAGCCAACAAGGAAGGTTCCACCACTCATGACGTCGTCACAT' +
-                           'TTGATAGTAAAGAAAAGAGTGCGTGTCCAAAAGATCCAGCTAAGCC' +
-                           'ACCTGCCAAGGCTCAAGTCGTCGGATGGCCACCTGTGAGATCTTAT' +
-                           'AGAAAGAACGTAATGGTTTCTTGTCAGAAGTCCAGTGGTGGTCCTG' +
-                           'AAGCAGCGGCTtgaaaa')
+    test_rna = RNA('AUGAUGGGCAGUGUCGAAUUAAAUCUGCGUGAGACAGAAUU' +
+                   'GUGUUUGGGACUACCAGGCGGUGAUACAGUUGCACCAGUAA' +
+                   'CAGGAAACAAAAGAGGAUUCUCUGAAACAGUAGAUUUGAAA' +
+                   'CUUAAUUUGAACAAUGAGCCAGCCAACAAGGAAGGUUCCAC' +
+                   'CACUCAUGACGUCGUCACAUUUGAUAGUAAAGAAAAGAGUG' +
+                   'CGUGUCCAAAAGAUCCAGCUAAGCCACCUGCCAAGGCUCAA' +
+                   'GUCGUCGGAUGGCCACCUGUGAGAUCUUAUAGAAAGAACGU' +
+                   'AAUGGUUUCUUGUCAGAAGUCCAGUGGUGGUCCUGAAGCAG' +
+                   'CGGCUugaaaa')
+    ref_dna = DNA('ATGATGGGCAGTGTCGAATTAAATCTGCGTGAGACAGAATTGTGTT' +
+                  'TGGGACTACCAGGCGGTGATACAGTTGCACCAGTAACAGGAAACAA' +
+                  'AAGAGGATTCTCTGAAACAGTAGATTTGAAACTTAATTTGAACAAT' +
+                  'GAGCCAGCCAACAAGGAAGGTTCCACCACTCATGACGTCGTCACAT' +
+                  'TTGATAGTAAAGAAAAGAGTGCGTGTCCAAAAGATCCAGCTAAGCC' +
+                  'ACCTGCCAAGGCTCAAGTCGTCGGATGGCCACCTGTGAGATCTTAT' +
+                  'AGAAAGAACGTAATGGTTTCTTGTCAGAAGTCCAGTGGTGGTCCTG' +
+                  'AAGCAGCGGCTtgaaaa')
 
     # Basic transcription should work
     r_transcription = reaction.reverse_transcribe(test_rna)
