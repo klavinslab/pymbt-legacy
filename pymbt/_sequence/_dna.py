@@ -170,7 +170,10 @@ class DNA(BaseSequence):
             cmd = ape_path
         # Check whether ApE exists in PATH
         tmp = tempfile.mkdtemp()
-        filename = tmp + '/tmp.ape'
+        if self.name is not None:
+            filename = tmp + '/{}.ape'.format(self.name)
+        else:
+            filename = tmp + '/tmp.ape'
         pymbt.seqio.write_dna(self, filename)
         process = subprocess.Popen([cmd, filename])
         # Block until window is closed

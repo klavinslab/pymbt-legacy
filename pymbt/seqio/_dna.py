@@ -27,7 +27,7 @@ def read_dna(path):
     :rtype: pymbt.DNA
 
     '''
-    ext = os.path.splitext(path)[1]
+    filename, ext = os.path.splitext(path)
 
     genbank_exts = ['.gb', '.ape']
     fasta_exts = ['.fasta', '.fa', '.fsa', '.seq']
@@ -44,7 +44,10 @@ def read_dna(path):
 
     seq = SeqIO.read(path, file_format)
     dna = pymbt.DNA(seq.seq.tostring())
-    dna.name = seq.name
+    if seq.name == ".":
+        dna.name = filename
+    else:
+        dna.name = seq.name
 
     # Features
     for feature in seq.features:
