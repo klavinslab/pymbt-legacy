@@ -11,7 +11,7 @@ DOCSDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../docs"))
 def build_docs(directory):
     """Builds sphinx docs from a given directory."""
     os.chdir(directory)
-    process = subprocess.Popen(["make", "html"])
+    process = subprocess.Popen(["make", "html"], cwd=directory)
     process.communicate()
 
 

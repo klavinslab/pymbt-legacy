@@ -15,17 +15,19 @@ def ipynb_to_rst(directory, filename):
     subprocess.Popen(["ipython", "nbconvert", "--to", "rst",
                       filename],
                      stdout=subprocess.PIPE,
-                     stderr=subprocess.PIPE)
+                     stderr=subprocess.PIPE,
+                     cwd=directory)
 
 
 def convert_ipynbs(directory):
     """Recursively converts all ipynb files in a directory into rst files in
     the same directory."""
     # The ipython_examples dir has to be in the same dir as this script
-    for root, subfolders, files in os.walk(directory):
+    for root, subfolders, files in os.walk(os.path.abspath(directory)):
         for f in files:
-            if f.endswith("ipynb"):
-                ipynb_to_rst(root, f)
+            if ".ipynb_checkpoints" not in root:
+                if f.endswith("ipynb"):
+                    ipynb_to_rst(root, f)
 
 
 if __name__ == "__main__":

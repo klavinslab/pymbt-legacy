@@ -6,6 +6,7 @@
 *.log
 *.pyc
 *.so
+*.ipynb_checkpoints
 build
 docs/_build
 venv/
