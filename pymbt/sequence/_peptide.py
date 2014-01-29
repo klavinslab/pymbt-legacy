@@ -28,6 +28,9 @@ class Peptide(BaseSequence):
         # Significant performance improvements by skipping alphabet check
         return type(self)(self._sequence, run_checks=False)
 
+    def extract(self, name, pure=False):
+        return super(Peptide, self).extract(self, name, "X", pure=True)
+
     def __contains__(self, query):
         """Defines `query in sequence` operator.
 
@@ -35,4 +38,4 @@ class Peptide(BaseSequence):
         :type query: str or pymbt.DNA
 
         """
-        return super(Peptide, self).__contains__(query, "x")
+        return super(Peptide, self).__contains__(query, "X")

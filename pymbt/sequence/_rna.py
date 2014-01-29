@@ -41,6 +41,9 @@ class RNA(BaseSequence):
                                                           'rna')
         return new_instance
 
+    def extract(self, name, pure=False):
+        return super(RNA, self).extract(self, name, "N", pure=True)
+
     def reverse_transcribe(self):
         '''Reverse transcribe to DNA.
 
@@ -66,4 +69,4 @@ class RNA(BaseSequence):
         :type query: str or pymbt.DNA
 
         """
-        return super(RNA, self).__contains__(query, "n")
+        return super(RNA, self).__contains__(query, "N")

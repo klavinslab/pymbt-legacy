@@ -177,18 +177,6 @@ class TestDNA(object):
         assert_equal(self.test_dna._bottom, str(flipped))
 
 
-def test_bad_bottom_init():
-    def init_dna(top, bottom):
-        DNA(top, bottom=bottom)
-
-    assert_raises(ValueError, DNA, 'atgc', bottom='at')
-    assert_raises(ValueError, DNA, 'atgc', bottom='gggg')
-    try:
-        DNA('atgc', bottom='gcat')
-    except:
-        assert False
-
-
 def test_stranded_init():
     ss_dna = DNA('atgc', stranded='ss')
     assert_true(all([base == '-' for base in ss_dna._bottom]))

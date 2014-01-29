@@ -5,7 +5,7 @@
 ALPHABETS = {
     'dna': 'ATGCNatgcn-',
     'rna': 'AUGCNaugcn',
-    'peptide': 'ACDEFGHIKLMNPQRSTVWYacdefghiklmnpqrstvwy'}
+    'peptide': 'ACDEFGHIKLMNPQRSTVWYXacdefghiklmnpqrstvwyx'}
 
 
 COMPLEMENTS = {
