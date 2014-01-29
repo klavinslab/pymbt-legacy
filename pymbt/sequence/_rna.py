@@ -1,10 +1,10 @@
 '''RNA module.'''
 import pymbt.reaction
-from ._sequence import BaseSequence
-from . import utils
+from ._sequence import NucleotideSequence
+from ._sequence import reverse_complement
 
 
-class RNA(BaseSequence):
+class RNA(NucleotideSequence):
     '''RNA sequence.'''
     def __init__(self, rna, run_checks=True):
         '''
@@ -37,8 +37,7 @@ class RNA(BaseSequence):
 
         '''
         new_instance = self.copy()
-        new_instance._sequence = utils.reverse_complement(self._sequence,
-                                                          'rna')
+        new_instance._sequence = reverse_complement(self._sequence, 'rna')
         return new_instance
 
     def extract(self, name, pure=False):

@@ -7,14 +7,11 @@ import subprocess
 import tempfile
 import pymbt.reaction
 import pymbt.seqio
-from . import utils
-from ._sequence import BaseSequence
-from ._sequence import reverse_complement
+from ._sequence import process_seq, reverse_complement
+from ._sequence import NucleotideSequence
 
 
-# TODO: reintroduce complement() function since it seems to be useful
-# (implements old reverse_complement behavior)
-class DNA(BaseSequence):
+class DNA(NucleotideSequence):
     '''DNA sequence.'''
     def __init__(self, dna, bottom=None, topology='linear', stranded='ds',
                  features=None, run_checks=True, id=None, name=''):
@@ -58,7 +55,7 @@ class DNA(BaseSequence):
         if bottom:
             self._bottom = bottom
             if run_checks:
-                self._bottom = utils.process_seq(bottom, 'dna')
+                self._bottom = process_seq(bottom, 'dna')
                 if len(self._bottom) != len(self._sequence):
                     msg = "Top and bottom strands are difference lengths."
                     raise ValueError(msg)

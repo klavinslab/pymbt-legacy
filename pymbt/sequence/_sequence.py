@@ -2,7 +2,7 @@
 import re
 from . import utils
 from pymbt.constants.genbank import TO_PYMBT
-from pymbt.constants.molecular_bio import COMPLEMENTS
+from pymbt.constants.molecular_bio import ALPHABETS, COMPLEMENTS
 
 
 class BaseSequence(object):
@@ -186,15 +186,6 @@ class BaseSequence(object):
 
         return self[0:index] + sequence + self[index:]
 
-    def is_palindrome(self):
-        """Report whether sequence is palindromic.
-
-        :returns: Boolean stating whether sequence is a palindrome.
-        :rtype: bool
-
-        """
-        return utils.palindrome(self)
-
     def locate(self, pattern):
         '''Find sequences matching a pattern.
 
@@ -219,6 +210,76 @@ class BaseSequence(object):
 
         """
         if self._sequence.startswith(str(query)):
+            return True
+        else:
+            return False
+
+    def __add__(self, other):
+        '''Defines addition.
+
+        :param other: Instance with which to sum.
+        :type other: pymbt.sequence.BaseSequence
+        :returns: Concatenated sequence.
+        :rtype: pymbt.sequence.BaseSequence
+
+        '''
+        self_features = [feature.copy() for feature in self.features]
+        other_features = [feature.copy() for feature in other.features]
+        for feature in other_features:
+            feature.move(len(self))
+        features = self_features + other_features
+
+        return BaseSequence(self._sequence + other._sequence, self._material,
+                            features=features, run_checks=False)
+
+    def __contains__(self, query, any_char):
+        '''`x in y`.
+
+        :param query: Query (i.e. exact pattern) sequence to find.
+        :type query: str
+        :param any_char: Character to use for any match (.*).
+        :type any_char: str
+        :returns: Whether the query is found in the current sequence.
+        :rtype: bool
+
+        '''
+        query_str = str(query).upper()
+        query_str = re.sub(any_char, ".", query_str)
+        if re.search(query_str, str(self)):
+            return True
+        else:
+            return False
+
+    def __delitem__(self, index):
+        '''Deletes sequence at index.
+
+        :param index: Index to delete
+        :type index: int
+        :returns: The current sequence with the moiety at `index` removed.
+        :rtype: pymbt.sequence.BaseSequence
+
+        '''
+        if self.features:
+            self.features = [feature for feature in self.features if index not
+                             in range(feature.start, feature.stop)]
+            for feature in self.features:
+                if feature.start >= index:
+                    feature.move(-1)
+
+        sequence_list = list(self._sequence)
+        del sequence_list[index]
+        self._sequence = ''.join(sequence_list)
+
+    def __eq__(self, other):
+        '''Define == operator. True if sequences are the same.
+
+        :param other: Other sequence.
+        :type other: pymbt.sequence._sequence.BaseSequence
+        :returns: Whether two sequences have the same base string (sequence).
+        :rtype: bool
+
+        '''
+        if self._sequence == other._sequence:
             return True
         else:
             return False
@@ -266,25 +327,69 @@ class BaseSequence(object):
                     feature.move(key)
         return copy
 
-    def __delitem__(self, index):
-        '''Deletes sequence at index.
+    def __len__(self):
+        '''Calculate sequence length.
 
-        :param index: Index to delete
-        :type index: int
-        :returns: The current sequence with the moiety at `index` removed.
+        :returns: The length of the sequence.
+        :rtype: int
+
+        '''
+        return len(self._sequence)
+
+    def __mul__(self, n):
+        '''Concatenate copies of the sequence.
+
+        :param n: Factor by which to multiply the sequence.
+        :type n: int
+        :returns: The current sequence repeated n times.
+        :rtype: pymbt.sequence.BaseSequence
+        :raises: TypeError if n is not an integer.
+
+        '''
+        # Input checking
+        if n != int(n):
+            raise TypeError("Multiplication by non-integer.")
+        return sum([x for x in _decompose(self, n)])
+
+    def __ne__(self, other):
+        '''Define != operator.
+
+        :param other: Other sequence.
+        :type other: pymbt.sequence._sequence.BaseSequence
+        :returns: The opposite of ==.
+        :rtype: bool
+
+        '''
+        try:
+            return not (self == other)
+        except TypeError:
+            return False
+
+    def __radd__(self, other):
+        '''Add unlike types (enables sum function).
+
+        :param other: Object of any other type.
+        :param other: pymbt.sequence._sequence.BaseSequence
+        :returns: Concatenated sequence.
         :rtype: pymbt.sequence.BaseSequence
 
         '''
-        if self.features:
-            self.features = [feature for feature in self.features if index not
-                             in range(feature.start, feature.stop)]
-            for feature in self.features:
-                if feature.start >= index:
-                    feature.move(-1)
+        if other == 0 or other is None:
+            # For compatibility with sum()
+            return self
+        elif type(self) != type(other):
+            raise TypeError("Can't add {} to {}".format(self, other))
+        return self + other
 
-        sequence_list = list(self._sequence)
-        del sequence_list[index]
-        self._sequence = ''.join(sequence_list)
+    def __repr__(self):
+        '''String to print when object is called directly.'''
+        display_bases = 40
+        if len(self._sequence) < 90:
+            sequence = self._sequence
+        else:
+            sequence = ''.join([self._sequence[:display_bases], ' ... ',
+                                self._sequence[-display_bases:]])
+        return sequence
 
     def __setitem__(self, index, new_value):
         '''Sets index value to new value.
@@ -307,16 +412,6 @@ class BaseSequence(object):
         sequence_list[index] = str(BaseSequence(new_value, self._material))
         self._sequence = ''.join(sequence_list)
 
-    def __repr__(self):
-        '''String to print when object is called directly.'''
-        display_bases = 40
-        if len(self._sequence) < 90:
-            sequence = self._sequence
-        else:
-            sequence = ''.join([self._sequence[:display_bases], ' ... ',
-                                self._sequence[-display_bases:]])
-        return sequence
-
     def __str__(self):
         '''Cast to string.
 
@@ -326,114 +421,17 @@ class BaseSequence(object):
         '''
         return self._sequence
 
-    def __len__(self):
-        '''Calculate sequence length.
 
-        :returns: The length of the sequence.
-        :rtype: int
-
-        '''
-        return len(self._sequence)
-
-    def __add__(self, other):
-        '''Defines addition.
-
-        :param other: Instance with which to sum.
-        :type other: pymbt.sequence.BaseSequence
-        :returns: Concatenated sequence.
-        :rtype: pymbt.sequence.BaseSequence
-
-        '''
-        self_features = [feature.copy() for feature in self.features]
-        other_features = [feature.copy() for feature in other.features]
-        for feature in other_features:
-            feature.move(len(self))
-        features = self_features + other_features
-
-        return BaseSequence(self._sequence + other._sequence, self._material,
-                            features=features, run_checks=False)
-
-    def __radd__(self, other):
-        '''Add unlike types (enables sum function).
-
-        :param other: Object of any other type.
-        :param other: pymbt.sequence._sequence.BaseSequence
-        :returns: Concatenated sequence.
-        :rtype: pymbt.sequence.BaseSequence
-
-        '''
-        if other == 0 or other is None:
-            # For compatibility with sum()
-            return self
-        elif type(self) != type(other):
-            raise TypeError("Can't add {} to {}".format(self, other))
-        return self + other
-
-    def __mul__(self, n):
-        '''Concatenate copies of the sequence.
-
-        :param n: Factor by which to multiply the sequence.
-        :type n: int
-        :returns: The current sequence repeated n times.
-        :rtype: pymbt.sequence.BaseSequence
-        :raises: TypeError if n is not an integer.
-
-        '''
-        # Input checking
-        if n != int(n):
-            raise TypeError("Multiplication by non-integer.")
-        return sum([x for x in _decompose(self, n)])
-
-    def __eq__(self, other):
-        '''Define == operator. True if sequences are the same.
-
-        :param other: Other sequence.
-        :type other: pymbt.sequence._sequence.BaseSequence
-        :returns: Whether two sequences have the same base string (sequence).
-        :rtype: bool
-
-        '''
-        if self._sequence == other._sequence:
-            return True
-        else:
-            return False
-
-    def __ne__(self, other):
-        '''Define != operator.
-
-        :param other: Other sequence.
-        :type other: pymbt.sequence._sequence.BaseSequence
-        :returns: The opposite of ==.
-        :rtype: bool
-
-        '''
-        try:
-            return not (self == other)
-        except TypeError:
-            return False
-
-    def __contains__(self, query, any_char):
-        '''`x in y`.
-
-        :param query: Query (i.e. exact pattern) sequence to find.
-        :type query: str
-        :param any_char: Character to use for any match (.*).
-        :type any_char: str
-        :returns: Whether the query is found in the current sequence.
-        :rtype: bool
-
-        '''
-        query_str = str(query).upper()
-        query_str = re.sub(any_char, ".", query_str)
-        if re.search(query_str, str(self)):
-            return True
-        else:
-            return False
-
-
-# TODO: use this as base class for DNA and RNA, use BaseSequence for Peptide
 class NucleotideSequence(BaseSequence):
-    pass
+    '''Nucleotide sequence class.'''
+    def is_palindrome(self):
+        """Report whether sequence is palindromic.
+
+        :returns: Boolean stating whether sequence is a palindrome.
+        :rtype: bool
+
+        """
+        return utils.palindrome(self)
 
 
 def _decompose(string, n):
@@ -568,3 +566,72 @@ def reverse_complement(sequence, material):
     # FIXME: reverse_complement is redundant with flip?
     reverse_sequence = sequence[::-1]
     return ''.join([code[base] for base in reverse_sequence])
+
+
+def check_alphabet(seq, material):
+    '''Verify that a given string is valid DNA, RNA, or peptide characters.
+
+    :param seq: DNA, RNA, or peptide sequence.
+    :type seq: str
+    :param material: Input material - 'dna', 'rna', or 'pepide'.
+    :type sequence: str
+    :returns: Whether the `seq` is a valid string of `material`.
+    :rtype: bool
+    :raises: ValueError if `material` isn't \"dna\", \"rna\", or \"peptide\".
+             ValueError if `seq` contains invalid characters for its
+             material type.
+
+    '''
+    errs = {'dna': 'DNA', 'rna': 'RNA', 'peptide': 'peptide'}
+    if material == 'dna' or material == 'rna' or material == 'peptide':
+        alphabet = ALPHABETS[material]
+        err_msg = errs[material]
+    else:
+        msg = "Input material must be 'dna', 'rna', or 'peptide'."
+        raise ValueError(msg)
+    # This is a bottleneck when modifying sequence - hence the run_checks
+    # optional parameter in sequence objects..
+    # First attempt with cython was slower. Could also try pypy.
+    if re.search('[^' + alphabet + ']', seq):
+        raise ValueError('Encountered a non-%s character' % err_msg)
+
+
+def process_seq(seq, material):
+    '''Validate and process sequence inputs.
+
+    :param seq: input sequence
+    :type seq: str
+    :param material: DNA, RNA, or peptide
+    :type: str
+    :returns: Uppercase version of `seq` with the alphabet checked by
+              check_alphabet().
+    :rtype: str
+
+    '''
+    check_alphabet(seq, material)
+    seq = seq.upper()
+    return seq
+
+
+def palindrome(seq):
+    '''Test whether a sequence is palindrome.
+
+    :param seq: Sequence to analyze (DNA or RNA).
+    :type seq: pymbt.DNA or pymbt.RNA
+    :returns: Whether a sequence is a palindrome.
+    :rtype: bool
+
+    '''
+    seq_len = len(seq)
+    if seq_len % 2 == 0:
+        # Sequence has even number of bases, can test non-overlapping seqs
+        wing = seq_len / 2
+        l_wing = seq[0: wing]
+        r_wing = seq[wing:]
+        if l_wing == r_wing.reverse_complement():
+            return True
+        else:
+            return False
+    else:
+        # Sequence has odd number of bases and cannot be a palindrome
+        return False
