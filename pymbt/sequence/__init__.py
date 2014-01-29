@@ -5,4 +5,3 @@ from ._dna import Primer
 from ._peptide import Peptide
 from ._rna import RNA
 from ._sequence import Feature
-from . import utils

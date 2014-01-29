@@ -1,6 +1,5 @@
 '''Base sequence classes.'''
 import re
-from . import utils
 from pymbt.constants.genbank import TO_PYMBT
 from pymbt.constants.molecular_bio import ALPHABETS, COMPLEMENTS
 
@@ -23,7 +22,7 @@ class BaseSequence(object):
 
         '''
         if run_checks:
-            self._sequence = utils.process_seq(sequence, material)
+            self._sequence = process_seq(sequence, material)
         else:
             self._sequence = sequence
 
@@ -441,7 +440,7 @@ class NucleotideSequence(BaseSequence):
         :rtype: bool
 
         """
-        return utils.palindrome(self)
+        return palindrome(self)
 
 
 def _decompose(string, n):

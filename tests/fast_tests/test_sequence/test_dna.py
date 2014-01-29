@@ -1,6 +1,5 @@
 '''Tests for the DNA sequence class.'''
 from pymbt import reaction, DNA, Feature, RestrictionSite
-from pymbt.sequence import utils
 from nose.tools import assert_equal, assert_false, assert_true, assert_raises
 from nose.tools import assert_not_equal
 
@@ -179,10 +178,10 @@ class TestDNA(object):
 
 def test_stranded_init():
     ss_dna = DNA('atgc', stranded='ss')
-    assert_true(all([base == '-' for base in ss_dna._bottom]))
+    assert_true(all([base == '-' for base in ss_dna.bottom()]))
 
     ds_dna = DNA('atgc')
-    assert_equal(str(ds_dna), utils.reverse_complement(ds_dna._bottom, 'dna'))
+    assert_equal(str(ds_dna), ds_dna.reverse_complement().bottom())
 
 
 def test_stranded_complemented():

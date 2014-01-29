@@ -151,6 +151,14 @@ class DNA(NucleotideSequence):
         inserted.topology = self.topology
         return inserted
 
+    def is_rotation(self, other):
+        if len(self) != len(other):
+            return False
+        for i in range(len(self)):
+            if self.rotate(i) == other:
+                return True
+        return False
+
     def linearize(self, index=0):
         '''Linearize circular DNA at an index.
 
@@ -224,7 +232,7 @@ class DNA(NucleotideSequence):
         mw_c = counter["c"] * 329.2
         return mw_a + mw_t + mw_g + mw_c
 
-    def orient(self, index):
+    def rotate(self, index):
         """Orient DNA to index (only applies to circular DNA).
 
         :param index: DNA position at which to re-zero the DNA.
@@ -236,13 +244,13 @@ class DNA(NucleotideSequence):
 
         """
         if self.topology == "linear" and index != 0:
-            raise ValueError("Can't reorient linear DNA")
+            raise ValueError("Can't rotate linear DNA")
         if index < 0:
-            raise ValueError("Reorientation index must be positive")
+            raise ValueError("Rotation index must be positive")
         else:
-            return self[index:] + self[0:index]
+            return (self[index:] + self[0:index]).circularize()
 
-    def orient_by_feature(self, featurename):
+    def rotate_by_feature(self, featurename):
         """Reorient the DNA based on a feature it contains (circular DNA only).
 
         :param featurename: A uniquely-named feature.
@@ -262,7 +270,7 @@ class DNA(NucleotideSequence):
                 matched.append(feature.copy())
         count = len(matched)
         if count == 1:
-            return self.orient(matched[0].start)
+            return self.rotate(matched[0].start)
         elif count > 1:
             raise ValueError("More than one feature has that name.")
         else:
