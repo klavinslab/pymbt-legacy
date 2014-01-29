@@ -16,8 +16,8 @@ def test_construction():
     f3 = seqio.read_dna(f3_path)
     f3_linear = seqio.read_dna(f3_linear_path)
 
-    gibsoned_circular = reaction.Gibson([f1, f2, f3]).run_circular()
-    gibsoned_linear = reaction.Gibson([f1, f2, f3_linear]).run_linear()
+    gibsoned_circular = reaction.gibson([f1, f2, f3])
+    gibsoned_linear = reaction.gibson([f1, f2, f3_linear], linear=True)
 
     expected_length = len(plasmid)
     gibsoned_circular_length = len(gibsoned_circular)
@@ -30,22 +30,22 @@ def test_construction():
     assert_equal(str(plasmid), str(gibsoned_linear))
 
     # Should fail with circular input
-    assert_raises(ValueError, reaction.Gibson, [f1.circularize()])
+    assert_raises(ValueError, reaction.gibson, [f1.circularize()])
     # Should fail if compatible end can't be found
-    assert_raises(Exception, reaction.Gibson([f1, f3[30:-30]]).run_linear)
+    assert_raises(Exception, reaction.gibson, [f1, f3[30:-30]], linear=True)
     normal = [f1, f2, f3]
     rotated = [f1, f2, f3.reverse_complement()]
     # Gibson should work regardless of fragment orientation
-    assert_equal(reaction.Gibson(normal).run_circular(),
-                 reaction.Gibson(rotated).run_circular())
+    assert_equal(reaction.gibson(normal),
+                 reaction.gibson(rotated))
     # A redundant fragment shouldn't affect the outcome
-    assert_equal(reaction.Gibson([f1, f2, f3]).run_circular(),
-                 reaction.Gibson([f1, f2, f2, f3]).run_circular())
+    assert_equal(reaction.gibson([f1, f2, f3]),
+                 reaction.gibson([f1, f2, f2, f3]))
     # A fragment that can't circularize should raise a ValueError
-    assert_raises(ValueError, reaction.Gibson([f1, f2, f3[:-80]]).run_circular)
+    assert_raises(ValueError, reaction.gibson, [f1, f2, f3[:-80]])
     # But should still work fine as a linear fragment
-    assert_equal(reaction.Gibson([f1, f2, f3]).run_linear()[:-80],
-                 reaction.Gibson([f1, f2, f3[:-80]]).run_linear())
+    assert_equal(reaction.gibson([f1, f2, f3], linear=True)[:-80],
+                 reaction.gibson([f1, f2, f3[:-80]], linear=True))
     # If there's more than one way to make the Gibson happen, should error
     assert_raises(reaction._gibson.AmbiguousGibsonError,
-                  reaction.Gibson([f1, f2, f2[:60] + f3, f3]).run_circular)
+                  reaction.gibson, [f1, f2, f2[:60] + f3, f3])

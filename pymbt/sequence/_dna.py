@@ -642,7 +642,7 @@ class Primer(object):
     def __repr__(self):
         '''Representation of a primer.'''
         if self.overhang:
-            return 'Primer: {} Tm: {:.2f}'.format(self.overhang.top().upper() +
+            return 'Primer: {} Tm: {:.2f}'.format(self.overhang.top().lower() +
                                                   self.anneal.top(), self.tm)
         else:
             return 'Primer: {} Tm: {:.2f}'.format(self.anneal.top(), self.tm)
