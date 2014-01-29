@@ -98,7 +98,8 @@ def primer(dna, tm=65, min_len=10, tm_undershoot=1, tm_overshoot=3,
 
 
 def primers(dna, tm=65, min_len=10, tm_undershoot=1, tm_overshoot=3,
-            end_gc=False, tm_parameters='cloning', overhangs=None):
+            end_gc=False, tm_parameters='cloning', overhangs=None,
+            structure=False):
     '''Design primers for PCR amplifying any arbitrary sequence.
 
     :param dna: Input sequence.
@@ -117,6 +118,9 @@ def primers(dna, tm=65, min_len=10, tm_undershoot=1, tm_overshoot=3,
     :type tm_parameters: string
     :param overhangs: 2-tuple of overhang sequences.
     :type overhangs: tuple
+    :param structure: Evaluate each primer for structure, with warning for high
+                      structure.
+    :type structure: bool
     :returns: A list primers (the output of primer).
     :rtype: list
 
@@ -130,6 +134,6 @@ def primers(dna, tm=65, min_len=10, tm_undershoot=1, tm_overshoot=3,
                           tm_undershoot=tm_undershoot,
                           tm_overshoot=tm_overshoot, end_gc=end_gc,
                           tm_parameters=tm_parameters,
-                          overhang=overhang)
+                          overhang=overhang, structure=structure)
         primer_list.append(primer_i)
     return primer_list
