@@ -26,6 +26,7 @@ class BaseSequence(object):
             self._sequence = utils.process_seq(sequence, material)
         else:
             self._sequence = sequence
+
         self._material = material
 
         # Set features
@@ -223,6 +224,12 @@ class BaseSequence(object):
         :rtype: pymbt.sequence.BaseSequence
 
         '''
+        if type(self) != type(other):
+            try:
+                other = type(self)(other)
+            except AttributeError:
+                raise TypeError("Can't add {} to {}".format(self, other))
+
         self_features = [feature.copy() for feature in self.features]
         other_features = [feature.copy() for feature in other.features]
         for feature in other_features:
@@ -378,7 +385,10 @@ class BaseSequence(object):
             # For compatibility with sum()
             return self
         elif type(self) != type(other):
-            raise TypeError("Can't add {} to {}".format(self, other))
+            try:
+                other = type(self)(other)
+            except AttributeError:
+                raise TypeError("Can't add {} to {}".format(self, other))
         return self + other
 
     def __repr__(self):

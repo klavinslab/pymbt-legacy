@@ -147,17 +147,9 @@ class DNA(NucleotideSequence):
         return copy
 
     def insert(self, sequence, index):
-        # TODO: use inherited insert method if possible
-        range_error = IndexError("Invalid index - must be between 1 and " +
-                                 "length - 1.")
-        if index == 0:
-            raise range_error
-        try:
-            self[index]
-        except IndexError:
-            raise range_error
-
-        return self[0:index] + sequence + self[index:]
+        inserted = super(DNA, self).insert(sequence, index)
+        inserted.topology = self.topology
+        return inserted
 
     def linearize(self, index=0):
         '''Linearize circular DNA at an index.
@@ -372,6 +364,12 @@ class DNA(NucleotideSequence):
                  create a discontinuity.
 
         '''
+        if type(self) != type(other):
+            try:
+                other = type(self)(other)
+            except AttributeError:
+                raise TypeError("Can't add {} to {}".format(self, other))
+
         if self.topology == 'circular' or other.topology == 'circular':
             raise Exception('Can only add linear DNA.')
 
