@@ -1,6 +1,6 @@
 '''Tests for the DNA sequence class.'''
 from pymbt import reaction, DNA, Feature, RestrictionSite
-from pymbt._sequence import utils
+from pymbt.sequence import utils
 from nose.tools import assert_equal, assert_false, assert_true, assert_raises
 from nose.tools import assert_not_equal
 
