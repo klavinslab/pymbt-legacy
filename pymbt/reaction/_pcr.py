@@ -55,7 +55,7 @@ def pcr(template, primer1, primer2):
         else:
             raise Exception('Primers would amplify if template were circular.')
     if primer1.overhang:
-        amplicon = primer1.overhang.set_stranded('ds') + amplicon
+        amplicon = primer1.overhang.to_ds() + amplicon
     if primer2.overhang:
-        amplicon += primer2.overhang.set_stranded('ds').reverse_complement()
+        amplicon += primer2.overhang.to_ds().reverse_complement()
     return amplicon

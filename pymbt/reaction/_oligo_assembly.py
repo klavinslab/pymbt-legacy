@@ -56,7 +56,7 @@ def assemble_oligos(dna_list, reference=None):
     # NOTE:If 1-4 are satisfied, unique linear assembly has been found (proof?)
     # 8) Start with first end and build iteratively
     last_index = ends[0]
-    assembly = dna_list[last_index].set_stranded("ds")
+    assembly = dna_list[last_index].to_ds()
     flip = True
     # This would be slightly less complicated if the sequences were tied to
     # their match info in a tuple
@@ -67,7 +67,7 @@ def assemble_oligos(dna_list, reference=None):
             # Grab 3' match from last oligo's info
             current_index, matchlen = zipped[last_index][1]
             # Get new oligo sequence, make double-stranded for concatenation
-            next_oligo = dna_list[current_index].set_stranded("ds")
+            next_oligo = dna_list[current_index].to_ds()
             # Reverse complement for concatenation
             next_oligo = next_oligo.reverse_complement()
             # Don't reverse complement the next one
@@ -76,7 +76,7 @@ def assemble_oligos(dna_list, reference=None):
             # Grab 5' match from last oligo's info
             current_index, matchlen = zipped[last_index][0]
             # Get new oligo sequence, make double-stranded for concatenation
-            next_oligo = dna_list[current_index].set_stranded("ds")
+            next_oligo = dna_list[current_index].to_ds()
             # Reverse complement the next one
             flip = True
         # Trim overlap from new sequence

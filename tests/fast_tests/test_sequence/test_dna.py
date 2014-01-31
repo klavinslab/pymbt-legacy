@@ -22,21 +22,19 @@ class TestDNA(object):
         assert_equal(str(circ_dna.linearize(-1)), 'CATG')
         assert_raises(ValueError, circ_dna.linearize().linearize)
 
-    def test_set_stranded(self):
-        assert_equal(self.test_dna.set_stranded('ds'), self.test_dna)
-        ss_dna = self.test_dna.set_stranded('ss')
+    def test_to_ss_ds(self):
+        assert_equal(self.test_dna.to_ds(), self.test_dna)
+        ss_dna = self.test_dna.to_ss()
         assert_equal(ss_dna.stranded, 'ss')
-        ds_dna = self.test_dna.set_stranded('ds')
+        ds_dna = self.test_dna.to_ds()
         assert_equal(ds_dna.stranded, 'ds')
         assert_equal(ds_dna.top(), str(ss_dna))
 
-        ds_to_ss_to_ds = self.test_dna.set_stranded('ss').set_stranded('ds')
+        ds_to_ss_to_ds = self.test_dna.to_ss().to_ds()
         assert_equal(self.test_dna, ds_to_ss_to_ds)
 
         empty_top = reaction.three_resect(self.test_dna, 400)
-        assert_equal(empty_top.set_stranded('ds'), self.test_dna)
-
-        assert_raises(ValueError, self.test_dna.set_stranded, 'duck')
+        assert_equal(empty_top.to_ds(), self.test_dna)
 
     def test_locate(self):
         assert_equal(self.test_dna.locate('a'), [[0], [2]])
@@ -127,8 +125,8 @@ class TestDNA(object):
 
     def test_add(self):
         assert_equal(str(self.test_dna + self.test_dna), 'ATGCATGC')
-        assert_equal(str(self.test_dna.set_stranded('ss') +
-                         self.test_dna.set_stranded('ss')), 'ATGCATGC')
+        assert_equal(str(self.test_dna.to_ss() +
+                         self.test_dna.to_ss()), 'ATGCATGC')
 
     def test_radd(self):
         assert_equal(str(sum([self.test_dna, self.test_dna])), 'ATGCATGC')

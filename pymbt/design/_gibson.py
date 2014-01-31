@@ -89,8 +89,8 @@ def gibson_primers(dna1, dna2, overlap="mixed", maxlen=60, overlap_tm=65.0,
     else:
         # There's an insert to use as the overhang
         overlap = insert
-        fwd_overhang = insert.set_stranded("ss")
-        rev_overhang = insert.reverse_complement().set_stranded("ss")
+        fwd_overhang = insert.to_ss()
+        rev_overhang = insert.reverse_complement().to_ss()
         # Generate primers using anneal, overhang, and tm data
         fwd = pymbt.Primer(fwd_anneal.primer(), tm=fwd_anneal.tm,
                            overhang=fwd_overhang)
@@ -105,7 +105,7 @@ def gibson_primers(dna1, dna2, overlap="mixed", maxlen=60, overlap_tm=65.0,
             if pymbt.analysis.tm(overlap) < overlap_tm:
                 raise TmError("Right primer is too long with this Tm setting.")
             # Regenerate forward overhang
-            fwd_overhang = overlap.set_stranded("ss")
+            fwd_overhang = overlap.to_ss()
             # Regenerate primer with new overhang
             fwd = pymbt.Primer(fwd_anneal.primer(), tm=fwd_anneal.tm,
                                overhang=fwd_overhang)
@@ -119,7 +119,7 @@ def gibson_primers(dna1, dna2, overlap="mixed", maxlen=60, overlap_tm=65.0,
             if pymbt.analysis.tm(overlap) < overlap_tm:
                 raise TmError("Left primer is too long with this Tm setting.")
             # Regenerate reverse overhang
-            rev_overhang = overlap.reverse_complement().set_stranded("ss")
+            rev_overhang = overlap.reverse_complement().to_ss()
             rev = pymbt.Primer(rev_anneal.primer(), tm=rev_anneal.tm,
                                overhang=rev_overhang)
             # Increase 'trimming' index

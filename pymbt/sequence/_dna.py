@@ -293,7 +293,6 @@ class DNA(NucleotideSequence):
         copy._bottom = reverse_complement(copy._bottom, "dna")
 
         copy.features = feature_copy
-        copy.set_stranded(copy.stranded)
 
         # Fix features (invert)
         for feature in copy.features:
@@ -310,35 +309,50 @@ class DNA(NucleotideSequence):
 
         return copy
 
-    def set_stranded(self, stranded):
-        '''Change DNA strandedness
+    def to_ss(self):
+        '''Produce single stranded version of the current sequence.
 
-        :param stranded: 'ss' or 'ds' (DNA).
-        :type stranded: str
-        :returns: The current sequence, converted to ssDNA or dsDNA.
+        :returns: The current sequence, converted to ssDNA.
         :rtype: pymbt.DNA
-        :raises: ValueError if `stranded` is not \"ss\" or \"ds\".
+
+        '''
+        # TODO: protect .stranded attribute if requiring setter method
+        copy = self.copy()
+
+        # Do nothing if already single-stranded
+        if self.stranded == "ss":
+            return copy
+
+        # FIXME: ds breaks?
+        copy._bottom = '-' * len(copy)
+        for top, bottom in zip(copy.top(), reversed(copy.bottom())):
+            if top == bottom == "-":
+                raise ValueError("Coercing to single-stranded would " +
+                                 "introduce a double stranded break.")
+        copy.stranded = 'ss'
+
+        return copy
+
+    def to_ds(self):
+        '''Produce double stranded version of the current sequence.
+
+        :returns: The current sequence, converted to dsDNA.
+        :rtype: pymbt.DNA
 
         '''
         # TODO: protect .stranded attribute if requiring setter method
         copy = self.copy()
         # Do nothing if already set
-        if stranded == self.stranded:
+        if self.stranded == "ds":
             return copy
 
-        if stranded == 'ss':
-            copy._bottom = '-' * len(copy)
-            copy.stranded = 'ss'
-        elif stranded == 'ds':
-            # Find strand that's all gaps (if ss this should be the case)
-            reverse_seq = self.reverse_complement()
-            if all([char == '-' for char in self._sequence]):
-                copy._sequence = reverse_seq._bottom
-            elif all([char == '-' for char in self._bottom]):
-                copy._bottom = reverse_seq._sequence
-            copy.stranded = 'ds'
-        else:
-            raise ValueError("'stranded' must be 'ss' or 'ds'.")
+        # Find strand that's all gaps (if ss this should be the case)
+        reverse_seq = self.reverse_complement()
+        if all([char == '-' for char in self._sequence]):
+            copy._sequence = reverse_seq._bottom
+        elif all([char == '-' for char in self._bottom]):
+            copy._bottom = reverse_seq._sequence
+        copy.stranded = 'ds'
 
         return copy
 
@@ -630,9 +644,9 @@ class Primer(object):
 
         '''
         self.tm = tm
-        self.anneal = anneal.set_stranded('ss')
+        self.anneal = anneal.to_ss()
         if overhang is not None:
-            self.overhang = overhang.set_stranded('ss')
+            self.overhang = overhang.to_ss()
         else:
             self.overhang = DNA('', stranded='ss')
         self.name = name
