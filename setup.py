@@ -31,7 +31,6 @@ config = {
                  'pymbt.design._sequence_generation',
                  'pymbt.seqio',
                  'pymbt.reaction',
-                 'pymbt.simulation',
                  'pymbt._sequence'],
     'package_data': {'pymbt': ['pymbt/analysis/_sequencing/data/*']},
     'include_package_data': True,
