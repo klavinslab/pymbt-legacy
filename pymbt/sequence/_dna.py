@@ -225,7 +225,7 @@ class DNA(NucleotideSequence):
         :rtype: float
 
         """
-        counter = collections.Counter(self._sequence + self._bottom)
+        counter = collections.Counter((self._sequence + self._bottom).lower())
         mw_a = counter["a"] * 313.2
         mw_t = counter["t"] * 304.2
         mw_g = counter["g"] * 289.2
