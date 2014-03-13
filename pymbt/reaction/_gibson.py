@@ -181,23 +181,20 @@ def homology_report(seq1, seq2, strand1, strand2, cutoff=0, min_tm=65.0,
 
     '''
     # Go through each other sequence, both forward and revcomp sequences,
-    # and check whether first base matches last / first of initial sequence
-    if strand1 == "w":
-        seq1_chunks = [seq1[-(i + 1):] for i in range(len(seq1))]
-    else:
-        # Inefficient (lots of reverse complementing)
-        seq1_chunks = [seq1.reverse_complement()[-(i + 1):] for i in
-                       range(len(seq1))]
+    # and split them into pieces of lengths 1 to n
+    strands = [strand1, strand2]
+    seqs = [seq1, seq2]
+    chunks = []
+    for strand, seq in zip(strands, seqs):
+        if strand == "w":
+            template = seq
+        else:
+            template = seq.reverse_complement()
+        chunks.append([template[-(i + 1):] for i in range(len(template))])
 
-    if strand2 == "w":
-        seq2_chunks = [seq2[-(i + 1):] for i in range(len(seq2))]
-    else:
-        # Inefficient (lots of reverse complementing)
-        seq2_chunks = [seq2.reverse_complement()[-(i + 1):] for i in
-                       range(len(seq2))]
-
+    # Check for exact matches from terminal end to terminal end
     target_matches = []
-    for s1, s2 in zip(seq1_chunks, seq2_chunks):
+    for s1, s2 in zip(*chunks):
         s1len = len(s1)
         # Inefficient! (reverse complementing a bunch of times)
         if s1.top() == s2.reverse_complement().top():

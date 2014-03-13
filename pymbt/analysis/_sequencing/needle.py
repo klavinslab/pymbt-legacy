@@ -66,7 +66,7 @@ def needle_multi(references, queries, gap_open=-15, gap_extend=0):
     #        for reference, query in zip(references, queries)]
     pool = multiprocessing.Pool()
     try:
-        args_list = [list(x) + [gap_open, gap_extend] for x in
+        args_list = [[ref, que, gap_open, gap_extend] for ref, que in
                      zip(references, queries)]
         aligned = pool.map(run_needle, args_list)
     except KeyboardInterrupt:

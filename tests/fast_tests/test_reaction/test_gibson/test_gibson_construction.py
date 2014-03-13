@@ -1,5 +1,5 @@
 import os
-from nose.tools import assert_equal, assert_raises
+from nose.tools import assert_equal, assert_raises, assert_true
 from pymbt import reaction, seqio
 
 
@@ -39,8 +39,7 @@ def test_construction():
     normal = [f1, f2, f3]
     rotated = [f1, f2, f3.reverse_complement()]
     # Gibson should work regardless of fragment orientation
-    assert_equal(reaction.gibson(normal),
-                 reaction.gibson(rotated))
+    assert_true(reaction.gibson(normal).is_rotation(reaction.gibson(rotated)))
     # A redundant fragment shouldn't affect the outcome
     assert_equal(reaction.gibson([f1, f2, f3]),
                  reaction.gibson([f1, f2, f2, f3]))

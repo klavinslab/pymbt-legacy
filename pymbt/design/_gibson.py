@@ -195,3 +195,7 @@ def gibson(seq_list, circular=True, overlaps='mixed', overlap_tm=65, **kwargs):
                        range(len(flat) / 2)]
 
     return grouped_primers
+
+
+def gibson_equimolar(lengths, concs):
+    pass
