@@ -161,7 +161,8 @@ def write_primers(primer_list, path, names=None, notes=None):
         writer = csv.writer(csv_file)
         writer.writerow(["name", "sequence", "notes"])
         for primer in primer_list:
-            writer.writerow([primer.name, primer.primer(), primer.note])
+            string_rep = str(primer.overhang).lower() + str(primer.anneal)
+            writer.writerow([primer.name, string_rep, primer.note])
 
 
 def _process_feature_type(feature_type, bio_to_pymbt=True):
