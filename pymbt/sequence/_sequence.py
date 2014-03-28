@@ -149,7 +149,7 @@ class BaseSequence(object):
 
         '''
         # TODO: reconsider 'pure' default (could be True instead)
-        found = [feature for feature in self.features if
+        found = [feature.copy() for feature in self.features if
                  feature.name == name]
         if not found:
             raise ValueError("Feature list has no feature '{}'".format(name))
@@ -165,6 +165,10 @@ class BaseSequence(object):
                 for gap in extracted.features[0].gaps:
                     for i in range(*gap):
                         extracted[i] = any_char
+            # Update feature locations
+            # copy them
+            for feature in extracted.features:
+                feature.move(-found[0].start)
             return extracted
 
     def insert(self, sequence, index):

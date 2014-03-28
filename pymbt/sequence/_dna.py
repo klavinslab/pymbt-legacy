@@ -84,10 +84,10 @@ class DNA(NucleotideSequence):
             cmd = ape_path
         # Check whether ApE exists in PATH
         tmp = tempfile.mkdtemp()
-        if self.name is not None:
-            filename = tmp + '/{}.ape'.format(self.name)
+        if self.name is not None and self.name:
+            filename = os.path.join(tmp, '{}.ape'.format(self.name))
         else:
-            filename = tmp + '/tmp.ape'
+            filename = os.path.join(tmp, 'tmp.ape')
         pymbt.seqio.write_dna(self, filename)
         process = subprocess.Popen([cmd, filename])
         # Block until window is closed

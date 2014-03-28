@@ -7,7 +7,7 @@ class AmbiguousGibsonError(ValueError):
     pass
 
 
-def gibson(seq_list, linear=False, homology=10, tm=65.0):
+def gibson(seq_list, linear=False, homology=10, tm=63.0):
         '''Simulate a Gibson reaction.
 
         :param seq_list: list of DNA sequences to Gibson
@@ -153,8 +153,8 @@ def _fuse_last(working_list, homology, tm):
     return working_list
 
 
-def homology_report(seq1, seq2, strand1, strand2, cutoff=0, min_tm=65.0,
-                    top_two=False):
+def homology_report(seq1, seq2, strand1, strand2, cutoff=0, min_tm=63.0,
+                    top_two=False, max_size=500):
     '''Given two sequences (seq1 and seq2), report the size of all perfect
     matches between the 3' end of the top strand of seq1 and the 3' end of
     either strand of seq2. In short, in a Gibson reaction, what would bind the
@@ -176,28 +176,29 @@ def homology_report(seq1, seq2, strand1, strand2, cutoff=0, min_tm=65.0,
     :type cutoff: int
     :param min_tm: Minimum tm value cutoff - matches below are ignored.
     :type min_tm: float
+    :param top_two: Return the best two matches
+    :type top_two: bool
+    :param max_size: Maximum overlap size (increases speed)
+    :type max_size: int
     :returns: List of left and right identities.
     :rtype: list of ints
 
     '''
     # Go through each other sequence, both forward and revcomp sequences,
     # and split them into pieces of lengths 1 to n
-    strands = [strand1, strand2]
-    seqs = [seq1, seq2]
-    chunks = []
-    for strand, seq in zip(strands, seqs):
-        if strand == "w":
-            template = seq
-        else:
-            template = seq.reverse_complement()
-        chunks.append([template[-(i + 1):] for i in range(len(template))])
+    if strand2 == "w":
+        seq2 = seq2.reverse_complement()
+    if strand1 == "c":
+        seq1 = seq1.reverse_complement()
+    seq1_chunks = [seq1[-(i + 1):] for i in range(min(len(seq1), max_size))]
+    seq2_chunks = [seq2[:(i + 1)] for i in range(min(len(seq2), max_size))]
 
     # Check for exact matches from terminal end to terminal end
     target_matches = []
-    for s1, s2 in zip(*chunks):
+    for s1, s2 in zip(seq1_chunks, seq2_chunks):
         s1len = len(s1)
         # Inefficient! (reverse complementing a bunch of times)
-        if s1.top() == s2.reverse_complement().top():
+        if s1.top() == s2.top():
             if s1len >= cutoff:
                 tm = pymbt.analysis.tm(s1)
                 if tm >= min_tm:

@@ -35,7 +35,7 @@ def test_construction():
     # Should fail with circular input
     assert_raises(ValueError, reaction.gibson, [f1.circularize()])
     # Should fail if compatible end can't be found
-    assert_raises(Exception, reaction.gibson, [f1, f3[30:-30]], linear=True)
+    assert_raises(Exception, reaction.gibson, [f1, f3[50:-50]], linear=True)
     normal = [f1, f2, f3]
     rotated = [f1, f2, f3.reverse_complement()]
     # Gibson should work regardless of fragment orientation

@@ -106,23 +106,24 @@ def write_dna(dna, path):
 
     # Convert features to Biopython form
     # Information lost on conversion:
-    #     specificity of feature typ
+    #     specificity of feature type
     #     strandedness
     #     topology
     features = []
     for feature in dna.features:
         features.append(_pymbt_to_seqfeature(feature))
     # Biopython doesn't like 'None' here
-    bio_id = dna.id if dna.id else ''
+    bio_id = dna.id if dna.id else ""
     # Maximum length of name is 16
     seq = SeqRecord(Seq(str(dna), alphabet=ambiguous_dna), id=bio_id,
                     name=dna.name[0:16], features=features,
                     description=dna.name)
+    seq.annotations['data_file_division'] = dna.topology
 
-    if filetype == 'genbank':
-        SeqIO.write(seq, path, 'genbank')
-    elif filetype == 'fasta':
-        SeqIO.write(seq, path, 'fasta')
+    if filetype == "genbank":
+        SeqIO.write(seq, path, "genbank")
+    elif filetype == "fasta":
+        SeqIO.write(seq, path, "fasta")
 
 
 def write_primers(primer_list, path, names=None, notes=None):
@@ -206,6 +207,8 @@ def _seqfeature_to_pymbt(feature):
     # a label but should still be incorporated somehow.
     if "label" in feature.qualifiers:
         feature_name = feature.qualifiers['label'][0]
+    elif "locus_tag" in feature.qualifiers:
+        feature_name = feature.qualifiers["locus_tag"][0]
     else:
         raise FeatureNameError("Unrecognized feature name")
     # Features with gaps are special, require looking at subfeatures
