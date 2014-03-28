@@ -219,6 +219,7 @@ class Sanger(object):
         # If a result scores too low, try reverse complement
         # TODO: Find their indices and use multiprocessing
         # TODO: If score is too low, add warning but don't show in alignment
+        failed = []
         for i, score in enumerate(scores):
             if score < self._score_threshold:
                 swapped_result = self._processed[i].reverse_complement()
@@ -228,6 +229,11 @@ class Sanger(object):
                                                    gap_extend=self._gap_extend)
                 alignments[i] = (str(new_needle[0]), str(new_needle[1]))
                 score = new_needle[2]
+            if score < self._score_threshold:
+                failed.append(self._processed[i].name)
+        if failed:
+            msg = "The following results fell below the score threshold: "
+            print msg + "{}".format(failed)
         # Trim to reference - if reference is shorter than results
         # (e.g. reference is just plasmid insert, results start earlier)
         for i, (reference, result) in enumerate(alignments):
