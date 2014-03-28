@@ -220,7 +220,8 @@ class Sanger(object):
         # TODO: Find their indices and use multiprocessing
         # TODO: If score is too low, add warning but don't show in alignment
         failed = []
-        for i, score in enumerate(scores):
+        # reversed so we can pop bad alignments (not show them in the plot)
+        for i, score in reversed(list(enumerate(scores))):
             if score < self._score_threshold:
                 swapped_result = self._processed[i].reverse_complement()
                 new_needle = pymbt.analysis.needle(self._reference,
@@ -231,6 +232,8 @@ class Sanger(object):
                 score = new_needle[2]
             if score < self._score_threshold:
                 failed.append(self._processed[i].name)
+                # Remove the failed alignment!
+                alignments.pop(i)
         if failed:
             msg = "The following results fell below the score threshold: "
             print msg + "{}".format(failed)

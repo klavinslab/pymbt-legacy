@@ -13,7 +13,7 @@ class TmError(Exception):
 
 
 def gibson_primers(dna1, dna2, overlap="mixed", maxlen=60, overlap_tm=65.0,
-                   insert=None, **kwargs):
+                   insert=None, primer_kwargs={}):
     '''Design Gibson primers given two DNA sequences (connect left to right)
 
     :param dna1: First piece of DNA for which to design primers. Once Gibsoned,
@@ -34,8 +34,8 @@ def gibson_primers(dna1, dna2, overlap="mixed", maxlen=60, overlap_tm=65.0,
     :param insert: A DNA insert to add with primers and use as assembly
                    homology. This overrides the 'split' argument.
     :type insert: pymbt.DNA
-    :param kwargs: keyword arguments to pass to design_primer()
-    :type kwargs: dict
+    :param primer_kwargs: keyword arguments to pass to design_primer()
+    :type primer_kwargs: dict
     :returns: Reverse, then forward primer for bridging the two sequences.
               Note that the forward primer binds dna2, reverse dna1.
     :rtype: A sequence.Primer tuple
@@ -44,9 +44,9 @@ def gibson_primers(dna1, dna2, overlap="mixed", maxlen=60, overlap_tm=65.0,
     '''
     # Annealing sequences
     # DNA 2 primer is a forward primer
-    fwd_anneal = pymbt.design.primer(dna2, **kwargs)
+    fwd_anneal = pymbt.design.primer(dna2, **primer_kwargs)
     # DNA 1 primer is a reverse primer
-    rev_anneal = pymbt.design.primer(dna1.flip(), **kwargs)
+    rev_anneal = pymbt.design.primer(dna1.flip(), **primer_kwargs)
     # Overhangs
     if insert is None:
         # No insert, so follow split argument
@@ -126,12 +126,13 @@ def gibson_primers(dna1, dna2, overlap="mixed", maxlen=60, overlap_tm=65.0,
             right_trim += 1
     # Check primer lengths
     if any([len(primer) > maxlen for primer in (fwd, rev)]):
-        raise LengthError("At least one of the primers is too long")
+        raise LengthError("At least one of the primers is longer than maxlen.")
 
     return rev, fwd
 
 
-def gibson(seq_list, circular=True, overlaps='mixed', overlap_tm=65, **kwargs):
+def gibson(seq_list, circular=True, overlaps='mixed', overlap_tm=65,
+           primer_kwargs={}):
     '''Design Gibson primers given a set of sequences
 
     :param seq_list: List of DNA sequences to stitch together
@@ -147,8 +148,8 @@ def gibson(seq_list, circular=True, overlaps='mixed', overlap_tm=65, **kwargs):
     :type splits: str or list of str
     :param overlap_tm: Minimum Tm of overlap
     :type overlap_tm: float
-    :param kwargs: keyword arguments to pass to design.primer
-    :type kwargs: dict
+    :param primer_kwargs: keyword arguments to pass to design.primer
+    :type primer_kwargs: dict
     :returns: Forward and reverse primers for amplifying every fragment.
     :rtype: a list of sequence.Primer tuples
     :raises: ValueError if split parameter is an invalid string or wrong size.
@@ -176,14 +177,17 @@ def gibson(seq_list, circular=True, overlaps='mixed', overlap_tm=65, **kwargs):
     primers_list = []
     for i, (left, right) in enumerate(zip(seq_list[:-1], seq_list[1:])):
         primers_list.append(gibson_primers(left, right, overlaps[i],
-                                           overlap_tm=overlap_tm))
+                                           overlap_tm=overlap_tm,
+                                           primer_kwargs=primer_kwargs))
     if circular:
         primers_list.append(gibson_primers(seq_list[-1], seq_list[0],
                                            overlaps[-1],
-                                           overlap_tm=overlap_tm))
+                                           overlap_tm=overlap_tm,
+                                           primer_kwargs=primer_kwargs))
     else:
-        primer_f = pymbt.design.primer(seq_list[0])
-        primer_r = pymbt.design.primer(seq_list[-1].reverse_complement())
+        primer_f = pymbt.design.primer(seq_list[0], **primer_kwargs)
+        primer_r = pymbt.design.primer(seq_list[-1].reverse_complement(),
+                                       **primer_kwargs)
         primers_list.append((primer_r, primer_f))
 
     # Primers are now in order of 'reverse for seq1, forward for seq2' config
