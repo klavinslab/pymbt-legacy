@@ -157,6 +157,11 @@ class DNA(NucleotideSequence):
         for i in range(len(self)):
             if self.rotate(i) == other:
                 return True
+        # If all else fails, check reverse complement
+        rc = self.reverse_complement()
+        for i in range(len(self)):
+            if rc.rotate(i) == other:
+                return True
         return False
 
     def linearize(self, index=0):
