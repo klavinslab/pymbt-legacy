@@ -441,7 +441,15 @@ class DNA(NucleotideSequence):
         :type query: str or pymbt.DNA
 
         """
-        return super(DNA, self).__contains__(query, "N")
+        # query in forward sequence
+        if super(DNA, self).__contains__(query, "N"):
+            return True
+        # query in reverse complement
+        elif super(DNA, self.reverse_complement()).__contains__(query, "N"):
+            return True
+        # query in neither
+        else:
+            return False
 
     def __delitem__(self, index):
         '''Delete sequence at an index.
