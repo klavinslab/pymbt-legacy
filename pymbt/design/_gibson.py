@@ -12,7 +12,7 @@ class TmError(Exception):
     pass
 
 
-def gibson_primers(dna1, dna2, overlap="mixed", maxlen=60, overlap_tm=65.0,
+def gibson_primers(dna1, dna2, overlap="mixed", maxlen=80, overlap_tm=65.0,
                    insert=None, primer_kwargs={}):
     '''Design Gibson primers given two DNA sequences (connect left to right)
 
@@ -26,8 +26,7 @@ def gibson_primers(dna1, dna2, overlap="mixed", maxlen=60, overlap_tm=65.0,
                     side (i.e. the primer to amplify dna2). 'right' puts it on
                     the dna2 side, and 'mixed' does a ~50:50 split
     :type overlap: str
-    :param maxlen: Maximum length of each primer (e.g. 60 base pairs to save
-                   money at IDT).
+    :param maxlen: Maximum length of each primer.
     :type maxlen: int
     :param overlap_tm: Minimum Tm of overlap
     :type overlap_tm: float
@@ -132,7 +131,7 @@ def gibson_primers(dna1, dna2, overlap="mixed", maxlen=60, overlap_tm=65.0,
 
 
 def gibson(seq_list, circular=True, overlaps='mixed', overlap_tm=65,
-           primer_kwargs={}):
+           maxlen=80, primer_kwargs={}):
     '''Design Gibson primers given a set of sequences
 
     :param seq_list: List of DNA sequences to stitch together
@@ -148,6 +147,8 @@ def gibson(seq_list, circular=True, overlaps='mixed', overlap_tm=65,
     :type splits: str or list of str
     :param overlap_tm: Minimum Tm of overlap
     :type overlap_tm: float
+    :param maxlen: Maximum length of each primer.
+    :type maxlen: int
     :param primer_kwargs: keyword arguments to pass to design.primer
     :type primer_kwargs: dict
     :returns: Forward and reverse primers for amplifying every fragment.

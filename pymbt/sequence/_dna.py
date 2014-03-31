@@ -5,6 +5,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+import pymbt.analysis
 import pymbt.reaction
 import pymbt.seqio
 from ._sequence import process_seq, reverse_complement
@@ -313,6 +314,16 @@ class DNA(NucleotideSequence):
             feature.stop = len(copy) - feature.stop
 
         return copy
+
+    def tm(self, parameters="cloning"):
+        """Find the melting temperature.
+
+        :param parameters: The tm method to use (cloning, santalucia98,
+                       breslauer86)
+        :type parameters: str
+
+        """
+        return pymbt.analysis.tm(self, parameters=parameters)
 
     def to_ss(self):
         '''Produce single stranded version of the current sequence.
