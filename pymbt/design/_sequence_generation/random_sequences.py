@@ -7,8 +7,8 @@ from pymbt.constants.molecular_bio import CODON_FREQ_BY_AA
 def random_dna(n):
     '''Generate a random DNA sequence.
 
-    :param length: Output sequence length.
-    :type length: int
+    :param n: Output sequence length.
+    :type n: int
     :returns: Random DNA sequence of length n.
     :rtype: pymbt.DNA
 
