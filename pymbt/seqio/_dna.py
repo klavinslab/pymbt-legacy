@@ -43,7 +43,7 @@ def read_dna(path):
         raise ValueError('File format not recognized.')
 
     seq = SeqIO.read(path, file_format)
-    dna = pymbt.DNA(seq.seq.tostring())
+    dna = pymbt.DNA(str(seq.seq))
     if seq.name == ".":
         dna.name = filename
     else:
