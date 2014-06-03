@@ -147,6 +147,12 @@ class DNA(NucleotideSequence):
         copy._sequence, copy._bottom = copy._bottom, copy._sequence
         return copy
 
+    def gc(self):
+        """Find the frequency of G and C in the current sequence."""
+
+        return len([base for base in self if str(base) == "C" or
+                    str(base) == "G"])
+
     def insert(self, sequence, index):
         inserted = super(DNA, self).insert(sequence, index)
         inserted.topology = self.topology
