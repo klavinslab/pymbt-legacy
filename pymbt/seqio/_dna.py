@@ -246,9 +246,11 @@ def _seqfeature_to_pymbt(feature):
     if "gene" in qualifiers:
         gene = qualifiers["gene"]
     else:
-        gene = ""
+        gene = []
     if "locus_tag" in qualifiers:
         locus_tag = qualifiers["locus_tag"]
+    else:
+        locus_tag = []
     pymbt_feature = pymbt.Feature(feature_name, feature_start,
                                   feature_stop, feature_type,
                                   gene=gene, locus_tag=locus_tag,

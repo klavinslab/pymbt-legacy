@@ -133,8 +133,9 @@ class DNA(NucleotideSequence):
         copy.topology = 'circular'
         return copy
 
-    def extract(self, name, pure=False):
-        return super(DNA, self).extract(name, "N", pure=True)
+    def extract(self, name, remove_subfeatures=False):
+        return super(DNA, self).extract(name, "N",
+                                        remove_subfeatures=remove_subfeatures)
 
     def flip(self):
         '''Flip the DNA - swap the top and bottom strands.

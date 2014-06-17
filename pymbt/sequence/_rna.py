@@ -40,8 +40,9 @@ class RNA(NucleotideSequence):
         new_instance._sequence = reverse_complement(self._sequence, 'rna')
         return new_instance
 
-    def extract(self, name, pure=False):
-        return super(RNA, self).extract(self, name, "N", pure=True)
+    def extract(self, name, remove_subfeatures=False):
+        return super(RNA, self).extract(self, name, "N",
+                                        remove_subfeatures=remove_subfeatures)
 
     def reverse_transcribe(self):
         '''Reverse transcribe to DNA.
