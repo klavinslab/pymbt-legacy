@@ -529,7 +529,8 @@ class Feature(object):
 
         '''
         return type(self)(self.name, self.start, self.stop, self.feature_type,
-                          self.strand)
+                          gene=self.gene, locus_tag=self.locus_tag,
+                          qualifiers=self.qualifiers, strand=self.strand)
 
     def __repr__(self):
         '''Represent a feature.'''

@@ -298,14 +298,10 @@ class DNA(NucleotideSequence):
         '''
         # TODO: put into NucleotideSequence class
         copy = self.copy()
-        # Store features - they get removed on reverse/complement
-        feature_copy = copy.features
         # Note: if sequence is double-stranded, swapping strand is basically
         # (but not entirely) the same thing - gaps affect accuracy.
         copy._sequence = reverse_complement(copy._sequence, "dna")
         copy._bottom = reverse_complement(copy._bottom, "dna")
-
-        copy.features = feature_copy
 
         # Fix features (invert)
         for feature in copy.features:
