@@ -470,7 +470,8 @@ def _decompose(string, n):
 
 class Feature(object):
     '''Represent A DNA feature - annotate and extract sequence by metadata.'''
-    def __init__(self, name, start, stop, feature_type, strand=0, gaps=[]):
+    def __init__(self, name, start, stop, feature_type, gene="", locus_tag="",
+                 qualifiers={}, strand=0, gaps=[]):
         '''
         :param name: Name of the feature. Used during feature extraction.
         :type name: str
@@ -486,6 +487,14 @@ class Feature(object):
         :type strand: int
         :param gaps: Gap locations if the feature has gaps.
         :type gaps: list of coordinates (2-tuple/list)
+        :param gene: gene attribute (Genbank standard) - gene name (e.g. galK
+                     on MG1655 genome).
+        :type gene: str
+        :param locus_tag: locus_tag attribute (Genbank standard) - systematic
+                          locus name (e.g. b0757 for galK on MG1655 genome).
+        :type locus_tag: str
+        :param qualifiers: Complete Genbank qualifiers key:value pairs
+        :type qualifiers: dict
         :returns: pymbt.Feature instance.
         :raises: ValueError if `feature_type` is not in
                  pymbt.constants.genbank.TO_PYMBT.
@@ -495,6 +504,9 @@ class Feature(object):
         self.start = int(start)
         self.stop = int(stop)
         self.modified = False
+        self.gene = gene
+        self.locus_tag = locus_tag
+        self.qualifiers = qualifiers
         self.strand = strand
         self.gaps = gaps
 
