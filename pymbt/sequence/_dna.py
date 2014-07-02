@@ -249,6 +249,7 @@ class DNA(NucleotideSequence):
                  negative.
 
         """
+        # FIXME: negative number results in infinite loop?
         if self.topology == "linear" and index != 0:
             raise ValueError("Can't rotate linear DNA")
         if index < 0:
