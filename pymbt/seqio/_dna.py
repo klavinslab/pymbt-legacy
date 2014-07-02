@@ -43,7 +43,7 @@ def read_dna(path):
         raise ValueError('File format not recognized.')
 
     seq = SeqIO.read(path, file_format)
-    dna = pymbt.DNA(seq.seq.tostring())
+    dna = pymbt.DNA(str(seq.seq))
     if seq.name == ".":
         dna.name = filename
     else:
@@ -56,13 +56,14 @@ def read_dna(path):
         except FeatureNameError:
             pass
     dna.features = sorted(dna.features, key=lambda feature: feature.start)
-    try:
-        if seq.annotations['data_file_division'] == 'circular':
-            dna.topology = 'circular'
-        elif seq.annotations['data_file_division'] == 'linear':
-            dna.topology = 'linear'
-    except KeyError:
-        pass
+    # Used to use data_file_division, but it's inconsistent (not always the
+    # molecule type)
+    dna.topology = "linear"
+    with open(path) as f:
+        first_line = f.read().split()
+        for word in first_line:
+            if word == "circular":
+                dna.topology = "circular"
 
     return dna
 
@@ -205,10 +206,11 @@ def _seqfeature_to_pymbt(feature):
     # Some genomic sequences don't have a label attribute
     # TODO: handle genomic cases differently than others. Some features lack
     # a label but should still be incorporated somehow.
-    if "label" in feature.qualifiers:
-        feature_name = feature.qualifiers['label'][0]
-    elif "locus_tag" in feature.qualifiers:
-        feature_name = feature.qualifiers["locus_tag"][0]
+    qualifiers = feature.qualifiers
+    if "label" in qualifiers:
+        feature_name = qualifiers['label'][0]
+    elif "locus_tag" in qualifiers:
+        feature_name = qualifiers["locus_tag"][0]
     else:
         raise FeatureNameError("Unrecognized feature name")
     # Features with gaps are special, require looking at subfeatures
@@ -220,6 +222,8 @@ def _seqfeature_to_pymbt(feature):
         # Reorder the sub_feature list by start location
         # Assumption: none of the subfeatures overlap so the last entry in
         # the reordered list also has the final stop point of the feature.
+        # FIXME: Getting a deprecation warning about using sub_features
+        # instead of feature.location being a CompoundFeatureLocation
         reordered = sorted(feature.sub_features,
                            key=lambda feature: feature.location.start)
         starts = [int(sub.location.start) for sub in reordered]
@@ -239,8 +243,18 @@ def _seqfeature_to_pymbt(feature):
         feature_strand = 1
     else:
         feature_strand = 0
+    if "gene" in qualifiers:
+        gene = qualifiers["gene"]
+    else:
+        gene = []
+    if "locus_tag" in qualifiers:
+        locus_tag = qualifiers["locus_tag"]
+    else:
+        locus_tag = []
     pymbt_feature = pymbt.Feature(feature_name, feature_start,
                                   feature_stop, feature_type,
+                                  gene=gene, locus_tag=locus_tag,
+                                  qualifiers=qualifiers,
                                   strand=feature_strand,
                                   gaps=feature_gaps)
     return pymbt_feature

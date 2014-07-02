@@ -130,41 +130,33 @@ class BaseSequence(object):
         else:
             return False
 
-    def extract(self, name, any_char, pure=False):
+    def extract(self, feature, any_char, remove_subfeatures=False):
         '''Extract a feature from the sequence.
 
-        :param name: Name of the feature. Must be unique.
-        :type name: str
-        :param pure: Turn any gaps in the feature into Ns or Xs and remove all
+        :param feature: Feature object.
+        :type feature: pbt.sequence.Feature
+        :param any_char: Turn any gaps in the feature into Ns or Xs and remove all
                      other features. If False, just extracts start:stop slice.
-        :type pure: bool
+        :type any_char: bool
+        :param remove_subfeatures: Remove all features in the extracted
+                                   sequence aside from the input feature.
+        :type remove_subfeatures: bool
         :returns: A subsequence from start to stop of the feature.
-        :raises: ValueError if no feature has `name` or more than one match
-                 `name`.
 
         '''
-        # TODO: reconsider 'pure' default (could be True instead)
-        found = [feature.copy() for feature in self.features if
-                 feature.name == name]
-        if not found:
-            raise ValueError("Feature list has no feature '{}'".format(name))
-        elif len(found) > 1:
-            msg = 'Feature name was not unique, found more than one.'
-            raise ValueError(msg)
-        else:
-            extracted = self[found[0].start:found[0].stop]
-            if pure:
-                # Keep only the feature specified
-                extracted.features = [found[0]]
-                # Turn gaps into Ns or Xs
-                for gap in extracted.features[0].gaps:
-                    for i in range(*gap):
-                        extracted[i] = any_char
-            # Update feature locations
-            # copy them
-            for feature in extracted.features:
-                feature.move(-found[0].start)
-            return extracted
+        extracted = self[feature.start:feature.stop]
+        # Turn gaps into Ns or Xs
+        for gap in feature.gaps:
+            for i in range(*gap):
+                extracted[i] = any_char
+        if remove_subfeatures:
+            # Keep only the feature specified
+            extracted.features = [feature]
+        # Update feature locations
+        # copy them
+        for feature in extracted.features:
+            feature.move(-feature.start)
+        return extracted
 
     def insert(self, sequence, index):
         '''Insert a sequence at index.
@@ -465,7 +457,8 @@ def _decompose(string, n):
 
 class Feature(object):
     '''Represent A DNA feature - annotate and extract sequence by metadata.'''
-    def __init__(self, name, start, stop, feature_type, strand=0, gaps=[]):
+    def __init__(self, name, start, stop, feature_type, gene="", locus_tag="",
+                 qualifiers={}, strand=0, gaps=[]):
         '''
         :param name: Name of the feature. Used during feature extraction.
         :type name: str
@@ -481,6 +474,14 @@ class Feature(object):
         :type strand: int
         :param gaps: Gap locations if the feature has gaps.
         :type gaps: list of coordinates (2-tuple/list)
+        :param gene: gene attribute (Genbank standard) - gene name (e.g. galK
+                     on MG1655 genome).
+        :type gene: str
+        :param locus_tag: locus_tag attribute (Genbank standard) - systematic
+                          locus name (e.g. b0757 for galK on MG1655 genome).
+        :type locus_tag: str
+        :param qualifiers: Complete Genbank qualifiers key:value pairs
+        :type qualifiers: dict
         :returns: pymbt.Feature instance.
         :raises: ValueError if `feature_type` is not in
                  pymbt.constants.genbank.TO_PYMBT.
@@ -490,6 +491,9 @@ class Feature(object):
         self.start = int(start)
         self.stop = int(stop)
         self.modified = False
+        self.gene = gene
+        self.locus_tag = locus_tag
+        self.qualifiers = qualifiers
         self.strand = strand
         self.gaps = gaps
 
@@ -520,7 +524,8 @@ class Feature(object):
 
         '''
         return type(self)(self.name, self.start, self.stop, self.feature_type,
-                          self.strand)
+                          gene=self.gene, locus_tag=self.locus_tag,
+                          qualifiers=self.qualifiers, strand=self.strand)
 
     def __repr__(self):
         '''Represent a feature.'''

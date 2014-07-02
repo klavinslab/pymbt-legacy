@@ -40,8 +40,10 @@ config = {
 }
 
 if cython:
+    import numpy
     setup(ext_modules=cythonize(["pymbt/analysis/_sequencing/calign.pyx"]),
           test_suite='nose.collector',
+          include_dirs=[numpy.get_include()],
           **config)
 else:
     setup(test_suite='nose.collector',

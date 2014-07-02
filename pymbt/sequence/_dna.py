@@ -133,8 +133,9 @@ class DNA(NucleotideSequence):
         copy.topology = 'circular'
         return copy
 
-    def extract(self, name, pure=False):
-        return super(DNA, self).extract(name, "N", pure=True)
+    def extract(self, name, remove_subfeatures=False):
+        return super(DNA, self).extract(name, "N",
+                                        remove_subfeatures=remove_subfeatures)
 
     def flip(self):
         '''Flip the DNA - swap the top and bottom strands.
@@ -146,6 +147,12 @@ class DNA(NucleotideSequence):
         copy = self.copy()
         copy._sequence, copy._bottom = copy._bottom, copy._sequence
         return copy
+
+    def gc(self):
+        """Find the frequency of G and C in the current sequence."""
+
+        return len([base for base in self if str(base) == "C" or
+                    str(base) == "G"])
 
     def insert(self, sequence, index):
         inserted = super(DNA, self).insert(sequence, index)
@@ -292,14 +299,10 @@ class DNA(NucleotideSequence):
         '''
         # TODO: put into NucleotideSequence class
         copy = self.copy()
-        # Store features - they get removed on reverse/complement
-        feature_copy = copy.features
         # Note: if sequence is double-stranded, swapping strand is basically
         # (but not entirely) the same thing - gaps affect accuracy.
         copy._sequence = reverse_complement(copy._sequence, "dna")
         copy._bottom = reverse_complement(copy._bottom, "dna")
-
-        copy.features = feature_copy
 
         # Fix features (invert)
         for feature in copy.features:

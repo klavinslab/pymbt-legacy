@@ -213,7 +213,7 @@ class TestFeatures(object):
                           primer_feature, promoter_feature, terminator_feature,
                           rbs_feature, origin_feature, utr3_feature,
                           origin_feature2]
-        self.dna = DNA(str(self.dna), features=input_features)
+        self.dna.features = input_features
 
     def test_good_features(self):
         for feature in self.dna.features:
@@ -227,13 +227,11 @@ class TestFeatures(object):
             assert_equal(len(self.dna) - feature.stop, rev_feature.start)
 
     def test_extract(self):
-        test_utr3_feature = Feature('3\'UTR Feature', 0, 19, '3\'UTR')
-        extracted = self.dna.extract('3\'UTR Feature')
+        test_utr3_feature = [feature for feature in self.dna.features if
+                            feature.name == "3'UTR Feature"][0]
+        extracted = self.dna.extract(test_utr3_feature)
         assert_equal(test_utr3_feature, extracted.features[0])
         assert_equal(str(extracted), 'TGCATGCATGCATGCATGC')
-
-        assert_raises(ValueError, self.dna.extract, 'duck')
-        assert_raises(ValueError, self.dna.extract, 'Origin Feature')
 
     def test_getitem(self):
         subsequence = self.dna[30:100]
