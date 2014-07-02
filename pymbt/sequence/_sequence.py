@@ -28,15 +28,10 @@ class BaseSequence(object):
 
         self._material = material
 
-        # Set features
-        if features:
-            # FIXME: violated duck-typing here
-            if all([isinstance(feature, Feature) for feature in features]):
-                self.features = features
-            else:
-                raise ValueError("non-Feature input for 'features'.")
-        else:
+        if features is None:
             self.features = []
+        else:
+            self.features = features
 
     def annotate_from_library(self, library, wipe=True, shortest=6):
         """Annotate the sequence using the features of another. Ignores
@@ -539,23 +534,26 @@ class Feature(object):
         return part1 + part2
 
     def __eq__(self, other):
-        '''Define equality.
+        """Define equality.
 
         :returns: Whether the name and feature type are the same.
         :rtype: bool
 
-        '''
-        # name is the same
-        name_equal = self.name == other.name
-        # feature_type is the same
-        feature_type_equal = self.feature_type == other.feature_type
-        # FIXME: length of feature can't be deduced over origin of circular
-        # sequence. Features are very thin so this may not matter.
-        # Features are NOT parts and have no associated sequences yet.
-        if name_equal and feature_type_equal:
-            return True
-        else:
+        """
+        if self.name != other.name:
             return False
+        if self.feature_type != other.feature_type:
+            return False
+        if self.start != other.start:
+            return False
+        if self.stop != other.stop:
+            return False
+        if self.strand != other.strand:
+            return False
+        if self.gaps != other.gaps:
+            return False
+
+        return True
 
     def __ne__(self, other):
         '''Define inequality.'''
@@ -576,7 +574,6 @@ def reverse_complement(sequence, material):
     # TODO: put in _sequence module and import
     code = dict(COMPLEMENTS[material])
     # TODO: see if using reversed() here has a speed cost
-    # FIXME: reverse_complement is redundant with flip?
     reverse_sequence = sequence[::-1]
     return ''.join([code[base] for base in reverse_sequence])
 

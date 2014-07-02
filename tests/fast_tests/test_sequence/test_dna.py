@@ -219,11 +219,6 @@ class TestFeatures(object):
         for feature in self.dna.features:
             assert_true(feature.copy() in self.dna.features)
 
-    def test_bad_feature(self):
-        assert_raises(ValueError, DNA, 'atgc', features='duck')
-        assert_raises(ValueError, DNA, 'atgc', features=['duck'])
-        assert_raises(ValueError, Feature, 'yEVenus', 0, 717, 'duck')
-
     def test_rev_comp(self):
         rev = self.dna.reverse_complement()
         for feature, rev_feature in zip(self.dna.features, rev.features):
@@ -252,25 +247,6 @@ class TestFeatures(object):
         new_seq = DNA('ATGC', features=[Feature('A', 0, 0, 'misc_feature')])
         assert_equal(new_seq[0].features[0],
                      Feature('A', 0, 0, 'misc_feature'))
-
-    def test_delitem(self):
-        copy = self.dna.copy()
-        del copy[3]
-
-        coding_feature = Feature('Coding Feature', 20, 39, 'CDS')
-        primer_feature = Feature('Primer Feature', 40, 59, 'primer_bind')
-        promoter_feature = Feature('Promoter Feature', 60, 79, 'promoter')
-        terminator_feature = Feature('Terminator Feature', 80, 99,
-                                     'terminator')
-        rbs_feature = Feature('RBS Feature', 100, 119, 'RBS')
-        origin_feature = Feature('Origin Feature', 120, 139, 'rep_origin')
-        utr3_feature = Feature('3\'UTR Feature', 140, 159, '3\'UTR')
-        origin_feature2 = Feature('Origin Feature', 160, 179, 'rep_origin')
-        input_features_ref = [coding_feature, primer_feature,
-                              promoter_feature, terminator_feature,
-                              rbs_feature, origin_feature, utr3_feature,
-                              origin_feature2]
-        assert_equal(copy.features, input_features_ref)
 
     def test_ne(self):
         '''Test != operator'''
