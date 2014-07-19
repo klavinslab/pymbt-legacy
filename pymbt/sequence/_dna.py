@@ -128,7 +128,11 @@ class DNA(NucleotideSequence):
         :rtype: pymbt.DNA
 
         '''
-        # FIXME: this should fail for some cases of overhangs.
+        if self.top()[-1] == "-" and self.bottom()[0] == "-":
+            raise ValueError("Can't circularize - termini disconnected.")
+        if self.bottom()[-1] == "-" and self.top()[0] == "-":
+            raise ValueError("Can't circularize - termini disconnected.")
+
         copy = self.copy()
         copy.topology = 'circular'
         return copy
@@ -256,7 +260,6 @@ class DNA(NucleotideSequence):
                  negative.
 
         """
-        # FIXME: negative number results in infinite loop?
         if self.topology == "linear" and index != 0:
             raise ValueError("Can't rotate linear DNA")
         if index < 0:
@@ -277,7 +280,6 @@ class DNA(NucleotideSequence):
 
         """
         # REFACTOR: Parts are redundant with .extract()
-        # FIXME: should raise exception if circular
         matched = []
         for feature in self.features:
             if feature.name == featurename:
@@ -336,14 +338,12 @@ class DNA(NucleotideSequence):
         :rtype: pymbt.DNA
 
         '''
-        # TODO: protect .stranded attribute if requiring setter method
         copy = self.copy()
 
         # Do nothing if already single-stranded
         if self.stranded == "ss":
             return copy
 
-        # FIXME: ds breaks?
         copy._bottom = '-' * len(copy)
         for top, bottom in zip(copy.top(), reversed(copy.bottom())):
             if top == bottom == "-":
@@ -475,13 +475,6 @@ class DNA(NucleotideSequence):
         :rtype: pymbt.DNA
 
         '''
-        # FIXME: use super.__delitem__
-        if self.features:
-            self.features = [feature for feature in self.features if index not
-                             in range(feature.start, feature.stop)]
-            for feature in self.features:
-                if feature.start >= index:
-                    feature.move(-1)
         super(DNA, self).__delitem__(index)
         bottom_list = list(self._bottom[::-1])
         del bottom_list[index]
@@ -496,7 +489,6 @@ class DNA(NucleotideSequence):
         :rtype: pymbt.DNA
 
         '''
-        # FIXME: use super.__getitem__
         # Use BaseSequence method to assign top strand and figure out features
         copy = super(DNA, self).__getitem__(key)
         # Fix bottom strand, topology
@@ -550,14 +542,9 @@ class DNA(NucleotideSequence):
         :raises: ValueError if `new_value` is '-'.
 
         '''
-        # FIXME: use super.__setitem__
         new_value = str(new_value)
         if new_value == '-':
             raise ValueError("Can't insert gap - split sequence instead.")
-        if self.features:
-            for i, feature in enumerate(self.features[::-1]):
-                if index in range(feature.start, feature.stop):
-                    self.features.pop(-(i + 1))
         # setitem on top strand
         super(DNA, self).__setitem__(index, new_value)
         # setitem on bottom strand

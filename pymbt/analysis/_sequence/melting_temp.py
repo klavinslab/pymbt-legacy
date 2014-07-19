@@ -86,7 +86,6 @@ def tm(seq, dna_conc=50, salt_conc=50, parameters='cloning'):
     deltas[0] *= 1e3
 
     # Universal gas constant (R)
-    # FIXME: Should use 1.987? Published methods use that instead?
     R = 1.9872
 
     # Supposedly this is what dnamate does, but the output doesn't match theirs

@@ -27,7 +27,7 @@ def read_dna(path):
     :rtype: pymbt.DNA
 
     '''
-    filename, ext = os.path.splitext(path)
+    filename, ext = os.path.splitext(os.path.split(path)[-1])
 
     genbank_exts = ['.gb', '.ape']
     fasta_exts = ['.fasta', '.fa', '.fsa', '.seq']

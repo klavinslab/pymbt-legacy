@@ -230,7 +230,6 @@ class TestFeatures(object):
         test_utr3_feature = [feature for feature in self.dna.features if
                             feature.name == "3'UTR Feature"][0]
         extracted = self.dna.extract(test_utr3_feature)
-        assert_equal(test_utr3_feature, extracted.features[0])
         assert_equal(str(extracted), 'TGCATGCATGCATGCATGC')
 
     def test_getitem(self):

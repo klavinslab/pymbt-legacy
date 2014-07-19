@@ -54,11 +54,11 @@ class Vienna(object):
         mfes = []
         if index is None:
             for seq, dotbracket in zip(self._seqs, self.dotbrackets):
-                mfe.append(run_rnaeval(seq, dotbrackets))
+                mfes.append(run_rnaeval(seq, dotbracket))
         else:
             for seq, dotbracket in zip(self._seqs[index],
                                        self.dotbrackets[index]):
-                mfe.append(run_rnaeval(seq, dotbrackets))
+                mfes.append(run_rnaeval(seq, dotbracket))
         return mfes
 
     def mfe(self, temp=50.0, return_structure=False, index=None,
@@ -74,14 +74,14 @@ class Vienna(object):
         """
         mfes = []
         dotbrackets = []
+
         def run_rnafold(seq, constraint=""):
-            arguments = ["RNAfold", "-T", str(temp), "--noPS"]
-            arguments.append("-C")
+            arguments = ["RNAfold", "-T", str(temp), "-noPS", "-C"]
 
             process = Popen(arguments, stdin=PIPE,
                             stdout=PIPE, stderr=STDOUT)
-            stringtoinput = seq + "\n" + constraint
-            output = process.communicate(input=stringtoinput)[0]
+            rnafold_input = "\n".join([seq, constraint])
+            output = process.communicate(input=rnafold_input)[0]
             lines = output.splitlines()
             mfe = lines[-1].split("(")[-1].split(")")[0].strip()
             dotbracket = lines[-1].split(" ")[0].strip()
@@ -189,7 +189,7 @@ class Vienna(object):
             output = process.communicate(input=stringtoinput)[0]
             lines = output.splitlines()
             mfe = float(lines[-1].split("(")[-1].split(")")[0].strip())
-            # FIXME: make these produce calculated values
+            # TODO: make these produce calculated values
             brackets = []
             bindlocations = []
         elif simtype == "duplex":
@@ -198,11 +198,13 @@ class Vienna(object):
             stringtoinput = tempseqs[0] + "\n" + tempseqs[1]
             output = process.communicate(input=stringtoinput)[0]
             mfe = float(output.split("(")[-1].split(")")[0])
-            brackets = [output.split("&")[0], output.split("&")[1].split(" ")[0]]
-            bindlocations = [[int(i)
-                         for i in output.split("  ")[1].strip().split(",")],
-                        [int(i)
-                         for i in output.split("  ")[3].strip().split(",")]]
+            brackets = [output.split("&")[0],
+                        output.split("&")[1].split(" ")[0]]
+            bind_location_1 = [int(i) for i in
+                               output.split("  ")[1].strip().split(",")]
+            bind_location_2 = [int(i) for i in
+                               output.split("  ")[3].strip().split(",")]
+            bindlocations = [bind_location_1, bind_location_2]
         return [(mfe, brackets, bindlocations)]
 
     def _close(self):
