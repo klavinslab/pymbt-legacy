@@ -18,7 +18,8 @@ config = {
     'version': '0.1',
     'install_requires': ['cython', 'nose', 'numpy', 'biopython'],
     'extras_require': {'plotting': ['matplotlib'],
-                       'documentation': ['sphinx']},
+                       'documentation': ['sphinx'],
+                       'alignment': ['cython']},
     'packages': ['pymbt',
                  'pymbt.analysis',
                  'pymbt.analysis._sequence',
@@ -36,7 +37,7 @@ config = {
     'include_package_data': True,
     'scripts': [],
     'name': 'pymbt',
-    'license': 'GPLv3'
+    'license': 'Apache 2.0'
 }
 
 if cython:

@@ -17,8 +17,8 @@ class DNA(NucleotideSequence):
     def __init__(self, dna, bottom=None, topology='linear', stranded='ds',
                  features=None, run_checks=True, id=None, name=''):
         '''
-        :param seq: Input sequence (DNA).
-        :type seq: str
+        :param dna: Input sequence (DNA).
+        :type dna: str
         :param bottom: Manual input of bottom-strand sequence. Enables both
                        mismatches and initializing ssDNA.
         :type bottom: str
