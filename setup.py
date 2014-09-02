@@ -16,7 +16,7 @@ config = {
     'download_url': 'https://github.com/klavinslab/pymbt.git',
     'author_email': 'nbolten _at_ gmail',
     'version': '0.1',
-    'install_requires': ['cython', 'nose', 'numpy', 'biopython'],
+    'install_requires': ['nose', 'numpy', 'biopython'],
     'extras_require': {'plotting': ['matplotlib'],
                        'documentation': ['sphinx'],
                        'alignment': ['cython']},
