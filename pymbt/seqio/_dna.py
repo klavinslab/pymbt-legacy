@@ -6,6 +6,7 @@ from Bio.Alphabet.IUPAC import ambiguous_dna
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.SeqFeature import SeqFeature, FeatureLocation, ExactPosition
+from Bio.SeqFeature import CompoundLocation
 import pymbt
 import pymbt.constants.genbank
 
@@ -224,10 +225,10 @@ def _seqfeature_to_pymbt(feature):
         # the reordered list also has the final stop point of the feature.
         # FIXME: Getting a deprecation warning about using sub_features
         # instead of feature.location being a CompoundFeatureLocation
-        reordered = sorted(feature.sub_features,
-                           key=lambda feature: feature.location.start)
-        starts = [int(sub.location.start) for sub in reordered]
-        stops = [int(sub.location.end) for sub in reordered]
+        reordered = sorted(feature.location.parts,
+                           key=lambda location: location.start)
+        starts = [int(location.start) for location in reordered]
+        stops = [int(location.end) for location in reordered]
         feature_start = starts.pop(0)
         feature_stop = stops.pop(-1)
         starts = [start - feature_start for start in starts]
@@ -269,7 +270,7 @@ def _pymbt_to_seqfeature(feature):
     """
     bio_strand = 1 if feature.strand == 1 else -1
     ftype = _process_feature_type(feature.feature_type, bio_to_pymbt=False)
-    subfeatures = []
+    sublocations = []
     if feature.gaps:
         # There are gaps. Have to define location_operator and  add subfeatures
         location_operator = "join"
@@ -286,9 +287,8 @@ def _pymbt_to_seqfeature(feature):
             sublocation = FeatureLocation(ExactPosition(start),
                                           ExactPosition(stop),
                                           strand=bio_strand)
-            subfeature = SeqFeature(sublocation, type=ftype,
-                                    location_operator=location_operator)
-            subfeatures.append(subfeature)
+            sublocations.append(sublocation)
+        location = CompoundLocation(sublocations, operator="join")
     else:
         # No gaps, feature is simple
         location_operator = ""
@@ -297,6 +297,5 @@ def _pymbt_to_seqfeature(feature):
                                    strand=bio_strand)
     seqfeature = SeqFeature(location, type=ftype,
                             qualifiers={'label': [feature.name]},
-                            location_operator=location_operator,
-                            sub_features=subfeatures)
+                            location_operator=location_operator)
     return seqfeature

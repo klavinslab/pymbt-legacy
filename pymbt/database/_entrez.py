@@ -11,6 +11,7 @@ import pymbt.sequence
 # TODO: docstring
 # TODO: Figure out why reading in the DNA is so slow and if it can be sped up
 # - MG1655 takes 30-60 seconds to process into memory and pbt.DNA.
+# MG1655 id is "U00096.3"
 def fetch_genome(genome_id):
     """Acquire a genome from Entrez
 
@@ -23,7 +24,7 @@ def fetch_genome(genome_id):
 
     print "Downloading Genome..."
     handle = Entrez.efetch(db="nucleotide", id=str(genome_id), rettype="gb",
-                          retmode="text")
+                           retmode="text")
     print "Genome Downloaded..."
     tmpfile = os.path.join(mkdtemp(), "tmp.gb")
     with open(tmpfile, "w") as f:
