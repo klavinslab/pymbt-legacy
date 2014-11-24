@@ -667,6 +667,16 @@ class Primer(object):
         self.name = name
         self.note = note
 
+    def copy(self):
+        """Generate a Primer copy.
+
+        :returns: A safely-editable copy of the current primer.
+        :rtype: pymbt.DNA
+
+        """
+        return type(self)(self.anneal, self.tm, overhang=self.overhang,
+                          name=self.name, note=self.note)
+
     def primer(self):
         '''Produce full (overhang + annealing sequence) primer sequence.
 
