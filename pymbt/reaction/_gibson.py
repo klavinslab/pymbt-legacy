@@ -190,29 +190,41 @@ def homology_report(seq1, seq2, strand1, strand2, cutoff=0, min_tm=63.0,
     :rtype: list of ints
 
     '''
-    # Go through each other sequence, both forward and revcomp sequences,
-    # and split them into pieces of lengths 1 to n
-    if strand2 == "w":
-        seq2 = seq2.reverse_complement()
+    # Ensure that strand 1 is Watson and strand 2 is Crick
     if strand1 == "c":
         seq1 = seq1.reverse_complement()
+    if strand2 == "w":
+        seq2 = seq2.reverse_complement()
     # Generate all same-length 5' ends of seq1 and 3' ends of seq2 within
     # maximum homology length
-    seq1_chunks = [seq1[-(i + 1):] for i in range(min(len(seq1), max_size))]
-    seq2_chunks = [seq2[:(i + 1)] for i in range(min(len(seq2), max_size))]
+    # TODO: If strings aren't used here, gen_chunks takes forever. Suggests a
+    # need to optimize pymbt.DNA subsetting
+    seq1_str = str(seq1)
+    seq2_str = str(seq2)
+
+    def gen_chunks(s1, s2):
+        chunks1 = [seq1_str[-(i + 1):] for i in range(min(len(seq1_str),
+                                                      max_size))]
+        chunks2 = [seq2_str[:(i + 1)] for i in range(min(len(seq2_str),
+                                                     max_size))]
+        return chunks1, chunks2
+    seq1_chunks, seq2_chunks = gen_chunks(seq1_str, seq2_str)
+#    seq1_chunks = [seq1[-(i + 1):] for i in range(min(len(seq1_str),
+#                                                      max_size))]
+# seq2_chunks = [seq2[:(i + 1)] for i in range(min(len(seq2_str), max_size))]
 
     # Check for exact matches from terminal end to terminal end
     target_matches = []
-    for s1, s2 in zip(seq1_chunks, seq2_chunks):
+    for i, (s1, s2) in enumerate(zip(seq1_chunks, seq2_chunks)):
         s1len = len(s1)
         # Inefficient! (reverse complementing a bunch of times)
         # Don't calculate tm once base tm has been reached.
         # TODO: Go through logic here again and make sure the order of checking
         # makes sense
-        if s1.top() == s2.top():
-            logger.debug("Found Match: {}".format(s1.top()))
+        if s1 == s2:
+            logger.debug("Found Match: {}".format(str(s1)))
             if s1len >= cutoff:
-                tm = pymbt.analysis.tm(s1)
+                tm = pymbt.analysis.tm(seq1[-(i + 1):])
                 logger.debug("Match tm: {} C".format(tm))
                 if tm >= min_tm:
                     target_matches.append(s1len)
