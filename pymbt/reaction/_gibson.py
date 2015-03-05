@@ -1,5 +1,11 @@
 '''Gibson reaction simulation.'''
+import logging
+import warnings
 import pymbt.analysis
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class AmbiguousGibsonError(ValueError):
@@ -122,8 +128,8 @@ def _fuse_last(working_list, homology, tm):
              ValueError if the ends are not compatible.
 
     '''
-    #1. Construct graph on self-self
-    #   (destination, size, strand1, strand2)
+    # 1. Construct graph on self-self
+    #    (destination, size, strand1, strand2)
     pattern = working_list[0]
 
     def graph_strands(strand1, strand2):
@@ -190,6 +196,8 @@ def homology_report(seq1, seq2, strand1, strand2, cutoff=0, min_tm=63.0,
         seq2 = seq2.reverse_complement()
     if strand1 == "c":
         seq1 = seq1.reverse_complement()
+    # Generate all same-length 5' ends of seq1 and 3' ends of seq2 within
+    # maximum homology length
     seq1_chunks = [seq1[-(i + 1):] for i in range(min(len(seq1), max_size))]
     seq2_chunks = [seq2[:(i + 1)] for i in range(min(len(seq2), max_size))]
 
@@ -198,10 +206,19 @@ def homology_report(seq1, seq2, strand1, strand2, cutoff=0, min_tm=63.0,
     for s1, s2 in zip(seq1_chunks, seq2_chunks):
         s1len = len(s1)
         # Inefficient! (reverse complementing a bunch of times)
+        # Don't calculate tm once base tm has been reached.
+        # TODO: Go through logic here again and make sure the order of checking
+        # makes sense
         if s1.top() == s2.top():
+            logger.debug("Found Match: {}".format(s1.top()))
             if s1len >= cutoff:
                 tm = pymbt.analysis.tm(s1)
+                logger.debug("Match tm: {} C".format(tm))
                 if tm >= min_tm:
+                    target_matches.append(s1len)
+                elif tm >= min_tm - 4:
+                    msg = "One overlap had a Tm of {} C.".format(tm)
+                    warnings.warn(msg)
                     target_matches.append(s1len)
 
     target_matches.sort()
