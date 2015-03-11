@@ -189,8 +189,8 @@ class DNA(NucleotideSequence):
         if self.topology == 'linear':
             raise ValueError('Cannot relinearize linear DNA.')
         copy = self.copy()
-        copy = copy[index:] + copy[:index]
         copy.topology = 'linear'
+        copy = copy[index:] + copy[:index]
         return copy
 
     def locate(self, pattern):
@@ -417,7 +417,7 @@ class DNA(NucleotideSequence):
 
         discontinuity = [False, False]
         if len(self) != 0 and len(other) != 0:
-        # If either is empty, let things proceed anyways
+            # If either is empty, let things proceed anyways
             discontinuity[0] = (self._sequence[-1] == '-' and
                                 other._bottom[-1] == '-')
             discontinuity[1] = (self._bottom[0] == '-' and
@@ -490,9 +490,26 @@ class DNA(NucleotideSequence):
 
         '''
         # Use BaseSequence method to assign top strand and figure out features
-        copy = super(DNA, self).__getitem__(key)
-        # Fix bottom strand, topology
-        copy._bottom = copy._bottom[::-1][key][::-1]
+        if isinstance(key, slice):
+            if all([k is None for k in [key.start, key.stop, key.step]]):
+                # It's the copy slice operator ([:])
+                return self.copy()
+            else:
+                # The key is a normal slice
+                copy = super(DNA, self).__getitem__(key)
+
+                # bottom_key = slice(-key.stop if key.stop is not None
+                #                    else None,
+                #                    -key.start if key.start is not None
+                #                    else None,
+                #                    key.step)
+                # copy._bottom = copy._bottom[bottom_key]
+                copy._bottom = copy._bottom[::-1][key][::-1]
+        else:
+            # The key is an integer
+            copy = super(DNA, self).__getitem__(key)
+            copy._bottom = copy._bottom[-key]
+
         copy.topology = 'linear'
 
         return copy

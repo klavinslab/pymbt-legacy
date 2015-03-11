@@ -113,9 +113,12 @@ class BaseSequence(object):
 
         '''
         # Significant performance improvements by skipping alphabet check
-        features_copy = [feature.copy() for feature in self.features]
+        if self.features:
+            features = [feature.copy() for feature in self.features]
+        else:
+            features = []
         return type(self)(self._sequence, self._material,
-                          features=features_copy, run_checks=False)
+                          features=features, run_checks=False)
 
     def endswith(self, seq):
         """Report whether parent sequence ends with a query sequence.
@@ -135,8 +138,9 @@ class BaseSequence(object):
 
         :param feature: Feature object.
         :type feature: pbt.sequence.Feature
-        :param any_char: Turn any gaps in the feature into Ns or Xs and remove all
-                     other features. If False, just extracts start:stop slice.
+        :param any_char: Turn any gaps in the feature into Ns or Xs and remove
+                         all other features. If False, just extracts start:stop
+                         slice.
         :type any_char: bool
         :param remove_subfeatures: Remove all features in the extracted
                                    sequence aside from the input feature.
@@ -293,17 +297,20 @@ class BaseSequence(object):
         copy = self.copy()
         copy._sequence = self._sequence[key]
 
+        # If empty sequence, return empty sequence
+        if not copy._sequence:
+            copy.features = []
+            return copy
+
+        # If sequence has features, update them
+        # FIXME: if there's a non-1 step, should delete all features
         def in_slice(feature):
-            if key.start and feature.start < key.start:
+            if key.start is not None and feature.start < key.start:
                 return False
-            elif key.stop and feature.stop > key.stop:
+            elif key.stop is not None and feature.stop > key.stop:
                 return False
             else:
                 return True
-
-        if not len(copy):
-            copy.features = []
-            return copy
 
         if copy.features:
             if isinstance(key, slice):
@@ -318,10 +325,11 @@ class BaseSequence(object):
                 else:
                     copy.features = []
             else:
-                copy.features = [feature.copy() for feature in self.features if
-                                 feature.start == feature.stop == key]
-                for feature in copy.features:
-                    feature.move(key)
+                copy.features = []
+                for feature in self.features:
+                    if feature.start == feature.stop == key:
+                        copy.features.append(feature.copy())
+                        copy.features[-1].move(key)
         return copy
 
     def __len__(self):
