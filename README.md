@@ -10,6 +10,7 @@ PyMBT: Python molecular biology tools.
 numpy
 cython
 biopython
+intermine
 ```
 
 optional (for plotting Sanger sequencing and structural analysis):

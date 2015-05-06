@@ -1,6 +1,10 @@
 '''PCR reaction(s).'''
 
 
+class AmbiguousPrimingError(Exception):
+    """Primer binds to more than one place on a template."""
+
+
 def pcr(template, primer1, primer2):
     '''Simulate a PCR (no support for ambiguous PCRs).
 
@@ -23,12 +27,23 @@ def pcr(template, primer1, primer2):
     # Find match in top or bottom strands for each primer
     p1_matches = template.locate(primer1.anneal)
     p2_matches = template.locate(primer2.anneal)
+
+    # HEY FIX THIS - should find an ambiguity
+    # Make sure there's no ambiguities
+    p1_bind_number = sum([len(match) for match in p1_matches])
+    p2_bind_number = sum([len(match) for match in p2_matches])
+
+    def msg(location):
+        return "Top strand: {}, Bottom strand: {}".format(location[0],
+                                                          location[1])
+
+    if p1_bind_number > 1:
+        raise AmbiguousPrimingError("Primer 1, {}".format(msg(p1_matches)))
+    if p2_bind_number > 1:
+        raise AmbiguousPrimingError("Primer 2, {}".format(msg(p2_matches)))
+    # Make 'reverse' index useful for slicing
     fwds = p1_matches[0] + p2_matches[0]
     revs = p2_matches[1] + p1_matches[1]
-    # Make sure there's no ambiguities
-    if len(fwds) > 1 or len(revs) > 1:
-        raise Exception('Ambiguous priming detected.')
-    # Make 'reverse' index useful for slicing
     fwd = fwds[0]
     rev = len(template) - revs[0]
     # TODO: circular search will muck things up. If primers are at the very
