@@ -44,7 +44,6 @@ def fetch_yeast_locus_sequence(locus_name, flanking_size=0):
     query.add_constraint("flankingRegions.distance", "=",
                          "{:.1f}kb".format(flanking_size / 1000.),
                          code="C")
-
     # Uncomment and edit the code below to specify your own custom logic:
     query.set_logic("A and B and C")
 
@@ -57,7 +56,7 @@ def fetch_yeast_locus_sequence(locus_name, flanking_size=0):
     # print first_result["flankingRegions.sequence.length"]
     # print first_result["flankingRegions.sequence.residues"]
 
-    seq = pymbt.DNA(first_result["Flankingregions.sequence.residues"])
+    seq = pymbt.DNA(first_result["flankingRegions.sequence.residues"])
     # TODO: add more metadata
 
     return seq
