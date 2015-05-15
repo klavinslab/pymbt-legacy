@@ -29,13 +29,13 @@ class Peptide(BaseSequence):
         return type(self)(self._sequence, run_checks=False)
 
     def extract(self, name, pure=False):
-        return super(Peptide, self).extract(self, name, "X", pure=True)
+        return super(Peptide, self).extract(self, name, 'X', pure=True)
 
     def __contains__(self, query):
-        """Defines `query in sequence` operator.
+        '''Defines `query in sequence` operator.
 
         :param query: query string or DNA sequence
         :type query: str or pymbt.DNA
 
-        """
-        return super(Peptide, self).__contains__(query, "X")
+        '''
+        return super(Peptide, self).__contains__(query, 'X')

@@ -235,8 +235,8 @@ class Sanger(object):
                 # Remove the failed alignment!
                 alignments.pop(i)
         if failed:
-            msg = "The following results fell below the score threshold: "
-            print msg + "{}".format(failed)
+            msg = 'The following results fell below the score threshold: '
+            print msg + '{}'.format(failed)
         # Trim to reference - if reference is shorter than results
         # (e.g. reference is just plasmid insert, results start earlier)
         for i, (reference, result) in enumerate(alignments):

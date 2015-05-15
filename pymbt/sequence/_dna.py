@@ -58,13 +58,13 @@ class DNA(NucleotideSequence):
             if run_checks:
                 self._bottom = process_seq(bottom, 'dna')
                 if len(self._bottom) != len(self._sequence):
-                    msg = "Top and bottom strands are difference lengths."
+                    msg = 'Top and bottom strands are difference lengths.'
                     raise ValueError(msg)
         else:
             self._bottom = ''.join(['-' for x in self._sequence])
             # NOTE: inefficient to assign blanks the rev comp, but cleaner code
             if stranded == 'ds':
-                self._bottom = str(reverse_complement(self._sequence, "dna"))
+                self._bottom = str(reverse_complement(self._sequence, 'dna'))
         # Set id
         self.id = id
         # Set name
@@ -72,15 +72,15 @@ class DNA(NucleotideSequence):
 
     def ape(self, ape_path=None):
         '''Open in ApE.'''
-        cmd = "ApE"
+        cmd = 'ApE'
         if ape_path is None:
             # Check for ApE in PATH
             ape_executables = []
-            for path in os.environ["PATH"].split(os.pathsep):
+            for path in os.environ['PATH'].split(os.pathsep):
                 exepath = os.path.join(path, cmd)
                 ape_executables.append(os.access(exepath, os.X_OK))
             if not any(ape_executables):
-                raise Exception("Ape not in PATH. Use ape_path kwarg.")
+                raise Exception('Ape not in PATH. Use ape_path kwarg.')
         else:
             cmd = ape_path
         # Check whether ApE exists in PATH
@@ -99,12 +99,12 @@ class DNA(NucleotideSequence):
             shutil.rmtree(tmp)
 
     def bottom(self):
-        """Return the raw string of the Crick (bottom) strand.
+        '''Return the raw string of the Crick (bottom) strand.
 
         :returns: The Crick strand.
         :rtype: str
 
-        """
+        '''
         return self._bottom
 
     def copy(self):
@@ -128,17 +128,17 @@ class DNA(NucleotideSequence):
         :rtype: pymbt.DNA
 
         '''
-        if self.top()[-1] == "-" and self.bottom()[0] == "-":
-            raise ValueError("Can't circularize - termini disconnected.")
-        if self.bottom()[-1] == "-" and self.top()[0] == "-":
-            raise ValueError("Can't circularize - termini disconnected.")
+        if self.top()[-1] == '-' and self.bottom()[0] == '-':
+            raise ValueError('Cannot circularize - termini disconnected.')
+        if self.bottom()[-1] == '-' and self.top()[0] == '-':
+            raise ValueError('Cannot circularize - termini disconnected.')
 
         copy = self.copy()
         copy.topology = 'circular'
         return copy
 
     def extract(self, name, remove_subfeatures=False):
-        return super(DNA, self).extract(name, "N",
+        return super(DNA, self).extract(name, 'N',
                                         remove_subfeatures=remove_subfeatures)
 
     def flip(self):
@@ -153,10 +153,10 @@ class DNA(NucleotideSequence):
         return copy
 
     def gc(self):
-        """Find the frequency of G and C in the current sequence."""
+        '''Find the frequency of G and C in the current sequence.'''
 
-        return len([base for base in self if str(base) == "C" or
-                    str(base) == "G"])
+        return len([base for base in self if str(base) == 'C' or
+                    str(base) == 'G'])
 
     def insert(self, sequence, index):
         inserted = super(DNA, self).insert(sequence, index)
@@ -236,21 +236,21 @@ class DNA(NucleotideSequence):
         return [top_starts, bottom_starts]
 
     def mw(self):
-        """Calculate the molecular weight.
+        '''Calculate the molecular weight.
 
         :returns: The molecular weight of the current sequence.
         :rtype: float
 
-        """
+        '''
         counter = collections.Counter((self._sequence + self._bottom).lower())
-        mw_a = counter["a"] * 313.2
-        mw_t = counter["t"] * 304.2
-        mw_g = counter["g"] * 289.2
-        mw_c = counter["c"] * 329.2
+        mw_a = counter['a'] * 313.2
+        mw_t = counter['t'] * 304.2
+        mw_g = counter['g'] * 289.2
+        mw_c = counter['c'] * 329.2
         return mw_a + mw_t + mw_g + mw_c
 
     def rotate(self, index):
-        """Orient DNA to index (only applies to circular DNA).
+        '''Orient DNA to index (only applies to circular DNA).
 
         :param index: DNA position at which to re-zero the DNA.
         :type index: int
@@ -259,16 +259,16 @@ class DNA(NucleotideSequence):
         :raises: ValueError if applied to linear sequence or `index` is
                  negative.
 
-        """
-        if self.topology == "linear" and index != 0:
-            raise ValueError("Can't rotate linear DNA")
+        '''
+        if self.topology == 'linear' and index != 0:
+            raise ValueError('Cannot rotate linear DNA')
         if index < 0:
-            raise ValueError("Rotation index must be positive")
+            raise ValueError('Rotation index must be positive')
         else:
             return (self[index:] + self[0:index]).circularize()
 
     def rotate_by_feature(self, featurename):
-        """Reorient the DNA based on a feature it contains (circular DNA only).
+        '''Reorient the DNA based on a feature it contains (circular DNA only).
 
         :param featurename: A uniquely-named feature.
         :type featurename: str
@@ -278,7 +278,7 @@ class DNA(NucleotideSequence):
         :raises: ValueError if there is no feature of `featurename` or
                  more than one feature matches `featurename`.
 
-        """
+        '''
         # REFACTOR: Parts are redundant with .extract()
         matched = []
         for feature in self.features:
@@ -288,9 +288,9 @@ class DNA(NucleotideSequence):
         if count == 1:
             return self.rotate(matched[0].start)
         elif count > 1:
-            raise ValueError("More than one feature has that name.")
+            raise ValueError('More than one feature has that name.')
         else:
-            raise ValueError("No such feature in the sequence.")
+            raise ValueError('No such feature in the sequence.')
 
     def reverse_complement(self):
         '''Reverse complement the DNA.
@@ -303,8 +303,8 @@ class DNA(NucleotideSequence):
         copy = self.copy()
         # Note: if sequence is double-stranded, swapping strand is basically
         # (but not entirely) the same thing - gaps affect accuracy.
-        copy._sequence = reverse_complement(copy._sequence, "dna")
-        copy._bottom = reverse_complement(copy._bottom, "dna")
+        copy._sequence = reverse_complement(copy._sequence, 'dna')
+        copy._bottom = reverse_complement(copy._bottom, 'dna')
 
         # Fix features (invert)
         for feature in copy.features:
@@ -321,14 +321,14 @@ class DNA(NucleotideSequence):
 
         return copy
 
-    def tm(self, parameters="cloning"):
-        """Find the melting temperature.
+    def tm(self, parameters='cloning'):
+        '''Find the melting temperature.
 
         :param parameters: The tm method to use (cloning, santalucia98,
                        breslauer86)
         :type parameters: str
 
-        """
+        '''
         return pymbt.analysis.tm(self, parameters=parameters)
 
     def to_ss(self):
@@ -341,14 +341,14 @@ class DNA(NucleotideSequence):
         copy = self.copy()
 
         # Do nothing if already single-stranded
-        if self.stranded == "ss":
+        if self.stranded == 'ss':
             return copy
 
         copy._bottom = '-' * len(copy)
         for top, bottom in zip(copy.top(), reversed(copy.bottom())):
-            if top == bottom == "-":
-                raise ValueError("Coercing to single-stranded would " +
-                                 "introduce a double stranded break.")
+            if top == bottom == '-':
+                raise ValueError('Coercing to single-stranded would ' +
+                                 'introduce a double stranded break.')
         copy.stranded = 'ss'
 
         return copy
@@ -363,7 +363,7 @@ class DNA(NucleotideSequence):
         # TODO: protect .stranded attribute if requiring setter method
         copy = self.copy()
         # Do nothing if already set
-        if self.stranded == "ds":
+        if self.stranded == 'ds':
             return copy
 
         # Find strand that's all gaps (if ss this should be the case)
@@ -377,12 +377,12 @@ class DNA(NucleotideSequence):
         return copy
 
     def top(self):
-        """Return the raw string of the Watson (top) strand.
+        '''Return the raw string of the Watson (top) strand.
 
         :returns: The Watson strand.
         :rtype: str
 
-        """
+        '''
         return self._sequence
 
     def transcribe(self):
@@ -410,7 +410,7 @@ class DNA(NucleotideSequence):
             try:
                 other = type(self)(other)
             except AttributeError:
-                raise TypeError("Can't add {} to {}".format(self, other))
+                raise TypeError('Cannot add {} to {}'.format(self, other))
 
         if self.topology == 'circular' or other.topology == 'circular':
             raise Exception('Can only add linear DNA.')
@@ -427,7 +427,7 @@ class DNA(NucleotideSequence):
         rev_discontinuity = discontinuity[1]
 
         if for_discontinuity or rev_discontinuity:
-            msg = "Concatenated DNA would be discontinuous."
+            msg = 'Concatenated DNA would be discontinuous.'
             raise Exception(msg)
 
         if self.stranded == 'ds' or other.stranded == 'ds':
@@ -450,17 +450,17 @@ class DNA(NucleotideSequence):
         return new_instance
 
     def __contains__(self, query):
-        """Defines `query in sequence` operator.
+        '''Defines `query in sequence` operator.
 
         :param query: query string or DNA sequence
         :type query: str or pymbt.DNA
 
-        """
+        '''
         # query in forward sequence
-        if super(DNA, self).__contains__(query, "N"):
+        if super(DNA, self).__contains__(query, 'N'):
             return True
         # query in reverse complement
-        elif super(DNA, self.reverse_complement()).__contains__(query, "N"):
+        elif super(DNA, self.reverse_complement()).__contains__(query, 'N'):
             return True
         # query in neither
         else:
@@ -561,7 +561,7 @@ class DNA(NucleotideSequence):
         '''
         new_value = str(new_value)
         if new_value == '-':
-            raise ValueError("Can't insert gap - split sequence instead.")
+            raise ValueError('Cannot insert gap - split sequence instead.')
         # setitem on top strand
         super(DNA, self).__setitem__(index, new_value)
         # setitem on bottom strand
@@ -658,7 +658,7 @@ class RestrictionSite(object):
 
 class Primer(object):
     '''A DNA primer - ssDNA with tm, anneal, and optional overhang.'''
-    def __init__(self, anneal, tm, overhang=None, name="", note=""):
+    def __init__(self, anneal, tm, overhang=None, name='', note=''):
         '''
         :param anneal: Annealing sequence
         :type anneal: pymbt.DNA
@@ -685,12 +685,12 @@ class Primer(object):
         self.note = note
 
     def copy(self):
-        """Generate a Primer copy.
+        '''Generate a Primer copy.
 
         :returns: A safely-editable copy of the current primer.
         :rtype: pymbt.DNA
 
-        """
+        '''
         return type(self)(self.anneal, self.tm, overhang=self.overhang,
                           name=self.name, note=self.note)
 

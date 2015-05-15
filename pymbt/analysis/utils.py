@@ -19,5 +19,5 @@ def sequence_type(seq):
     elif isinstance(seq, pymbt.Peptide):
         material = 'peptide'
     else:
-        raise ValueError("Input was not a recognized pymbt.sequence object.")
+        raise ValueError('Input was not a recognized pymbt.sequence object.')
     return material

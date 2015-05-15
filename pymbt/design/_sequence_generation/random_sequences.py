@@ -13,7 +13,7 @@ def random_dna(n):
     :rtype: pymbt.DNA
 
     '''
-    return pymbt.DNA("".join([random.choice("ATGC") for i in range(n)]))
+    return pymbt.DNA(''.join([random.choice('ATGC') for i in range(n)]))
 
 
 def random_codons(peptide, frequency_cutoff=0.0, weighted=False, table=None):

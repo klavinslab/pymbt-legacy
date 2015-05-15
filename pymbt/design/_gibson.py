@@ -3,16 +3,16 @@ import pymbt
 
 
 class LengthError(Exception):
-    """If primer would be longer than max length, throw this exception"""
+    '''If primer would be longer than max length, throw this exception'''
     pass
 
 
 class TmError(Exception):
-    """If the assembly overlap would fall below the minimum Tm, throw this."""
+    '''If the assembly overlap would fall below the minimum Tm, throw this.'''
     pass
 
 
-def gibson_primers(dna1, dna2, overlap="mixed", maxlen=80, overlap_tm=65.0,
+def gibson_primers(dna1, dna2, overlap='mixed', maxlen=80, overlap_tm=65.0,
                    insert=None, primer_kwargs={}):
     '''Design Gibson primers given two DNA sequences (connect left to right)
 
@@ -102,7 +102,7 @@ def gibson_primers(dna1, dna2, overlap="mixed", maxlen=80, overlap_tm=65.0,
             overlap = insert[left_trim:]
             # Tm must be above overlap_tm
             if pymbt.analysis.tm(overlap) < overlap_tm:
-                raise TmError("Right primer is too long with this Tm setting.")
+                raise TmError('Right primer is too long with this Tm setting.')
             # Regenerate forward overhang
             fwd_overhang = overlap.to_ss()
             # Regenerate primer with new overhang
@@ -116,7 +116,7 @@ def gibson_primers(dna1, dna2, overlap="mixed", maxlen=80, overlap_tm=65.0,
             overlap = insert[:len(insert) - right_trim]
             # Tm must be above overlap_tm
             if pymbt.analysis.tm(overlap) < overlap_tm:
-                raise TmError("Left primer is too long with this Tm setting.")
+                raise TmError('Left primer is too long with this Tm setting.')
             # Regenerate reverse overhang
             rev_overhang = overlap.reverse_complement().to_ss()
             rev = pymbt.Primer(rev_anneal.primer(), tm=rev_anneal.tm,
@@ -125,7 +125,7 @@ def gibson_primers(dna1, dna2, overlap="mixed", maxlen=80, overlap_tm=65.0,
             right_trim += 1
     # Check primer lengths
     if any([len(primer) > maxlen for primer in (fwd, rev)]):
-        raise LengthError("At least one of the primers is longer than maxlen.")
+        raise LengthError('At least one of the primers is longer than maxlen.')
 
     return rev, fwd
 
@@ -167,11 +167,11 @@ def gibson(seq_list, circular=True, overlaps='mixed', overlap_tm=65,
         overlaps = [overlaps] * n_overlaps
     else:
         if len(overlaps) != n_overlaps:
-            raise ValueError("Incorrect number of 'overlaps' entries.")
+            raise ValueError('Incorrect number of "overlaps" entries.')
         else:
             for overlap in overlaps:
                 if overlap not in ['left', 'right', 'mixed']:
-                    raise ValueError("Invalid 'overlaps' setting.")
+                    raise ValueError('Invalid "overlaps" setting.')
 
     # If here, inputs were good
     # Design primers for linear constructs:
