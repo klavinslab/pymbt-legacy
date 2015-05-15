@@ -2,7 +2,7 @@
 
 import os
 from pymbt import design, reaction, seqio, DNA
-from nose.tools import assert_equal, assert_true
+from nose.tools import assert_equal, assert_true, assert_raises
 
 
 def test_basic():
@@ -25,3 +25,15 @@ def test_over_origin():
     over_origin = reaction.pcr(template, primer1, primer2)
     expected = template[-200:] + template[0:200]
     assert_equal(str(over_origin), str(expected))
+
+
+def test_primer_bind_error():
+    to_amplify = 'atgtctaaaggtgaagaattattcactggtgttgtcccaatgctgctggtattacc' + \
+                 'catggtattgatgaattgtacaaatag'
+    template = DNA(to_amplify)
+    primer1, primer2 = design.primers(template)
+    # Mess up the second primer so it doesn't bind
+    primer2.anneal[0:10] = "AAAAAAAAAA"
+
+    assert_raises(reaction._pcr.PrimerBindError, reaction.pcr,
+                  template, primer1, primer2)
