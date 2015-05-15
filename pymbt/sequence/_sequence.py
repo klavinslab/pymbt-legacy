@@ -190,6 +190,8 @@ class BaseSequence(object):
         :rtype: list of ints
 
         '''
+        if len(pattern) > len(self):
+            raise ValueError('Pattern too long.')
         pattern = str(pattern).upper()
         re_pattern = '(?=' + pattern + ')'
         return [index.start() for index in
@@ -303,7 +305,6 @@ class BaseSequence(object):
             return copy
 
         # If sequence has features, update them
-        # FIXME: if there's a non-1 step, should delete all features
         def in_slice(feature):
             if key.start is not None and feature.start < key.start:
                 return False
@@ -584,9 +585,7 @@ def reverse_complement(sequence, material):
     :param material: dna, rna, or peptide.
     :type material: str
     '''
-    # TODO: put in _sequence module and import
     code = dict(COMPLEMENTS[material])
-    # TODO: see if using reversed() here has a speed cost
     reverse_sequence = sequence[::-1]
     return ''.join([code[base] for base in reverse_sequence])
 
