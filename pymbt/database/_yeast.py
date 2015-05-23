@@ -148,9 +148,9 @@ def get_yeast_gene_location(gene_name):
                    "chrXV": 15,
                    "chrXVI": 16
                    }
-    chromosomes[first_result["chromosome.primaryIdentifier"]]
+    
 
-    return  [int(Roman(first_result["chromosome.primaryIdentifier"][3:])), 
+    return  [chromosomes[first_result["chromosome.primaryIdentifier"]], 
              first_result["chromosomeLocation.start"], 
              first_result["chromosomeLocation.end"], 
              int(first_result["chromosomeLocation.strand"])]
