@@ -148,6 +148,8 @@ def get_yeast_gene_location(gene_name):
                    "chrXV": 15,
                    "chrXVI": 16
                    }
+    first_result = query.rows().next()
+
     
 
     return  [chromosomes[first_result["chromosome.primaryIdentifier"]], 
