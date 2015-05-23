@@ -9,6 +9,7 @@ except ImportError:
     pass
 
 
+
 def fetch_yeast_locus_sequence(locus_name, flanking_size=0):
     '''Acquire a sequence from SGD http://www.yeastgenome.org.
 
@@ -100,3 +101,56 @@ def get_yeast_sequence(chromosome, start, end, reverse_complement=False):
         sequence = ''
 
     return pymbt.DNA(sequence)
+
+def get_yeast_gene_location(gene_name):
+    """Acquire the location of a gene from SGD http://www.yeastgenome.org
+    :param gene_name: Name of the gene.
+    :type gene_name: string
+    :returns location: [int: chromosome, int:biostart, int:bioend, int:strand]
+    :rtype location: list
+    
+    """
+    service = Service("http://yeastmine.yeastgenome.org/yeastmine/service")
+
+    # Get a new query on the class (table) you will be querying:
+    query = service.new_query("Gene")
+    
+    # The view specifies the output columns
+    query.add_view("primaryIdentifier", "secondaryIdentifier", "symbol", 
+                   "name", "organism.shortName", 
+                   "chromosome.primaryIdentifier",
+                   "chromosomeLocation.start", "chromosomeLocation.end",
+                   "chromosomeLocation.strand")
+    
+    # Uncomment and edit the line below (the default) to select a custom sort order:
+    # query.add_sort_order("Gene.primaryIdentifier", "ASC")
+    
+    # You can edit the constraint values below
+    query.add_constraint("organism.shortName", "=", "S. cerevisiae", code = "B")
+    query.add_constraint("Gene", "LOOKUP", gene_name, code = "A")
+    
+    # Uncomment and edit the code below to specify your own custom logic:
+    # query.set_logic("A and B")
+    chromosomes = {"chrI": 1,
+                   "chrII": 2,
+                   "chrIII": 3,
+                   "chrIV": 4,
+                   "chrV": 5,
+                   "chrVI": 6,
+                   "chrVII": 7,
+                   "chrVIII": 8,
+                   "chrIX": 9,
+                   "chrX": 10,
+                   "chrXI": 11,
+                   "chrXII": 12,
+                   "chrXIII": 13,
+                   "chrXIV": 14,
+                   "chrXV": 15,
+                   "chrXVI": 16
+                   }
+    chromosomes[first_result["chromosome.primaryIdentifier"]]
+
+    return  [int(Roman(first_result["chromosome.primaryIdentifier"][3:])), 
+             first_result["chromosomeLocation.start"], 
+             first_result["chromosomeLocation.end"], 
+             int(first_result["chromosomeLocation.strand"])]
