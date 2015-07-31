@@ -4,8 +4,6 @@ import pymbt
 # TODO: Use httplib instead if we only need to do one requests-style function
 try:
     import requests
-    from Bio import SeqIO
-    import os
 
 except ImportError:
     print "requests module could not be imported, fetching sequences will " + \
@@ -233,23 +231,27 @@ def get_yeast_promoter_ypa(gene_name):
     """
     loc = get_yeast_gene_location(gene_name)
     gid = get_gene_id(gene_name)
-    ypa_baseurl = "http://ypa.csbb.ntu.edu.tw"
-    ypa_url = ypa_baseurl + "/do?act=download&nucle=InVitro&right=" + \
-        str(loc[2]) + "&left=" + str(loc[1]) + "&gene=" + str(gid) + \
-        "&chr=" + str(loc[0])
-    with open("temp.fasta", "wb") as handle:
-        response = requests.get(ypa_url, stream=True)
-        if not response.ok:
-            # Something went wrong
-            print "ERROR getting fasta from YPA at "+ypa_url
-            return None
-        for block in response.iter_content(1024):
-            handle.write(block)
+    ypa_baseurl = "http://ypa.csbb.ntu.edu.tw/do"
+    params = {"act": "download",
+              "nucle": "InVitro",
+              "right": str(loc[2]),
+              "left": str(loc[1]),
+              "gene": str(gid),
+              "chr": str(loc[0])}
 
-    handle = open("temp.fasta", "rU")
-    my_records = []
-    for record in SeqIO.parse(handle, "fasta"):
-        my_records.append(record)
-    handle.close()
-    os.remove("temp.fasta")
-    return pymbt.DNA(str(my_records[1].seq))
+    response = requests.get(ypa_baseurl, params=params)
+    text = response.text
+    # FASTA records are just name-sequence pairs split up by > e.g.
+    # >my_dna_name
+    # GACGATA
+    # TODO: most of this is redundant, as we just want the 2nd record
+    record_split = text.split(">")
+    record_split.pop(0)
+    parsed = []
+    for record in record_split:
+        parts = record.split("\n")
+        sequence = pymbt.DNA("".join(parts[1:]))
+        sequence.name = parts[0]
+        parsed.append(sequence)
+
+    return parsed[1]
