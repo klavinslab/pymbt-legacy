@@ -34,7 +34,7 @@ class BaseSequence(object):
             self.features = features
 
     def annotate_from_library(self, library, wipe=True, shortest=6):
-        """Annotate the sequence using the features of another. Ignores
+        '''Annotate the sequence using the features of another. Ignores
         features shorter than 5 bp.
 
         :param library: list of features with a .sequence attribute
@@ -44,7 +44,7 @@ class BaseSequence(object):
         :param shortest: Features shorters than this will be ignored.
         :type shortest: int
 
-        """
+        '''
         copy = self.copy()
         if wipe:
             copy.features = []
@@ -86,7 +86,7 @@ class BaseSequence(object):
         return copy
 
     def annotate_from_other(self, other, wipe=True, shortest=6):
-        """Annotate the sequence using the features of another. Ignores
+        '''Annotate the sequence using the features of another. Ignores
         features shorter than 5.
 
         :param other: Another sequence.
@@ -96,7 +96,7 @@ class BaseSequence(object):
         :param shortest: Features shorters than this will be ignored.
         :type shortest: int
 
-        """
+        '''
         # Generate feature library
         features = [feature.copy() for feature in other.features]
         for feature in features:
@@ -113,18 +113,21 @@ class BaseSequence(object):
 
         '''
         # Significant performance improvements by skipping alphabet check
-        features_copy = [feature.copy() for feature in self.features]
+        if self.features:
+            features = [feature.copy() for feature in self.features]
+        else:
+            features = []
         return type(self)(self._sequence, self._material,
-                          features=features_copy, run_checks=False)
+                          features=features, run_checks=False)
 
     def endswith(self, seq):
-        """Report whether parent sequence ends with a query sequence.
+        '''Report whether parent sequence ends with a query sequence.
 
         :param seq: Query sequence.
         :returns: Boolean of whether the sequence ends with the query.
         :rtype: bool
 
-        """
+        '''
         if self._sequence.endswith(str(seq)):
             return True
         else:
@@ -135,8 +138,9 @@ class BaseSequence(object):
 
         :param feature: Feature object.
         :type feature: pbt.sequence.Feature
-        :param any_char: Turn any gaps in the feature into Ns or Xs and remove all
-                     other features. If False, just extracts start:stop slice.
+        :param any_char: Turn any gaps in the feature into Ns or Xs and remove
+                         all other features. If False, just extracts start:stop
+                         slice.
         :type any_char: bool
         :param remove_subfeatures: Remove all features in the extracted
                                    sequence aside from the input feature.
@@ -166,8 +170,8 @@ class BaseSequence(object):
         :type index: int
 
         '''
-        range_error = IndexError("Invalid index - must be between 1 and " +
-                                 "length - 1.")
+        range_error = IndexError('Invalid index - must be between 1 and ' +
+                                 'length - 1.')
         if index == 0:
             raise range_error
         try:
@@ -186,20 +190,22 @@ class BaseSequence(object):
         :rtype: list of ints
 
         '''
+        if len(pattern) > len(self):
+            raise ValueError('Pattern too long.')
         pattern = str(pattern).upper()
         re_pattern = '(?=' + pattern + ')'
         return [index.start() for index in
                 re.finditer(re_pattern, self._sequence)]
 
     def startswith(self, query):
-        """Report whether parent sequence starts with a query sequence.
+        '''Report whether parent sequence starts with a query sequence.
 
         :param seq: Query sequence.
         :type seq: str or pymbt.DNA
         :returns: Boolean of whether the top strand starts with the query.
         :rtype: bool
 
-        """
+        '''
         if self._sequence.startswith(str(query)):
             return True
         else:
@@ -218,7 +224,7 @@ class BaseSequence(object):
             try:
                 other = type(self)(other)
             except AttributeError:
-                raise TypeError("Can't add {} to {}".format(self, other))
+                raise TypeError('Cannot add {} to {}'.format(self, other))
 
         self_features = [feature.copy() for feature in self.features]
         other_features = [feature.copy() for feature in other.features]
@@ -241,7 +247,7 @@ class BaseSequence(object):
 
         '''
         query_str = str(query).upper()
-        query_str = re.sub(any_char, ".", query_str)
+        query_str = re.sub(any_char, '.', query_str)
         if re.search(query_str, str(self)):
             return True
         else:
@@ -293,17 +299,19 @@ class BaseSequence(object):
         copy = self.copy()
         copy._sequence = self._sequence[key]
 
+        # If empty sequence, return empty sequence
+        if not copy._sequence:
+            copy.features = []
+            return copy
+
+        # If sequence has features, update them
         def in_slice(feature):
-            if key.start and feature.start < key.start:
+            if key.start is not None and feature.start < key.start:
                 return False
-            elif key.stop and feature.stop > key.stop:
+            elif key.stop is not None and feature.stop > key.stop:
                 return False
             else:
                 return True
-
-        if not len(copy):
-            copy.features = []
-            return copy
 
         if copy.features:
             if isinstance(key, slice):
@@ -318,10 +326,11 @@ class BaseSequence(object):
                 else:
                     copy.features = []
             else:
-                copy.features = [feature.copy() for feature in self.features if
-                                 feature.start == feature.stop == key]
-                for feature in copy.features:
-                    feature.move(key)
+                copy.features = []
+                for feature in self.features:
+                    if feature.start == feature.stop == key:
+                        copy.features.append(feature.copy())
+                        copy.features[-1].move(key)
         return copy
 
     def __len__(self):
@@ -345,7 +354,7 @@ class BaseSequence(object):
         '''
         # Input checking
         if n != int(n):
-            raise TypeError("Multiplication by non-integer.")
+            raise TypeError('Multiplication by non-integer.')
         return sum([x for x in _decompose(self, n)])
 
     def __ne__(self, other):
@@ -378,7 +387,7 @@ class BaseSequence(object):
             try:
                 other = type(self)(other)
             except AttributeError:
-                raise TypeError("Can't add {} to {}".format(self, other))
+                raise TypeError('Cannot add {} to {}'.format(self, other))
         return self + other
 
     def __repr__(self):
@@ -425,12 +434,12 @@ class BaseSequence(object):
 class NucleotideSequence(BaseSequence):
     '''Nucleotide sequence class.'''
     def is_palindrome(self):
-        """Report whether sequence is palindromic.
+        '''Report whether sequence is palindromic.
 
         :returns: Boolean stating whether sequence is a palindrome.
         :rtype: bool
 
-        """
+        '''
         return palindrome(self)
 
 
@@ -457,7 +466,7 @@ def _decompose(string, n):
 
 class Feature(object):
     '''Represent A DNA feature - annotate and extract sequence by metadata.'''
-    def __init__(self, name, start, stop, feature_type, gene="", locus_tag="",
+    def __init__(self, name, start, stop, feature_type, gene='', locus_tag='',
                  qualifiers={}, strand=0, gaps=[]):
         '''
         :param name: Name of the feature. Used during feature extraction.
@@ -530,21 +539,21 @@ class Feature(object):
     def __repr__(self):
         '''Represent a feature.'''
         if self.modified:
-            part1 = "(Modified) {} '{}' feature ".format(self.name,
+            part1 = '(Modified) {} "{}" feature '.format(self.name,
                                                          self.feature_type)
         else:
-            part1 = "{} '{}' feature ".format(self.name, self.feature_type)
+            part1 = '{} "{}" feature '.format(self.name, self.feature_type)
         part2 = '({0} to {1}) on strand {2}'.format(self.start, self.stop,
                                                     self.strand)
         return part1 + part2
 
     def __eq__(self, other):
-        """Define equality.
+        '''Define equality.
 
         :returns: Whether the name and feature type are the same.
         :rtype: bool
 
-        """
+        '''
         if self.name != other.name:
             return False
         if self.feature_type != other.feature_type:
@@ -569,16 +578,14 @@ class Feature(object):
 
 
 def reverse_complement(sequence, material):
-    """Reverse complement a sequence.
+    '''Reverse complement a sequence.
 
     :param sequence: Sequence to reverse complement
     :type sequence: str
     :param material: dna, rna, or peptide.
     :type material: str
-    """
-    # TODO: put in _sequence module and import
+    '''
     code = dict(COMPLEMENTS[material])
-    # TODO: see if using reversed() here has a speed cost
     reverse_sequence = sequence[::-1]
     return ''.join([code[base] for base in reverse_sequence])
 
@@ -592,7 +599,7 @@ def check_alphabet(seq, material):
     :type sequence: str
     :returns: Whether the `seq` is a valid string of `material`.
     :rtype: bool
-    :raises: ValueError if `material` isn't \"dna\", \"rna\", or \"peptide\".
+    :raises: ValueError if `material` isn't "dna", "rna", or "peptide".
              ValueError if `seq` contains invalid characters for its
              material type.
 
@@ -602,7 +609,7 @@ def check_alphabet(seq, material):
         alphabet = ALPHABETS[material]
         err_msg = errs[material]
     else:
-        msg = "Input material must be 'dna', 'rna', or 'peptide'."
+        msg = 'Input material must be "dna", "rna", or "peptide".'
         raise ValueError(msg)
     # This is a bottleneck when modifying sequence - hence the run_checks
     # optional parameter in sequence objects..

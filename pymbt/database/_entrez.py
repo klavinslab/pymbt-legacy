@@ -11,23 +11,23 @@ import pymbt.sequence
 # TODO: docstring
 # TODO: Figure out why reading in the DNA is so slow and if it can be sped up
 # - MG1655 takes 30-60 seconds to process into memory and pbt.DNA.
-# MG1655 id is "U00096.3"
+# MG1655 id is 'U00096.3'
 def fetch_genome(genome_id):
-    """Acquire a genome from Entrez
+    '''Acquire a genome from Entrez
 
-    """
+    '''
     # TODO: Can strandedness by found in fetched genome attributes?
     # TODO: skip read/write step?
     # Using a dummy email for now - does this violate NCBI guidelines?
-    email = "loremipsum@gmail.com"
+    email = 'loremipsum@gmail.com'
     Entrez.email = email
 
-    print "Downloading Genome..."
-    handle = Entrez.efetch(db="nucleotide", id=str(genome_id), rettype="gb",
-                           retmode="text")
-    print "Genome Downloaded..."
-    tmpfile = os.path.join(mkdtemp(), "tmp.gb")
-    with open(tmpfile, "w") as f:
+    print 'Downloading Genome...'
+    handle = Entrez.efetch(db='nucleotide', id=str(genome_id), rettype='gb',
+                           retmode='text')
+    print 'Genome Downloaded...'
+    tmpfile = os.path.join(mkdtemp(), 'tmp.gb')
+    with open(tmpfile, 'w') as f:
         f.write(handle.read())
     genome = pymbt.seqio.read_dna(tmpfile)
 

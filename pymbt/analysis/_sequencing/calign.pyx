@@ -1,4 +1,4 @@
-"""
+'''
 IMPORTANT: Most of the code below comes from the 'align' package written by
 Brent Pedersen and Marcin Cieslik (github.com/brentp/align) under the MIT
 license, HOWEVER it has been modified in pymbt, which falls under the
@@ -29,7 +29,7 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE."""
+THE SOFTWARE.'''
 
 import numpy as np
 cimport numpy as np
@@ -39,7 +39,7 @@ import sys
 
 
 # Access to the Python/C API
-cdef extern from "Python.h":
+cdef extern from 'Python.h':
     ctypedef void PyObject
     PyObject *PyString_FromStringAndSize(char *, size_t)
     int _PyString_Resize(PyObject **, size_t)
@@ -53,7 +53,7 @@ ctypedef np.float32_t DTYPE_FLOAT
 
 
 cdef inline DTYPE_FLOAT max3(DTYPE_FLOAT a, DTYPE_FLOAT b, DTYPE_FLOAT c):
-    """Find largest of 3 floats. Much faster than using built-in max.
+    '''Find largest of 3 floats. Much faster than using built-in max.
 
     :param a: First number.
     :type a: DTYPE_FLOAT
@@ -62,26 +62,26 @@ cdef inline DTYPE_FLOAT max3(DTYPE_FLOAT a, DTYPE_FLOAT b, DTYPE_FLOAT c):
     :param c: Third number.
     :type c: DTYPE_FLOAT
 
-    """
+    '''
     if c > b:
         return c if c > a else a
     return b if b > a else a
 
 
 cdef inline DTYPE_FLOAT max2(DTYPE_FLOAT a, DTYPE_FLOAT b):
-    """Find largest of 2 floats. Much faster than using built-in max and max3.
+    '''Find largest of 2 floats. Much faster than using built-in max and max3.
 
     :param a: First number.
     :type a: DTYPE_FLOAT
     :param b: Second number.
     :type b: DTYPE_FLOAT
 
-    """
+    '''
     return b if b > a else a
 
 
 cdef object read_matrix(path):
-    """Read in matrix in NCBI format and put into numpy array. Score for e.g.
+    '''Read in matrix in NCBI format and put into numpy array. Score for e.g.
     a 'C' changing to an 'A' is stored as matrix[ord('C'), ord('A')]. As such,
     the score is a direct array lookup from each pair in the alignment, making
     score calculation very fast.
@@ -89,16 +89,16 @@ cdef object read_matrix(path):
     :param path: Path to the NCBI format matrix.
     :type path: str.
 
-    """
+    '''
     cdef np.ndarray[DTYPE_INT, ndim=2] matrix
     cdef size_t i, matrix_row = 0
     cdef int v, mat_size
 
     if not os.path.exists(path):
-        if "/" in path:
-            raise Exception("path for matrix {} doest not exist".format(path))
+        if '/' in path:
+            raise Exception('path for matrix {} doest not exist'.format(path))
         cur_path = os.path.abspath(os.path.join(os.path.dirname(__file__)))
-        fh = open(os.path.join(cur_path, "data", path))
+        fh = open(os.path.join(cur_path, 'data', path))
     else:
         fh = open(path)
 
@@ -131,25 +131,25 @@ cdef object read_matrix(path):
 
 
 def max_index(array):
-    """Locate the index of the largest value in the array. If there are
+    '''Locate the index of the largest value in the array. If there are
     multiple, finds the earliest one in the row-flattened array.
 
     :param array: Any array.
     :type array: numpy.array
 
-    """
+    '''
     return np.unravel_index(array.argmax(), array.shape)
 
 
 def aligner(_seqj, _seqi, \
             DTYPE_FLOAT gap_open=-7, DTYPE_FLOAT gap_extend=-7, DTYPE_FLOAT gap_double=-7,\
-            method="global", matrix="DNA_simple"):
-    """Calculates the alignment of two sequences. The supported 'methods' are
-    'global' for a global Needleman-Wunsh algorithm, 'local' for a local
-    Smith-Waterman alignment, 'global_cfe' for a global alignment with
-    cost-free ends and 'glocal' for an alignment which is 'global' only with
-    respect to the shorter sequence, this is also known as a 'semi-global'
-    alignment.' Returns the aligned (sub)sequences as character arrays.
+            method='global', matrix='DNA_simple'):
+    '''Calculates the alignment of two sequences. The global method uses
+    a global Needleman-Wunsh algorithm, local does a a local
+    Smith-Waterman alignment, global_cfe does a global alignment with
+    cost-free ends and glocal does an alignment which is global only with
+    respect to the shorter sequence, also known as a semi-global
+    alignment. Returns the aligned (sub)sequences as character arrays.
 
     Gotoh, O. (1982). J. Mol. Biol. 162, 705-708.
     Needleman, S. & Wunsch, C. (1970). J. Mol. Biol. 48(3), 443-53.
@@ -173,7 +173,7 @@ def aligner(_seqj, _seqi, \
                    "DNA_simple".
     :type matrix: str
 
-    """
+    '''
     cdef int NONE = 0,  LEFT = 1, UP = 2,  DIAG = 3
     cdef bint flip = 0
     cdef char* seqj = _seqj
@@ -182,19 +182,19 @@ def aligner(_seqj, _seqi, \
 
     cdef int imethod
 
-    if method == "global":
+    if method == 'global':
         imethod = 0
-    elif method == "local":
+    elif method == 'local':
         imethod = 1
-    elif method == "glocal":
+    elif method == 'glocal':
         imethod = 2
-    elif method == "global_cfe":
+    elif method == 'global_cfe':
         imethod = 3
 
     cdef size_t max_j = strlen(seqj)
     cdef size_t max_i = strlen(seqi)
     if max_i == max_j == 0:
-        return "", ""
+        return '', ''
 
     if max_j > max_i:
         flip = 1
@@ -206,8 +206,8 @@ def aligner(_seqj, _seqi, \
     cdef char ci, cj
     cdef PyObject *ai, *aj
 
-    assert gap_extend <= 0, "gap_extend penalty must be <= 0"
-    assert gap_open <= 0, "gap_open must be <= 0"
+    assert gap_extend <= 0, 'gap_extend penalty must be <= 0'
+    assert gap_open <= 0, 'gap_open must be <= 0'
 
     cdef np.ndarray[DTYPE_FLOAT, ndim=2] agap_i = np.empty((max_i + 1, max_j + 1), dtype=np.float32)
     cdef np.ndarray[DTYPE_FLOAT, ndim=2] agap_j = np.empty((max_i + 1, max_j + 1), dtype=np.float32)
@@ -221,7 +221,6 @@ def aligner(_seqj, _seqi, \
 
 
     # START HERE:
-    #cdef int imethod = {"global": 0, "local": 1, "glocal": 2, "global_cfe": 3}[method]
     if imethod == 0:
         pointer[0, 1:] = LEFT
         pointer[1:, 0] = UP
@@ -255,10 +254,7 @@ def aligner(_seqj, _seqi, \
             max_score = max3(diag_score, up_score, left_score)
 
             score[i, j] = max_score
-            #score[i, j] = max(0, max_score) if method == 'local' else max_score
-            #score[i, j] = max2(0, max_score) if method == 'local' else max_score
 
-            #cdef int imethod = {"global": 0, "local": 1, "glocal": 2, "global_cfe": 3}[method]
             # global
             if max_score == up_score:
                 pointer[i,j] = UP
@@ -301,10 +297,10 @@ def aligner(_seqj, _seqi, \
         elif p == LEFT:
             j -= 1
             align_j[align_counter] = seqj[j]
-            align_i[align_counter] = c"-"
+            align_i[align_counter] = c'-'
         elif p == UP:
             i -= 1
-            align_j[align_counter] = c"-"
+            align_j[align_counter] = c'-'
             align_i[align_counter] = seqi[i]
         else:
             raise Exception('wtf!:pointer: %i', p)
@@ -321,7 +317,7 @@ def aligner(_seqj, _seqi, \
 
 
 def score_alignment(a, b, int gap_open, int gap_extend, matrix):
-    """Calculate the alignment score from two aligned sequences.
+    '''Calculate the alignment score from two aligned sequences.
 
     :param a: The first aligned sequence.
     :type a: str
@@ -331,22 +327,22 @@ def score_alignment(a, b, int gap_open, int gap_extend, matrix):
     :type gap_open: int
     :param gap_extend: The cost of extending an open gap (negative number).
     :type gap_extend: int.
-    :param matrix: Scoring matrix. Only option for now is "DNA_simple".
+    :param matrix: Scoring matrix. Only option for now is DNA_simple.
     :type matrix: str
 
-    """
+    '''
     cdef char *al = a
     cdef char *bl = b
     cdef size_t l = strlen(al), i
     cdef int score = 0, this_score
-    assert strlen(bl) == l, "Alignment lengths must be the same"
+    assert strlen(bl) == l, 'Alignment lengths must be the same'
     cdef np.ndarray[DTYPE_INT, ndim=2] mat
     mat = read_matrix(matrix)
 
     cdef bint gap_started = 0
 
     for i in range(l):
-        if al[i] == c"-" or bl[i] == c"-":
+        if al[i] == c'-' or bl[i] == c'-':
             score += gap_extend if gap_started else gap_open
             gap_started = 1
         else:

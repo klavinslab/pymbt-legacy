@@ -28,11 +28,11 @@ class Rebase(object):
             self._process_file()
         except urllib2.HTTPError, e:
             print 'HTTP Error: {} {}'.format(e.code, url)
-            print "Falling back on default enzyme list"
+            print 'Falling back on default enzyme list'
             self._enzyme_dict = pymbt.constants.fallback_enzymes
         except urllib2.URLError, e:
             print 'URL Error: {} {}'.format(e.reason, url)
-            print "Falling back on default enzyme list"
+            print 'Falling back on default enzyme list'
             self._enzyme_dict = pymbt.constants.fallback_enzymes
         # Process into RestrictionSite objects? (depends on speed)
         print 'Processing into RestrictionSite instances.'

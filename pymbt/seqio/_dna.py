@@ -45,7 +45,7 @@ def read_dna(path):
 
     seq = SeqIO.read(path, file_format)
     dna = pymbt.DNA(str(seq.seq))
-    if seq.name == ".":
+    if seq.name == '.':
         dna.name = filename
     else:
         dna.name = seq.name
@@ -59,12 +59,12 @@ def read_dna(path):
     dna.features = sorted(dna.features, key=lambda feature: feature.start)
     # Used to use data_file_division, but it's inconsistent (not always the
     # molecule type)
-    dna.topology = "linear"
+    dna.topology = 'linear'
     with open(path) as f:
         first_line = f.read().split()
         for word in first_line:
-            if word == "circular":
-                dna.topology = "circular"
+            if word == 'circular':
+                dna.topology = 'circular'
 
     return dna
 
@@ -115,21 +115,21 @@ def write_dna(dna, path):
     for feature in dna.features:
         features.append(_pymbt_to_seqfeature(feature))
     # Biopython doesn't like 'None' here
-    bio_id = dna.id if dna.id else ""
+    bio_id = dna.id if dna.id else ''
     # Maximum length of name is 16
     seq = SeqRecord(Seq(str(dna), alphabet=ambiguous_dna), id=bio_id,
                     name=dna.name[0:16], features=features,
                     description=dna.name)
     seq.annotations['data_file_division'] = dna.topology
 
-    if filetype == "genbank":
-        SeqIO.write(seq, path, "genbank")
-    elif filetype == "fasta":
-        SeqIO.write(seq, path, "fasta")
+    if filetype == 'genbank':
+        SeqIO.write(seq, path, 'genbank')
+    elif filetype == 'fasta':
+        SeqIO.write(seq, path, 'fasta')
 
 
 def write_primers(primer_list, path, names=None, notes=None):
-    """Write a list of primers out to a csv file. The first three columns are
+    '''Write a list of primers out to a csv file. The first three columns are
     compatible with the current IDT order form (name, sequence, notes). By
     default there are no notes, which is an optional parameter.
 
@@ -144,25 +144,25 @@ def write_primers(primer_list, path, names=None, notes=None):
                   the same length as the primer_list.
     :type notes: str list
 
-    """
+    '''
     # Check for notes and names having the right length, apply them to primers
     if names is not None:
         if len(names) != len(primer_list):
-            names_msg = "Mismatch in number of notes and primers."
+            names_msg = 'Mismatch in number of notes and primers.'
             raise PrimerAnnotationError(names_msg)
         for i, name in enumerate(names):
             primer_list[i].name = name
     if notes is not None:
         if len(notes) != len(primer_list):
-            notes_msg = "Mismatch in number of notes and primers."
+            notes_msg = 'Mismatch in number of notes and primers.'
             raise PrimerAnnotationError(notes_msg)
         for i, note in enumerate(notes):
             primer_list[i].note = note
 
     # Write to csv
-    with open(path, "w") as csv_file:
+    with open(path, 'w') as csv_file:
         writer = csv.writer(csv_file)
-        writer.writerow(["name", "sequence", "notes"])
+        writer.writerow(['name', 'sequence', 'notes'])
         for primer in primer_list:
             string_rep = str(primer.overhang).lower() + str(primer.anneal)
             writer.writerow([primer.name, string_rep, primer.note])
@@ -198,25 +198,25 @@ def _process_feature_type(feature_type, bio_to_pymbt=True):
 
 
 def _seqfeature_to_pymbt(feature):
-    """Convert a Biopython SeqFeature to a pymbt.Feature.
+    '''Convert a Biopython SeqFeature to a pymbt.Feature.
 
     :param feature: Biopython SeqFeature
     :type feature: Bio.SeqFeature
 
-    """
+    '''
     # Some genomic sequences don't have a label attribute
     # TODO: handle genomic cases differently than others. Some features lack
     # a label but should still be incorporated somehow.
     qualifiers = feature.qualifiers
-    if "label" in qualifiers:
+    if 'label' in qualifiers:
         feature_name = qualifiers['label'][0]
-    elif "locus_tag" in qualifiers:
-        feature_name = qualifiers["locus_tag"][0]
+    elif 'locus_tag' in qualifiers:
+        feature_name = qualifiers['locus_tag'][0]
     else:
-        raise FeatureNameError("Unrecognized feature name")
+        raise FeatureNameError('Unrecognized feature name')
     # Features with gaps are special, require looking at subfeatures
     # Assumption: subfeatures are never more than one level deep
-    if feature.location_operator == "join":
+    if feature.location_operator == 'join':
         # Feature has gaps. Have to figure out start/stop from subfeatures,
         # calculate gap indices. A nested feature model may be required
         # eventually.
@@ -244,12 +244,12 @@ def _seqfeature_to_pymbt(feature):
         feature_strand = 1
     else:
         feature_strand = 0
-    if "gene" in qualifiers:
-        gene = qualifiers["gene"]
+    if 'gene' in qualifiers:
+        gene = qualifiers['gene']
     else:
         gene = []
-    if "locus_tag" in qualifiers:
-        locus_tag = qualifiers["locus_tag"]
+    if 'locus_tag' in qualifiers:
+        locus_tag = qualifiers['locus_tag']
     else:
         locus_tag = []
     pymbt_feature = pymbt.Feature(feature_name, feature_start,
@@ -262,19 +262,19 @@ def _seqfeature_to_pymbt(feature):
 
 
 def _pymbt_to_seqfeature(feature):
-    """Convert a pymbt.Feature to a Biopython SeqFeature.
+    '''Convert a pymbt.Feature to a Biopython SeqFeature.
 
     :param feature: pymbt Feature.
     :type feature: pymbt.Feature
 
-    """
+    '''
     bio_strand = 1 if feature.strand == 1 else -1
     ftype = _process_feature_type(feature.feature_type, bio_to_pymbt=False)
     sublocations = []
     if feature.gaps:
         # There are gaps. Have to define location_operator and  add subfeatures
-        location_operator = "join"
-        # Feature location means nothing for "join" sequences?
+        location_operator = 'join'
+        # Feature location means nothing for 'join' sequences?
         # TODO: verify
         location = FeatureLocation(ExactPosition(0), ExactPosition(1),
                                    strand=bio_strand)
@@ -288,10 +288,10 @@ def _pymbt_to_seqfeature(feature):
                                           ExactPosition(stop),
                                           strand=bio_strand)
             sublocations.append(sublocation)
-        location = CompoundLocation(sublocations, operator="join")
+        location = CompoundLocation(sublocations, operator='join')
     else:
         # No gaps, feature is simple
-        location_operator = ""
+        location_operator = ''
         location = FeatureLocation(ExactPosition(feature.start),
                                    ExactPosition(feature.stop),
                                    strand=bio_strand)

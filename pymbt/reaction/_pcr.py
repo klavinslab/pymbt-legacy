@@ -5,6 +5,10 @@ class AmbiguousPrimingError(Exception):
     """Primer binds to more than one place on a template."""
 
 
+class PrimerBindError(Exception):
+    """Primer did not bind correctly."""
+
+
 def pcr(template, primer1, primer2):
     '''Simulate a PCR (no support for ambiguous PCRs).
 
@@ -30,17 +34,24 @@ def pcr(template, primer1, primer2):
 
     # HEY FIX THIS - should find an ambiguity
     # Make sure there's no ambiguities
-    p1_bind_number = sum([len(match) for match in p1_matches])
-    p2_bind_number = sum([len(match) for match in p2_matches])
+    p1_bind = sum([len(match) for match in p1_matches])
+    p2_bind = sum([len(match) for match in p2_matches])
 
     def msg(location):
         return "Top strand: {}, Bottom strand: {}".format(location[0],
                                                           location[1])
 
-    if p1_bind_number > 1:
+    if p1_bind > 1:
         raise AmbiguousPrimingError("Primer 1, {}".format(msg(p1_matches)))
-    if p2_bind_number > 1:
+    if p2_bind > 1:
         raise AmbiguousPrimingError("Primer 2, {}".format(msg(p2_matches)))
+    if not p1_bind and not p2_bind:
+        raise PrimerBindError("Neither primer binds the template")
+    if not p1_bind:
+        raise PrimerBindError("Primer 1 does not bind the template")
+    if not p2_bind:
+        raise PrimerBindError("Primer 2 does not bind the template")
+
     # Make 'reverse' index useful for slicing
     fwds = p1_matches[0] + p2_matches[0]
     revs = p2_matches[1] + p1_matches[1]

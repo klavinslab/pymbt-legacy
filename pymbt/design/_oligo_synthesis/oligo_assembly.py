@@ -92,7 +92,7 @@ class OligoAssembly(object):
             oligo_n_met = False
             above_min_len = length_max > length_range[0]
             if oligo_n_met or not above_min_len:
-                raise Exception("Failed to design assembly.")
+                raise Exception('Failed to design assembly.')
             while not oligo_n_met and above_min_len:
                 # Starting with low range and going up doesnt work for longer
                 # sequence (overlaps become longer than 80)
@@ -204,7 +204,7 @@ class OligoAssembly(object):
     def __repr__(self):
         '''Representation of an OligoAssembly object.'''
         if self._has_run:
-            str1 = "An OligoAssembly consisting of "
+            str1 = 'An OligoAssembly consisting of '
             str2 = str(len(self.oligos)) + ' oligos.'
             return str1 + str2
         else:
@@ -427,5 +427,5 @@ def _adjust_overlap(positions_list, index, direction):
     elif direction == 'right':
         positions_list[index] += 1
     else:
-        raise ValueError('direction must be \'left\' or \'right\'.')
+        raise ValueError('direction must be "left" or "right".')
     return positions_list

@@ -41,7 +41,7 @@ class RNA(NucleotideSequence):
         return new_instance
 
     def extract(self, name, remove_subfeatures=False):
-        return super(RNA, self).extract(self, name, "N",
+        return super(RNA, self).extract(self, name, 'N',
                                         remove_subfeatures=remove_subfeatures)
 
     def reverse_transcribe(self):
@@ -63,10 +63,10 @@ class RNA(NucleotideSequence):
         return pymbt.reaction.translate(self)
 
     def __contains__(self, query):
-        """Defines `query in sequence` operator.
+        '''Defines `query in sequence` operator.
 
         :param query: query string or DNA sequence
         :type query: str or pymbt.DNA
 
-        """
-        return super(RNA, self).__contains__(query, "N")
+        '''
+        return super(RNA, self).__contains__(query, 'N')

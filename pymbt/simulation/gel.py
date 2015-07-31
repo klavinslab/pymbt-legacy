@@ -21,7 +21,7 @@ class Band(object):
         self.mass = mass
 
     def __repr__(self):
-        return "A {} mg, {} bp band.".format(self.mass, self.length)
+        return 'A {} mg, {} bp band.'.format(self.mass, self.length)
 
 
 class Column(object):
@@ -40,10 +40,10 @@ class Column(object):
 
     def __repr__(self):
         if self.name is not None:
-            return "{}: A column of {} bands.".format(self.name,
+            return '{}: A column of {} bands.'.format(self.name,
                                                       len(self.bands))
         else:
-            return "A column of {} bands.".format(len(self.bands))
+            return 'A column of {} bands.'.format(len(self.bands))
 
 
 _neb_1kb_lengths = [10002, 8001, 6001, 5001, 4001, 3001, 2000, 1500, 1000, 517,
@@ -77,10 +77,10 @@ class Gel(object):
             for j, band in enumerate(column.bands):
                 if band.mass is not None:
                     alpha = band.mass / 100.0
-                    color = "black"
+                    color = 'black'
                 else:
                     alpha = 1.0
-                    color = "blue"
+                    color = 'blue'
                 sub1.broken_barh([(i + 0.25, 0.5)],
                                  (band.length, 60), alpha=alpha,
                                  facecolors=color, edgecolors='none')
